@@ -40,8 +40,7 @@ challenges_list = [
 # -------------------- HOME --------------------
 @app.route("/")
 def home_page():
-    return "Site is working 🚀"
-    return render_template("home_page.html")
+    return render_template("home_page.html", name = None, role = None)
 
 # -------------------- LOGIN --------------------
 @app.route("/login_page")
