@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Eco Quiz Game</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --green: #27ae60;
+  --dark-green: #1a7a42;
+  --light-green: #a8e6b8;
+  --teal: #16a085;
+  --blue: #2980b9;
+  --card-bg: rgba(255,255,255,0.96);
+  --text: #1e2d24;
+  --muted: #6b8f71;
+  --correct: #27ae60;
+  --wrong: #e74c3c;
+  --radius: 18px;
+  --shadow: 0 8px 32px rgba(0,0,0,0.13);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Nunito', sans-serif;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1a7a42 0%, #27ae60 40%, #16a085 70%, #2980b9 100%);
+  background-size: 400% 400%;
+  animation: bgShift 14s ease infinite;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  overflow-x: hidden;
+}
+@keyframes bgShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.leaf {
+  position: fixed;
+  font-size: 22px;
+  opacity: 0.18;
+  animation: floatLeaf linear infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+@keyframes floatLeaf {
+  0%   { transform: translateY(110vh) rotate(0deg); opacity: 0; }
+  10%  { opacity: 0.18; }
+  90%  { opacity: 0.18; }
+  100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+}
+.back-btn {
+  position: fixed;
+  top: 14px;
+  left: 14px;
+  background: rgba(255,255,255,0.22);
+  backdrop-filter: blur(8px);
+  border: 2px solid rgba(255,255,255,0.5);
+  color: #fff;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 800;
+  font-size: 16px;
+  padding: 7px 16px 7px 12px;
+  border-radius: 50px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  z-index: 999;
+  transition: background 0.2s, transform 0.15s;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.18);
+}
+.back-btn:hover { background: rgba(255,255,255,0.38); transform: scale(1.05); }
+.back-btn svg { width: 18px; height: 18px; fill: none; stroke: #fff; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.card {
+  position: relative;
+  background: var(--card-bg);
+  border-radius: 26px;
+  width: 100%;
+  max-width: 620px;
+  box-shadow: var(--shadow), 0 0 0 1px rgba(255,255,255,0.3);
+  padding: 30px 28px 24px;
+  z-index: 10;
+  animation: cardIn 0.35s cubic-bezier(.22,1,.36,1);
+}
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(28px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.menu-title {
+  font-size: clamp(22px, 5vw, 32px);
+  font-weight: 900;
+  color: var(--dark-green);
+  margin-bottom: 4px;
+}
+.menu-sub {
+  color: var(--muted);
+  font-size: 14px;
+  margin-bottom: 22px;
+  font-weight: 600;
+}
+.section-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin-top: 8px;
+}
+.section-btn {
+  background: linear-gradient(135deg, var(--green), var(--teal));
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  padding: 18px 12px;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 800;
+  font-size: 15px;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  box-shadow: 0 4px 14px rgba(39,174,96,0.28);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.section-btn span { font-size: 30px; }
+.section-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 22px rgba(39,174,96,0.38); }
+.progress-wrap {
+  background: #e0f0e5;
+  border-radius: 10px;
+  height: 8px;
+  margin-bottom: 18px;
+  overflow: hidden;
+}
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--green), var(--teal));
+  border-radius: 10px;
+  transition: width 0.4s ease;
+}
+.quiz-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.q-type-badge {
+  display: inline-block;
+  background: linear-gradient(90deg, var(--teal), var(--blue));
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 3px 11px;
+  border-radius: 50px;
+  margin-bottom: 12px;
+}
+.q-text {
+  font-size: clamp(15px, 3.5vw, 19px);
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 18px;
+  line-height: 1.45;
+}
+
+/* SPOT THE PROBLEM — emoji scene box, no text description */
+.spot-scene {
+  background: linear-gradient(135deg, #fff8e1, #fce4ec);
+  border: 2.5px dashed #e67e22;
+  border-radius: 18px;
+  padding: 16px 12px 12px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+.spot-scene .scene-emoji {
+  font-size: clamp(38px, 11vw, 64px);
+  display: block;
+  line-height: 1.3;
+  margin-bottom: 6px;
+  letter-spacing: 4px;
+}
+.spot-scene .scene-label {
+  font-size: 11px;
+  font-weight: 800;
+  color: #e67e22;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+.opts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.opt-btn {
+  background: #f0f9f2;
+  border: 2px solid #c8e6d0;
+  color: var(--text);
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  font-size: clamp(13px, 3vw, 15px);
+  padding: 13px 10px;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+  line-height: 1.3;
+}
+.opt-btn:hover:not(:disabled) { background: #d4edda; border-color: var(--green); transform: scale(1.02); }
+.opt-btn.correct { background: #d4edda !important; border-color: var(--correct) !important; color: var(--dark-green) !important; }
+.opt-btn.wrong   { background: #fde8e8 !important; border-color: var(--wrong) !important; color: #c0392b !important; }
+.opt-btn:disabled { cursor: default; }
+.tf-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.tf-btn {
+  padding: 20px 10px;
+  border-radius: 16px;
+  border: 2.5px solid;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 800;
+  font-size: 16px;
+  cursor: pointer;
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+.tf-true  { background: #e8f8f0; border-color: var(--green); color: var(--dark-green); }
+.tf-false { background: #fef0ee; border-color: #e74c3c; color: #c0392b; }
+.tf-btn:hover:not(:disabled) { transform: scale(1.04); box-shadow: 0 4px 14px rgba(0,0,0,0.1); }
+.tf-btn.correct { background: #d4edda !important; border-color: var(--correct) !important; }
+.tf-btn.wrong   { background: #fde8e8 !important; border-color: var(--wrong) !important; }
+.tf-btn:disabled { cursor: default; }
+.match-container { width: 100%; }
+.match-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.match-left, .match-right { display: flex; flex-direction: column; gap: 8px; }
+.match-item {
+  background: #f0f9f2;
+  border: 2px solid #c8e6d0;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-weight: 700;
+  font-size: clamp(11px, 2.5vw, 13px);
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 46px;
+}
+.match-item .num {
+  background: var(--green);
+  color: #fff;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 900;
+}
+.match-right .match-item { background: #eaf4fb; border-color: #a8d4ef; cursor: pointer; transition: background 0.15s; }
+.match-right .match-item:hover { background: #cce5f6; }
+.correct-match { background: #d4edda !important; border-color: var(--correct) !important; }
+.wrong-match   { background: #fde8e8 !important; border-color: var(--wrong) !important; }
+.match-instructions { font-size: 12px; color: var(--muted); font-weight: 700; margin-bottom: 10px; text-align: center; }
+.submit-btn {
+  width: 100%;
+  padding: 13px;
+  background: linear-gradient(90deg, var(--green), var(--teal));
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 800;
+  font-size: 15px;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: transform 0.12s, box-shadow 0.12s;
+  box-shadow: 0 3px 12px rgba(39,174,96,0.28);
+}
+.submit-btn:hover:not(:disabled) { transform: translateY(-2px); }
+.submit-btn:disabled { opacity: 0.4; cursor: default; }
+.feedback {
+  margin-top: 14px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 14px;
+  display: none;
+  align-items: center;
+  gap: 8px;
+}
+.feedback.show { display: flex; }
+.correct-fb { background: #d4edda; color: #1a7a42; border: 1.5px solid #a8e6b8; }
+.wrong-fb   { background: #fde8e8; color: #c0392b; border: 1.5px solid #f5c6c6; }
+.result-emoji { font-size: 64px; margin-bottom: 12px; display: block; text-align: center; }
+.result-title { font-size: clamp(20px, 5vw, 28px); font-weight: 900; color: var(--dark-green); margin-bottom: 6px; text-align: center; }
+.result-score { font-size: clamp(28px, 7vw, 42px); font-weight: 900; color: var(--teal); margin-bottom: 4px; text-align: center; }
+.result-sub { font-size: 14px; color: var(--muted); font-weight: 600; margin-bottom: 22px; text-align: center; }
+.result-actions { display: flex; flex-direction: column; gap: 10px; }
+.play-again-btn {
+  padding: 14px;
+  background: linear-gradient(90deg, var(--green), var(--teal));
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 800;
+  font-size: 15px;
+  cursor: pointer;
+  box-shadow: 0 3px 12px rgba(39,174,96,0.28);
+  transition: transform 0.12s;
+}
+.play-again-btn:hover { transform: scale(1.02); }
+.menu-btn {
+  padding: 13px;
+  background: #f0f9f2;
+  color: var(--dark-green);
+  border: 2px solid var(--light-green);
+  border-radius: 14px;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 800;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.menu-btn:hover { background: #d4edda; }
+.score-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: linear-gradient(90deg, var(--green), var(--teal));
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 4px 13px;
+  border-radius: 50px;
+}
+@media (max-width: 480px) {
+  .card { padding: 20px 14px 18px; }
+  .opts-grid { grid-template-columns: 1fr; }
+  .section-grid { grid-template-columns: 1fr; }
+  .section-btn { flex-direction: row; justify-content: center; padding: 14px 12px; }
+}
+</style>
+</head>
+<body>
+
+<div class="leaf" style="left:8%;animation-duration:13s;animation-delay:0s;">🍃</div>
+<div class="leaf" style="left:22%;animation-duration:17s;animation-delay:2s;">🌿</div>
+<div class="leaf" style="left:55%;animation-duration:11s;animation-delay:5s;font-size:16px;">🍀</div>
+<div class="leaf" style="left:75%;animation-duration:15s;animation-delay:1s;">🌱</div>
+<div class="leaf" style="left:90%;animation-duration:19s;animation-delay:7s;font-size:14px;">🍃</div>
+
+<button class="back-btn" id="backBtn">
+  <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+  Back
+</button>
+
+<div class="card" id="app"></div>
+
+<script>
+// ===================== QUESTION BANK =====================
+// spot questions: "img" = emoji scene shown visually, no text description shown
+const bank = {
+  household: [
+    {type:"mcq", q:"Which light bulb uses the least electricity?", opts:["Incandescent","Halogen","CFL","LED"], a:"LED"},
+    {type:"mcq", q:"Which of these is a renewable energy source?", opts:["Coal","Natural gas","Solar power","Diesel"], a:"Solar power"},
+    {type:"mcq", q:"What is the most eco-friendly way to carry groceries?", opts:["Plastic bag","Paper bag","Cloth bag","Cling wrap"], a:"Cloth bag"},
+    {type:"mcq", q:"Which action saves the most water at home?", opts:["Longer showers","Fixing leaky taps","Watering plants daily","Full bathtub baths"], a:"Fixing leaky taps"},
+    {type:"mcq", q:"What does the R NOT stand for in the 3Rs of sustainability?", opts:["Reduce","Reuse","Recycle","Rebuild"], a:"Rebuild"},
+    {type:"mcq", q:"Which kitchen habit reduces waste most effectively?", opts:["Using paper plates","Composting food scraps","Buying packaged food","Washing with hot water"], a:"Composting food scraps"},
+    {type:"mcq", q:"Which practice conserves the most electricity?", opts:["Standby mode","Unplugging devices when not in use","Dimming lights slightly","Using extension cords"], a:"Unplugging devices when not in use"},
+    {type:"mcq", q:"Which of these contributes most to indoor air pollution?", opts:["Houseplants","Air purifiers","Burning incense constantly","Opening windows"], a:"Burning incense constantly"},
+    {type:"mcq", q:"What is greenwashing?", opts:["Washing clothes in cold water","Falsely claiming products are eco-friendly","A new eco detergent","Painting buildings green"], a:"Falsely claiming products are eco-friendly"},
+    {type:"mcq", q:"Which energy source produces ZERO carbon emissions during operation?", opts:["Natural gas","Wind power","Coal","Petroleum"], a:"Wind power"},
+    {type:"tf", q:"Leaving chargers plugged in when not charging still uses electricity.", a:"True"},
+    {type:"tf", q:"Running a dishwasher half-full is as water-efficient as running it full.", a:"False"},
+    {type:"tf", q:"Rainwater harvesting is an eco-friendly practice.", a:"True"},
+    {type:"tf", q:"Burning household plastic waste is safe for the environment.", a:"False"},
+    {type:"tf", q:"A shorter cold-water wash cycle is more energy-efficient than a long hot-water wash.", a:"True"},
+    {type:"tf", q:"Food waste that goes to landfill releases methane, a greenhouse gas.", a:"True"},
+    {type:"match", q:"Match each eco practice to its benefit:", pairs:[
+      {left:"Composting", right:"Enriches soil naturally"},
+      {left:"Solar panels", right:"Reduces electricity bills"},
+      {left:"Rainwater harvesting", right:"Conserves water supply"},
+      {left:"LED bulbs", right:"Saves energy and lasts longer"}
+    ]},
+    {type:"match", q:"Match each waste item to the correct bin:", pairs:[
+      {left:"Banana peel", right:"Compost bin"},
+      {left:"Glass bottle", right:"Recycling bin"},
+      {left:"Plastic straw", right:"Landfill bin"},
+      {left:"Newspaper", right:"Paper recycling"}
+    ]},
+    {type:"match", q:"Match the household appliance to its eco tip:", pairs:[
+      {left:"Washing machine", right:"Wash with full loads only"},
+      {left:"Air conditioner", right:"Set to 24°C to save energy"},
+      {left:"Refrigerator", right:"Keep coils dust-free"},
+      {left:"Tap", right:"Fix leaks immediately"}
+    ]},
+    // SPOT — emoji scene only (no text description)
+    {type:"spot", img:"🚰💧💧💧💧💧", q:"What is the eco problem shown here?", opts:["Taking a shower","Wasting water by leaving tap running","Saving electricity","Recycling water"], a:"Wasting water by leaving tap running"},
+    {type:"spot", img:"💡📺🖥️🔌🏠🌙", q:"What is the eco problem shown here?", opts:["Good ventilation","Appliances left on in an empty home","Cooking energy saved","Cleaning mode on"], a:"Appliances left on in an empty home"},
+    {type:"spot", img:"🛍️🛍️🛍️🛍️🗑️❌", q:"What is the eco problem shown here?", opts:["Organising bags neatly","Single-use plastic overuse","Recycling bags correctly","Donating old bags"], a:"Single-use plastic overuse"}
+  ],
+
+  forest: [
+    {type:"mcq", q:"What gas do trees absorb to slow climate change?", opts:["Oxygen","Nitrogen","Carbon dioxide","Helium"], a:"Carbon dioxide"},
+    {type:"mcq", q:"What is the primary cause of deforestation worldwide?", opts:["Wildfires","Agricultural expansion","Tourism","Heavy rain"], a:"Agricultural expansion"},
+    {type:"mcq", q:"Which of these is a direct consequence of deforestation?", opts:["More rainfall","Soil erosion","Cleaner air","Cooler climate"], a:"Soil erosion"},
+    {type:"mcq", q:"What is biodiversity?", opts:["A diet plan","Variety of life in an ecosystem","A type of forest","A farming method"], a:"Variety of life in an ecosystem"},
+    {type:"mcq", q:"Which practice helps restore deforested land?", opts:["Mining","Reforestation","Logging","Overgrazing"], a:"Reforestation"},
+    {type:"mcq", q:"Which of the following is NOT a forest ecosystem service?", opts:["Purifying water","Regulating climate","Producing crude oil","Preventing floods"], a:"Producing crude oil"},
+    {type:"mcq", q:"What is slash and burn agriculture?", opts:["A healthy crop rotation","Clearing land by cutting and burning vegetation","A water-saving technique","A composting method"], a:"Clearing land by cutting and burning vegetation"},
+    {type:"mcq", q:"Why are mangrove forests especially important?", opts:["They produce the most fruit","They protect coastlines and are fish nurseries","They grow the tallest trees","They create fertile desert land"], a:"They protect coastlines and are fish nurseries"},
+    {type:"mcq", q:"What percentage of all species on Earth live in tropical rainforests?", opts:["10%","25%","50%","75%"], a:"50%"},
+    {type:"mcq", q:"Which gas makes up most of Earth's atmosphere?", opts:["Oxygen","Carbon dioxide","Nitrogen","Methane"], a:"Nitrogen"},
+    {type:"tf", q:"Forests cover about 31% of Earth's land surface.", a:"True"},
+    {type:"tf", q:"Clearing forests has no effect on local rainfall patterns.", a:"False"},
+    {type:"tf", q:"Rainforests are called the lungs of the Earth because they produce large amounts of oxygen.", a:"True"},
+    {type:"tf", q:"Animals depend on forests only for food, not for shelter.", a:"False"},
+    {type:"tf", q:"Planting only one species of tree is the best way to restore biodiversity.", a:"False"},
+    {type:"tf", q:"Indigenous communities often protect forests better than commercial logging companies.", a:"True"},
+    {type:"match", q:"Match the forest creature to its role in the ecosystem:", pairs:[
+      {left:"Bee", right:"Pollination"},
+      {left:"Owl", right:"Controls rodent population"},
+      {left:"Earthworm", right:"Breaks down dead leaves"},
+      {left:"Tree", right:"Provides oxygen and habitat"}
+    ]},
+    {type:"match", q:"Match each threat to its effect on forests:", pairs:[
+      {left:"Acid rain", right:"Damages tree leaves and soil"},
+      {left:"Wildfires", right:"Destroys large forest areas"},
+      {left:"Invasive species", right:"Outcompetes native plants"},
+      {left:"Poaching", right:"Reduces animal populations"}
+    ]},
+    {type:"match", q:"Match the tree product to its sustainable use:", pairs:[
+      {left:"Cork", right:"Eco-friendly bottle stoppers"},
+      {left:"Bamboo", right:"Sustainable building material"},
+      {left:"Rubber", right:"Natural tyres and gloves"},
+      {left:"Maple sap", right:"Natural sweetener"}
+    ]},
+    // SPOT — emoji scene only
+    {type:"spot", img:"🌳🔥🔥🌳🔥🌳", q:"What is the eco problem shown here?", opts:["Barbecue party","Controlled burning","Illegal forest fire","Safe campfire"], a:"Illegal forest fire"},
+    {type:"spot", img:"🚜🌳✂️🌳🐦😢", q:"What is the eco problem shown here?", opts:["Building eco homes","Excessive logging destroying habitats","Reforestation project","Sustainable farming"], a:"Excessive logging destroying habitats"},
+    {type:"spot", img:"🦌🐺🐇🦊🏹❌", q:"What is the eco problem shown here?", opts:["Wildlife photography","Animal conservation","Illegal poaching of wild animals","Forest research"], a:"Illegal poaching of wild animals"}
+  ],
+
+  ocean: [
+    {type:"mcq", q:"What percentage of Earth's surface is covered by oceans?", opts:["51%","61%","71%","81%"], a:"71%"},
+    {type:"mcq", q:"Which type of plastic is hardest to clean from the ocean?", opts:["Plastic bottles","Plastic bags","Microplastics","Plastic straws"], a:"Microplastics"},
+    {type:"mcq", q:"What causes ocean acidification?", opts:["Too many fish","Oceans absorbing excess CO2","Oil spills","Plastic pollution"], a:"Oceans absorbing excess CO2"},
+    {type:"mcq", q:"What is a dead zone in the ocean?", opts:["A dark deep-sea area","A low-oxygen area where marine life cannot survive","A pirate region","A cold polar zone"], a:"A low-oxygen area where marine life cannot survive"},
+    {type:"mcq", q:"Which human activity causes the most ocean pollution?", opts:["Fishing","Shipping","Runoff from land such as fertilisers and plastics","Swimming"], a:"Runoff from land such as fertilisers and plastics"},
+    {type:"mcq", q:"Coral bleaching is primarily caused by?", opts:["Too much sunlight","Rising sea temperatures","Overfishing","Ocean currents"], a:"Rising sea temperatures"},
+    {type:"mcq", q:"What is bycatch?", opts:["A fishing technique","Unwanted marine animals caught accidentally in fishing nets","A type of seaweed","A boat part"], a:"Unwanted marine animals caught accidentally in fishing nets"},
+    {type:"mcq", q:"What is the most effective personal action to reduce ocean plastic pollution?", opts:["Avoid all seafood","Reduce single-use plastic consumption","Only swim in pools","Stop using sunscreen"], a:"Reduce single-use plastic consumption"},
+    {type:"mcq", q:"Which ocean zone receives no sunlight at all?", opts:["Sunlight zone","Twilight zone","Midnight zone","Intertidal zone"], a:"Midnight zone"},
+    {type:"mcq", q:"What do coral reefs provide for marine life?", opts:["Fresh water","Food, shelter and breeding grounds","Warm currents","Plastic-free zones"], a:"Food, shelter and breeding grounds"},
+    {type:"tf", q:"The Great Pacific Garbage Patch is a solid island of plastic you can walk on.", a:"False"},
+    {type:"tf", q:"Oceans absorb about 25% of CO2 emissions from human activities.", a:"True"},
+    {type:"tf", q:"Single-use plastics are the only source of plastic ocean pollution.", a:"False"},
+    {type:"tf", q:"Overfishing can collapse entire marine food chains.", a:"True"},
+    {type:"tf", q:"Marine protected areas help fish populations recover.", a:"True"},
+    {type:"tf", q:"Eating fish has no environmental impact whatsoever.", a:"False"},
+    {type:"match", q:"Match each ocean pollutant to its main source:", pairs:[
+      {left:"Microplastics", right:"Synthetic clothing fibres"},
+      {left:"Fertiliser runoff", right:"Agricultural fields"},
+      {left:"Oil spills", right:"Tanker accidents"},
+      {left:"Noise pollution", right:"Ship engines and sonar"}
+    ]},
+    {type:"match", q:"Match the marine animal to its conservation threat:", pairs:[
+      {left:"Dolphin", right:"Bycatch and fishing nets"},
+      {left:"Shark", right:"Fin trade and hunting"},
+      {left:"Clownfish", right:"Coral reef destruction"},
+      {left:"Blue whale", right:"Ship strikes and noise"}
+    ]},
+    {type:"match", q:"Match the ocean zone to its feature:", pairs:[
+      {left:"Sunlight zone", right:"Where photosynthesis occurs"},
+      {left:"Twilight zone", right:"Dim light, some bioluminescent fish"},
+      {left:"Midnight zone", right:"Total darkness and high pressure"},
+      {left:"Intertidal zone", right:"Exposed during low tide"}
+    ]},
+    // SPOT — emoji scene only
+    {type:"spot", img:"🐢🛍️🌊😰❓", q:"What is the eco problem shown here?", opts:["Turtle playing","Sea turtle mistaking plastic bag for food","Ocean cleaning","Turtle feeding station"], a:"Sea turtle mistaking plastic bag for food"},
+    {type:"spot", img:"🚢💥🛢️🌊🐟💀", q:"What is the eco problem shown here?", opts:["Natural tar seep","Catastrophic oil spill killing marine life","Volcanic ocean eruption","Night fishing activity"], a:"Catastrophic oil spill killing marine life"},
+    {type:"spot", img:"🎣🐬🐠🐟🕸️😨", q:"What is the eco problem shown here?", opts:["Sustainable fishing","Fish jumping happily","Marine animals trapped in fishing nets","Underwater acrobatics"], a:"Marine animals trapped in fishing nets"}
+  ]
+};
+
+// ===================== STATE =====================
+let section = null;
+let questions = [];
+let qi = 0;
+let score = 0;
+let matchState = {}, matchCompleted = false, rightShuffled = [], selectedLeft = null;
+
+// ===================== BACK BUTTON =====================
+// Fixed: during quiz → back to section menu; on menu → go to game_menu.html
+document.getElementById('backBtn').addEventListener('click', function () {
+  if (section !== null) {
+    section = null;
+    showMenu();
+  } else {
+    window.location.href = 'game_menu.html';
+  }
+});
+
+// ===================== HELPERS =====================
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function esc(str) {
+  return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+}
+
+// ===================== START =====================
+function start(sec) {
+  section = sec;
+  questions = shuffle(bank[sec]).slice(0, 20);
+  qi = 0;
+  score = 0;
+  render();
+}
+
+// ===================== MENU =====================
+function showMenu() {
+  document.getElementById('app').innerHTML = `
+    <div style="text-align:center;font-size:40px;margin-bottom:8px;">🌍</div>
+    <h2 class="menu-title">Eco Quiz Challenge</h2>
+    <p class="menu-sub">20 questions &middot; Eco &amp; Pollution &middot; 4 question types</p>
+    <div class="section-grid">
+      <button class="section-btn" onclick="start('household')"><span>🏠</span>Household</button>
+      <button class="section-btn" onclick="start('forest')"><span>🌳</span>Forest</button>
+      <button class="section-btn" onclick="start('ocean')"><span>🌊</span>Ocean</button>
+    </div>
+  `;
+}
+
+// ===================== RENDER =====================
+function render() {
+  const app = document.getElementById('app');
+  if (qi >= questions.length) { showResult(); return; }
+
+  const q = questions[qi];
+  const pct = (qi / questions.length) * 100;
+  const typeLabels = { mcq:"Multiple Choice", tf:"True or False", match:"Match the Following", spot:"Spot the Problem" };
+  const typeIcons  = { mcq:"🧩", tf:"⚖️", match:"🔗", spot:"🔍" };
+
+  let inner = `
+    <div class="quiz-meta">
+      <span>Q ${qi + 1} / ${questions.length}</span>
+      <span class="score-badge">⭐ ${score}</span>
+    </div>
+    <div class="progress-wrap"><div class="progress-bar" style="width:${pct}%"></div></div>
+    <div class="q-type-badge">${typeIcons[q.type]} ${typeLabels[q.type]}</div>
+  `;
+
+  if      (q.type === 'mcq')   inner += renderMCQ(q);
+  else if (q.type === 'tf')    inner += renderTF(q);
+  else if (q.type === 'match') inner += renderMatch(q);
+  else if (q.type === 'spot')  inner += renderSpot(q);
+
+  inner += `<div class="feedback" id="feedback"></div>`;
+  app.innerHTML = inner;
+}
+
+// ===================== MCQ =====================
+function renderMCQ(q) {
+  const opts = shuffle(q.opts);
+  return `
+    <p class="q-text">${q.q}</p>
+    <div class="opts-grid" id="opts">
+      ${opts.map(o => `<button class="opt-btn" onclick="checkMCQ(this,'${esc(o)}')">${o}</button>`).join('')}
+    </div>
+  `;
+}
+function checkMCQ(btn, choice) {
+  const correct = questions[qi].a;
+  document.querySelectorAll('#opts .opt-btn').forEach(b => {
+    if (b.textContent.trim() === correct) b.classList.add('correct');
+    if (b.textContent.trim() === choice && choice !== correct) b.classList.add('wrong');
+    b.disabled = true;
+  });
+  if (choice === correct) score++;
+  showFeedback(choice === correct, correct);
+  setTimeout(next, 1500);
+}
+
+// ===================== TRUE / FALSE =====================
+function renderTF(q) {
+  return `
+    <p class="q-text">${q.q}</p>
+    <div class="tf-grid" id="opts">
+      <button class="tf-btn tf-true" onclick="checkTF(this,'True')">✅ True</button>
+      <button class="tf-btn tf-false" onclick="checkTF(this,'False')">❌ False</button>
+    </div>
+  `;
+}
+function checkTF(btn, choice) {
+  const correct = questions[qi].a;
+  document.querySelectorAll('#opts .tf-btn').forEach(b => {
+    const val = b.textContent.includes('True') ? 'True' : 'False';
+    if (val === correct) b.classList.add('correct');
+    if (val === choice && choice !== correct) b.classList.add('wrong');
+    b.disabled = true;
+  });
+  if (choice === correct) score++;
+  showFeedback(choice === correct, correct);
+  setTimeout(next, 1500);
+}
+
+// ===================== SPOT THE PROBLEM =====================
+// Shows only emoji scene box — NO text description, emojis act as the visual clue
+function renderSpot(q) {
+  const opts = shuffle(q.opts);
+  return `
+    <div class="spot-scene">
+      <span class="scene-emoji">${q.img}</span>
+      <span class="scene-label">🔍 What's wrong here?</span>
+    </div>
+    <p class="q-text">${q.q}</p>
+    <div class="opts-grid" id="opts">
+      ${opts.map(o => `<button class="opt-btn" onclick="checkMCQ(this,'${esc(o)}')">${o}</button>`).join('')}
+    </div>
+  `;
+}
+
+// ===================== MATCH THE FOLLOWING =====================
+function renderMatch(q) {
+  matchState = {};
+  matchCompleted = false;
+  selectedLeft = null;
+  rightShuffled = shuffle(q.pairs.map((p, i) => ({ text: p.right, origIdx: i })));
+
+  const leftHTML = q.pairs.map((p, i) => `
+    <div class="match-item left-item" id="left-${i}" onclick="selectLeftItem(${i})">
+      <span class="num">${i + 1}</span>${p.left}
+    </div>`).join('');
+
+  const rightHTML = rightShuffled.map((r, i) => `
+    <div class="match-item right-item" id="right-${i}" onclick="selectRight(${i})">
+      <span class="num" style="background:#2980b9;">${String.fromCharCode(65 + i)}</span>${r.text}
+    </div>`).join('');
+
+  return `
+    <p class="q-text">${q.q}</p>
+    <p class="match-instructions">Tap a left item, then tap its match on the right.</p>
+    <div class="match-container">
+      <div class="match-cols">
+        <div class="match-left" id="match-left">${leftHTML}</div>
+        <div class="match-right" id="match-right">${rightHTML}</div>
+      </div>
+      <button class="submit-btn" id="submit-match" onclick="submitMatch()" disabled>Check Matches ✓</button>
+    </div>
+  `;
+}
+
+function selectLeftItem(idx) {
+  if (matchCompleted) return;
+  selectedLeft = idx;
+  document.querySelectorAll('.left-item').forEach((el, i) => {
+    el.style.background = i === idx ? '#cce5f6' : '';
+    el.style.borderColor = i === idx ? '#2980b9' : '';
+  });
+}
+
+function selectRight(rIdx) {
+  if (matchCompleted) return;
+  if (selectedLeft === null) {
+    const ins = document.querySelector('.match-instructions');
+    if (ins) { ins.style.color = '#e74c3c'; setTimeout(() => ins.style.color = '', 800); }
+    return;
+  }
+  matchState[selectedLeft] = rIdx;
+
+  document.querySelectorAll('.right-item').forEach(el => {
+    el.style.background = '';
+    el.style.borderColor = '';
+  });
+  Object.values(matchState).forEach(r => {
+    const rEl = document.getElementById('right-' + r);
+    if (rEl) { rEl.style.background = '#cce5f6'; rEl.style.borderColor = '#2980b9'; }
+  });
+  document.querySelectorAll('.left-item').forEach(el => {
+    el.style.background = '';
+    el.style.borderColor = '';
+  });
+  selectedLeft = null;
+
+  if (Object.keys(matchState).length === questions[qi].pairs.length) {
+    document.getElementById('submit-match').disabled = false;
+  }
+}
+
+function submitMatch() {
+  matchCompleted = true;
+  document.getElementById('submit-match').disabled = true;
+  const q = questions[qi];
+  let allCorrect = true;
+
+  q.pairs.forEach((pair, lIdx) => {
+    const rIdx = matchState[lIdx];
+    const isCorrect = rIdx !== undefined && rightShuffled[rIdx].origIdx === lIdx;
+    if (!isCorrect) allCorrect = false;
+    const rEl = document.getElementById('right-' + rIdx);
+    if (rEl) rEl.classList.add(isCorrect ? 'correct-match' : 'wrong-match');
+  });
+
+  if (allCorrect) score++;
+  showFeedback(allCorrect, 'All pairs matched correctly!');
+  setTimeout(next, 1800);
+}
+
+// ===================== FEEDBACK =====================
+function showFeedback(correct, answer) {
+  const fb = document.getElementById('feedback');
+  if (!fb) return;
+  fb.className = 'feedback show ' + (correct ? 'correct-fb' : 'wrong-fb');
+  fb.innerHTML = correct
+    ? '✅ Correct! Well done.'
+    : `❌ Answer: <strong>${answer}</strong>`;
+}
+
+function next() { qi++; render(); }
+
+// ===================== RESULT =====================
+function showResult() {
+  const pct = Math.round((score / questions.length) * 100);
+  const emoji = pct >= 80 ? '🏆' : pct >= 50 ? '🌱' : '🌍';
+  const msg   = pct >= 80 ? 'Eco Champion!' : pct >= 50 ? 'Good Effort!' : 'Keep Learning!';
+  document.getElementById('app').innerHTML = `
+    <span class="result-emoji">${emoji}</span>
+    <p class="result-title">${msg}</p>
+    <p class="result-score">${score} / ${questions.length}</p>
+    <p class="result-sub">${pct}% correct</p>
+    <div class="result-actions">
+      <button class="play-again-btn" onclick="start(section)">🔄 Play Again</button>
+      <button class="menu-btn" onclick="section=null;showMenu()">🏠 Choose Section</button>
+    </div>
+  `;
+}
+
+// ===================== INIT =====================
+showMenu();
+</script>
+</body>
+</html>

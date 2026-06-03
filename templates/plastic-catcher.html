@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>Ocean Eco Diver</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Exo+2:wght@400;600;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#000c1e}
+body{display:flex;align-items:center;justify-content:center;}
+#gc{
+    position:fixed;
+    top:0;left:0;
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    touch-action:none;
+    user-select:none;
+    background:#000c1e;
+}
+canvas{
+    display:block;
+    position:absolute;
+    top:0;left:0;
+    width:100%;
+    height:100%;
+}
+
+/* HUD */
+#hud{position:absolute;top:0;left:0;width:100%;display:flex;justify-content:space-between;align-items:center;padding:12px 14px;pointer-events:none;z-index:10}
+#backBtn{pointer-events:all;display:flex;align-items:center;gap:5px;background:rgba(0,10,30,.72);border:1.5px solid #00c8ff;color:#00e5ff;border-radius:40px;padding:7px 14px 7px 10px;font-family:'Exo 2',sans-serif;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.5px}
+#backBtn svg{width:16px;height:16px;flex-shrink:0}
+#backBtn:hover{background:rgba(0,40,80,.85)}
+#scoreBox{background:rgba(0,10,30,.72);border:1.5px solid #00c8ff;color:#fff;border-radius:40px;padding:7px 16px;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px}
+#scoreBox span{color:#00ffe0;font-size:13px}
+#liveBox{background:rgba(0,10,30,.72);border:1.5px solid #00c8ff;border-radius:40px;padding:6px 12px;display:flex;gap:4px;align-items:center}
+#levelTag{position:absolute;top:58px;left:50%;transform:translateX(-50%);background:rgba(0,10,30,.7);border:1px solid rgba(0,200,255,.35);color:rgba(0,230,255,.9);border-radius:40px;padding:3px 14px;font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;letter-spacing:2px;pointer-events:none;z-index:10}
+#x2Tag{position:absolute;top:86px;left:50%;transform:translateX(-50%);background:rgba(40,30,0,.85);border:1px solid #ffd600;color:#ffe566;border-radius:40px;padding:3px 14px;font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;letter-spacing:2px;pointer-events:none;z-index:10;opacity:0;transition:opacity .3s}
+#x2Tag.on{opacity:1}
+
+/* Screens */
+.scr{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,6,20,.94);z-index:30;gap:13px;padding:28px;text-align:center}
+.scr.off{display:none}
+.scr-ico{font-size:52px;animation:bob 2s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.scr h1{font-family:'Orbitron',sans-serif;font-size:22px;font-weight:900;color:#00ffe0;letter-spacing:2px;text-shadow:0 0 24px rgba(0,255,224,.5)}
+.scr h2{font-family:'Orbitron',sans-serif;font-size:18px;font-weight:700;color:#7ee8ff;letter-spacing:1px}
+.scr p{font-size:13px;color:rgba(180,220,255,.75);line-height:1.7;max-width:280px}
+.tip-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;max-width:320px}
+.tip{background:rgba(0,30,70,.65);border:1px solid rgba(0,180,255,.22);border-radius:10px;padding:9px 11px;font-size:11px;color:rgba(180,220,255,.88);line-height:1.55;text-align:left}
+.tip b{display:block;color:#00e5ff;font-size:10px;letter-spacing:.5px;text-transform:uppercase;margin-bottom:3px;font-family:'Orbitron',sans-serif}
+.divider{width:60px;height:1px;background:linear-gradient(90deg,transparent,rgba(0,200,255,.5),transparent)}
+.btn{background:linear-gradient(135deg,#005580,#0077b6);border:1.5px solid #00c8ff;color:#fff;border-radius:40px;padding:12px 36px;font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;cursor:pointer;margin-top:4px;transition:transform .15s,box-shadow .15s;box-shadow:0 0 20px rgba(0,180,255,.3)}
+.btn:hover{transform:scale(1.04);box-shadow:0 0 32px rgba(0,200,255,.45)}
+.btn:active{transform:scale(.97)}
+.btn2{background:transparent;border:1px solid rgba(0,200,255,.25);color:rgba(126,232,255,.65);border-radius:40px;padding:8px 24px;font-family:'Exo 2',sans-serif;font-size:12px;cursor:pointer;letter-spacing:1px}
+.stats{display:flex;gap:28px;align-items:center;justify-content:center}
+.stat .v{font-family:'Orbitron',sans-serif;font-size:30px;font-weight:900;color:#00ffe0}
+.stat .l{font-size:10px;color:rgba(180,220,255,.5);letter-spacing:1px;text-transform:uppercase;margin-top:2px;font-family:'Orbitron',sans-serif}
+</style>
+</head>
+<body>
+<div id="gc">
+  <canvas id="c"></canvas>
+
+  <div id="hud">
+    <button id="backBtn">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3L5 8L10 13"/></svg>
+      Map
+    </button>
+    <div id="scoreBox">SCORE <span id="scVal">0</span></div>
+    <div id="liveBox"></div>
+  </div>
+  <div id="levelTag">LEVEL 1</div>
+  <div id="x2Tag">⭐ 2× ACTIVE</div>
+
+  <!-- Start screen -->
+  <div class="scr" id="startScr">
+    <div class="scr-ico">🤿</div>
+    <h1>OCEAN ECO DIVER</h1>
+    <p>Catch eco items falling from the surface. Dodge plastic — 3 hits and your dive ends!</p>
+    <div class="divider"></div>
+    <div class="tip-row">
+      <div class="tip"><b>Catch ✅</b>🐚+10 &nbsp;🪸+15 &nbsp;🐠+20<br>🌊+25 &nbsp;🐢+30 &nbsp;🦀+18<br>🐡+16 &nbsp;🐙+22 &nbsp;🦭+28</div>
+      <div class="tip"><b>Dodge ❌</b>🧴 Bottle<br>🛍 Bag &nbsp;🥤 Cup<br>🧪 Flask &nbsp;🪣 Bucket<br>Each hit = −1 life!</div>
+      <div class="tip"><b>Power-up ⭐</b>Star = 2× score<br>for 6 seconds!</div>
+      <div class="tip"><b>Controls 🎮</b>Mouse move or<br>touch drag to<br>move diver<br>← → Arrow keys</div>
+    </div>
+    <button class="btn" id="startBtn">DIVE IN</button>
+  </div>
+
+  <!-- Game over screen -->
+  <div class="scr off" id="overScr">
+    <div class="scr-ico">🌊</div>
+    <h2>DIVE COMPLETE</h2>
+    <div class="divider"></div>
+    <div class="stats">
+      <div class="stat"><div class="v" id="fScore">0</div><div class="l">Score</div></div>
+      <div class="stat"><div class="v" id="fLevel">1</div><div class="l">Level</div></div>
+      <div class="stat"><div class="v" id="fCaught">0</div><div class="l">Caught</div></div>
+    </div>
+    <p id="overMsg"></p>
+    <button class="btn" id="restartBtn">DIVE AGAIN</button>
+    <button class="btn2" id="menuBtn">Main Menu</button>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const gc = document.getElementById('gc');
+const startScr = document.getElementById('startScr');
+const overScr = document.getElementById('overScr');
+const scVal = document.getElementById('scVal');
+const liveBox = document.getElementById('liveBox');
+const levelTag = document.getElementById('levelTag');
+const x2Tag = document.getElementById('x2Tag');
+
+let W = window.innerWidth;
+let H = window.innerHeight;
+let dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+function resize() {
+  W = window.innerWidth;
+  H = window.innerHeight;
+  dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.scale(dpr, dpr);
+  if (diver) diver.y = H * 0.80;
+}
+
+window.addEventListener('resize', () => { resize(); if (!gameOn) drawStatic(); });
+
+// ── State
+let score = 0, lives = 3, gameOn = false, frame = 0, level = 1, caught = 0;
+let diver = { x: 0, tx: 0, y: 0, r: 26 };
+let items = [], floats = [], bubbles = [], bgFish = [], caustics = [], jellies = [];
+let spawnTimer = 0, lastTs = 0, doubleUntil = 0, flashAlpha = 0;
+
+const ECO = [
+  { e: '🐚', pts: 10 }, { e: '🪸', pts: 15 }, { e: '🐠', pts: 20 },
+  { e: '🌊', pts: 25 }, { e: '🐢', pts: 30 }, { e: '🦀', pts: 18 },
+  { e: '🐡', pts: 16 }, { e: '🐙', pts: 22 }, { e: '🦭', pts: 28 }
+];
+const BAD = ['🧴', '🛍', '🥤', '🧪', '🪣'];
+
+function makeBubbles() {
+  bubbles = [];
+  for (let i = 0; i < 30; i++) bubbles.push({
+    x: Math.random() * W, y: Math.random() * H,
+    r: Math.random() * 3 + 0.8,
+    spd: Math.random() * 0.5 + 0.1,
+    alpha: Math.random() * 0.35 + 0.08,
+    drift: (Math.random() - 0.5) * 0.35
+  });
+}
+
+function makeBgFish() {
+  bgFish = [];
+  for (let i = 0; i < 6; i++) bgFish.push({
+    x: Math.random() * W, y: H * 0.1 + Math.random() * H * 0.6,
+    spd: (Math.random() * 0.7 + 0.3) * (Math.random() < 0.5 ? 1 : -1),
+    sz: 12 + Math.random() * 10,
+    phase: Math.random() * Math.PI * 2,
+    alpha: 0.1 + Math.random() * 0.08,
+    e: ['🐟', '🐠', '🐡'][Math.floor(Math.random() * 3)]
+  });
+}
+
+function makeCaustics() {
+  caustics = [];
+  for (let i = 0; i < 14; i++) caustics.push({
+    x: Math.random() * W, y: Math.random() * H * 0.5,
+    r: 14 + Math.random() * 22,
+    alpha: 0.015 + Math.random() * 0.04,
+    spd: 0.003 + Math.random() * 0.004,
+    phase: Math.random() * Math.PI * 2
+  });
+}
+
+function makeJellies() {
+  jellies = [];
+  for (let i = 0; i < 3; i++) jellies.push({
+    x: Math.random() * W, y: H * 0.15 + Math.random() * H * 0.5,
+    phase: Math.random() * Math.PI * 2,
+    spd: 0.008 + Math.random() * 0.007,
+    drift: (Math.random() - 0.5) * 0.5,
+    sz: 20 + Math.random() * 12
+  });
+}
+
+function drawBg() {
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, '#001428');
+  g.addColorStop(0.22, '#002855');
+  g.addColorStop(0.6, '#003a70');
+  g.addColorStop(0.88, '#002244');
+  g.addColorStop(1, '#000e20');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
+
+  const sg = ctx.createLinearGradient(0, 0, 0, H * 0.07);
+  sg.addColorStop(0, 'rgba(80,190,255,0.22)');
+  sg.addColorStop(1, 'rgba(80,190,255,0)');
+  ctx.fillStyle = sg;
+  ctx.fillRect(0, 0, W, H * 0.07);
+
+  caustics.forEach(c => {
+    c.phase += c.spd;
+    const a = c.alpha * (0.5 + 0.5 * Math.sin(c.phase));
+    const rr = c.r * (0.8 + 0.2 * Math.sin(c.phase * 1.3));
+    ctx.beginPath();
+    ctx.arc(c.x + Math.sin(c.phase * 0.7) * 4, c.y, rr, 0, Math.PI * 2);
+    ctx.strokeStyle = `rgba(80,190,255,${a})`;
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+  });
+
+  ctx.strokeStyle = 'rgba(0,80,160,0.07)';
+  ctx.lineWidth = 1;
+  for (let i = 1; i < 7; i++) {
+    const dy = (H / 7) * i;
+    ctx.beginPath(); ctx.moveTo(0, dy); ctx.lineTo(W, dy); ctx.stroke();
+  }
+}
+
+function drawBubbles() {
+  bubbles.forEach(b => {
+    b.y -= b.spd; b.x += b.drift;
+    if (b.y < -6) { b.y = H + 6; b.x = Math.random() * W; }
+    ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+    ctx.strokeStyle = `rgba(160,220,255,${b.alpha})`;
+    ctx.lineWidth = 0.7; ctx.stroke();
+    ctx.beginPath(); ctx.arc(b.x - b.r * 0.3, b.y - b.r * 0.3, b.r * 0.25, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255,255,255,${b.alpha * 0.55})`; ctx.fill();
+  });
+}
+
+function drawBgFish() {
+  bgFish.forEach(f => {
+    f.x += f.spd; f.phase += 0.055;
+    if (f.x > W + 40) f.x = -40;
+    if (f.x < -40) f.x = W + 40;
+    ctx.save();
+    ctx.translate(f.x, f.y + Math.sin(f.phase) * 2.5);
+    ctx.scale(f.spd < 0 ? -1 : 1, 1);
+    ctx.globalAlpha = f.alpha;
+    ctx.font = `${f.sz}px serif`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(f.e, 0, 0);
+    ctx.globalAlpha = 1;
+    ctx.restore();
+  });
+}
+
+function drawJellies() {
+  jellies.forEach(j => {
+    j.phase += j.spd;
+    j.x += j.drift * Math.sin(j.phase * 0.3);
+    if (j.x < -20) j.x = W + 20;
+    if (j.x > W + 20) j.x = -20;
+    ctx.save();
+    ctx.translate(j.x, j.y + Math.sin(j.phase) * 6);
+    ctx.globalAlpha = 0.13;
+    ctx.font = `${j.sz}px serif`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('🪼', 0, 0);
+    ctx.globalAlpha = 1;
+    ctx.restore();
+  });
+}
+
+function drawSeabed() {
+  ctx.fillStyle = '#091508';
+  ctx.beginPath(); ctx.moveTo(0, H);
+  for (let x = 0; x <= W; x += 16) {
+    ctx.lineTo(x, H * 0.87 + Math.sin(x * 0.09 + 1.2) * 5 + Math.sin(x * 0.025) * 9);
+  }
+  ctx.lineTo(W, H); ctx.closePath(); ctx.fill();
+
+  const sg = ctx.createLinearGradient(0, H * 0.89, 0, H);
+  sg.addColorStop(0, '#b8945a'); sg.addColorStop(0.5, '#9a7a45'); sg.addColorStop(1, '#6b5030');
+  ctx.fillStyle = sg;
+  ctx.beginPath(); ctx.moveTo(0, H);
+  for (let x = 0; x <= W; x += 14) {
+    ctx.lineTo(x, H * 0.905 + Math.sin(x * 0.08 + 0.5) * 3 + Math.sin(x * 0.028 + frame * 0.005) * 5);
+  }
+  ctx.lineTo(W, H); ctx.closePath(); ctx.fill();
+
+  ctx.strokeStyle = 'rgba(180,140,80,0.22)'; ctx.lineWidth = 1;
+  for (let i = 0; i < 4; i++) {
+    ctx.beginPath(); ctx.moveTo(12, H * 0.925 + i * 7); ctx.lineTo(W - 12, H * 0.925 + i * 7); ctx.stroke();
+  }
+
+  const swPos = [W * 0.06, W * 0.18, W * 0.38, W * 0.56, W * 0.72, W * 0.88];
+  swPos.forEach((sx, idx) => {
+    const baseY = H * 0.905 + Math.sin(sx * 0.08 + 0.5) * 3;
+    const sway = Math.sin(frame * 0.035 + idx * 1.2) * 7;
+    ctx.strokeStyle = '#2e7d32'; ctx.lineWidth = 3; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(sx, baseY);
+    ctx.quadraticCurveTo(sx + sway, baseY - 22, sx + sway * 0.6, baseY - 44); ctx.stroke();
+    ctx.strokeStyle = '#388e3c'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(sx, baseY);
+    ctx.quadraticCurveTo(sx - sway * 0.7, baseY - 16, sx - sway * 0.3, baseY - 30); ctx.stroke();
+    ctx.fillStyle = '#43a047';
+    ctx.beginPath();
+    ctx.ellipse(sx + sway * 0.6, baseY - 46, 5, 3, Math.sin(frame * 0.035 + idx) * 0.4, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  [[W * 0.12, H * 0.92, 16, '#546e7a'],[W * 0.30, H * 0.93, 11, '#607d8b'],
+   [W * 0.50, H * 0.915, 14, '#455a64'],[W * 0.68, H * 0.92, 12, '#546e7a'],
+   [W * 0.84, H * 0.925, 15, '#37474f']
+  ].forEach(([rx, ry, rr, col]) => {
+    ctx.fillStyle = col;
+    ctx.beginPath(); ctx.ellipse(rx, ry, rr, rr * 0.55, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.06)';
+    ctx.beginPath(); ctx.ellipse(rx - rr * 0.25, ry - rr * 0.2, rr * 0.45, rr * 0.25, 0, 0, Math.PI * 2); ctx.fill();
+  });
+
+  ctx.font = '18px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+  [[W * 0.25, H * 0.91], [W * 0.60, H * 0.91], [W * 0.79, H * 0.905]].forEach(([cx, cy]) => {
+    ctx.globalAlpha = 0.75; ctx.fillText('🪸', cx, cy); ctx.globalAlpha = 1;
+  });
+}
+
+function drawItems() {
+  items.forEach(it => {
+    it.y += it.spd;
+    it.wobble += it.ws;
+    const wx = Math.sin(it.wobble) * 5;
+    const ix = it.x + wx, iy = it.y;
+
+    if (it.kind === 'eco') {
+      const rg = ctx.createRadialGradient(ix, iy, 0, ix, iy, it.r + 18);
+      rg.addColorStop(0, 'rgba(0,255,140,0.30)');
+      rg.addColorStop(0.5, 'rgba(0,220,120,0.12)');
+      rg.addColorStop(1, 'rgba(0,255,140,0)');
+      ctx.fillStyle = rg;
+      ctx.beginPath(); ctx.arc(ix, iy, it.r + 18, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = 'rgba(0,40,20,0.65)';
+      ctx.beginPath(); ctx.arc(ix, iy, it.r + 6, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#00ff8c'; ctx.lineWidth = 2.5;
+      ctx.beginPath(); ctx.arc(ix, iy, it.r + 7, 0, Math.PI * 2); ctx.stroke();
+    }
+    if (it.kind === 'bad') {
+      const pulse = 0.7 + 0.3 * Math.sin(frame * 0.18);
+      const rg = ctx.createRadialGradient(ix, iy, 0, ix, iy, it.r + 20);
+      rg.addColorStop(0, `rgba(255,40,40,${0.35 * pulse})`);
+      rg.addColorStop(0.5, `rgba(255,40,40,${0.12 * pulse})`);
+      rg.addColorStop(1, 'rgba(255,40,40,0)');
+      ctx.fillStyle = rg;
+      ctx.beginPath(); ctx.arc(ix, iy, it.r + 20, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = 'rgba(40,0,0,0.65)';
+      ctx.beginPath(); ctx.arc(ix, iy, it.r + 6, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#ff3030'; ctx.lineWidth = 2.5 + pulse * 1.2;
+      ctx.beginPath(); ctx.arc(ix, iy, it.r + 8, 0, Math.PI * 2); ctx.stroke();
+      ctx.font = 'bold 12px sans-serif'; ctx.fillStyle = '#ff4444';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+      ctx.fillText('✕', ix, iy - it.r - 7);
+    }
+    if (it.kind === 'star') {
+      const rg = ctx.createRadialGradient(ix, iy, 0, ix, iy, it.r + 22);
+      rg.addColorStop(0, 'rgba(255,210,0,0.40)');
+      rg.addColorStop(0.5, 'rgba(255,200,0,0.14)');
+      rg.addColorStop(1, 'rgba(255,210,0,0)');
+      ctx.fillStyle = rg;
+      ctx.beginPath(); ctx.arc(ix, iy, it.r + 22, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = 'rgba(40,30,0,0.65)';
+      ctx.beginPath(); ctx.arc(ix, iy, it.r + 6, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#ffd600'; ctx.lineWidth = 2.5;
+      ctx.beginPath(); ctx.arc(ix, iy, it.r + 8, 0, Math.PI * 2); ctx.stroke();
+    }
+
+    ctx.globalAlpha = 1;
+    ctx.font = `${it.r * 2}px serif`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(it.emoji, ix, iy);
+
+    ctx.font = 'bold 9px "Exo 2", sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    if (it.kind === 'eco') { ctx.fillStyle = '#00ff8c'; ctx.fillText(`+${it.pts}`, ix, iy + it.r + 5); }
+    if (it.kind === 'bad') { ctx.fillStyle = '#ff5555'; ctx.fillText('−LIFE', ix, iy + it.r + 5); }
+    if (it.kind === 'star') { ctx.fillStyle = '#ffd600'; ctx.fillText('2×!', ix, iy + it.r + 5); }
+  });
+}
+
+function drawDiver() {
+  ctx.save();
+  ctx.translate(diver.x, diver.y);
+  ctx.fillStyle = 'rgba(0,0,0,0.25)';
+  ctx.beginPath(); ctx.ellipse(0, diver.r + 6, diver.r * 0.9, 6, 0, 0, Math.PI * 2); ctx.fill();
+  if (doubleUntil > Date.now()) { ctx.shadowColor = 'rgba(255,210,0,0.85)'; ctx.shadowBlur = 22; }
+  else { ctx.shadowColor = 'rgba(0,200,255,0.55)'; ctx.shadowBlur = 14; }
+  ctx.font = `${diver.r * 1.9}px serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('🤿', 0, 0);
+  ctx.shadowBlur = 0;
+  if (doubleUntil > Date.now()) {
+    ctx.strokeStyle = 'rgba(255,210,0,0.65)'; ctx.lineWidth = 2.5;
+    ctx.setLineDash([5, 4]);
+    ctx.beginPath(); ctx.arc(0, 0, diver.r + 10, 0, Math.PI * 2); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  for (let i = 0; i < 3; i++) {
+    const off = (frame * 0.9 + i * 7) % 20;
+    const by = -(diver.r + 5 + off);
+    const ba = 1 - off / 20;
+    ctx.beginPath(); ctx.arc((i - 1) * 9, by, 2.2, 0, Math.PI * 2);
+    ctx.strokeStyle = `rgba(160,230,255,${ba * 0.7})`;
+    ctx.lineWidth = 0.9; ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawFloats() {
+  floats = floats.filter(f => f.alpha > 0.02);
+  floats.forEach(f => {
+    f.x += f.vx; f.y += f.vy; f.vy += 0.055; f.alpha -= 0.021;
+    ctx.globalAlpha = f.alpha;
+    ctx.fillStyle = f.color;
+    ctx.font = 'bold 14px "Exo 2", sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(f.txt, f.x, f.y);
+    ctx.globalAlpha = 1;
+  });
+}
+
+function addFloat(x, y, txt, color) {
+  floats.push({ x, y, txt, color, vy: -2.5, vx: (Math.random() - 0.5) * 1.5, alpha: 1 });
+}
+
+function spawnItem() {
+  const margin = 38;
+  const x = margin + Math.random() * (W - margin * 2);
+  const spd = Math.min(1.8 + (level - 1) * 0.28 + Math.random() * 0.55, 4.5);
+  const roll = Math.random();
+  let kind, emoji, pts = 0;
+  if (roll < 0.55) {
+    const eco = ECO[Math.floor(Math.random() * ECO.length)];
+    kind = 'eco'; emoji = eco.e; pts = eco.pts;
+  } else if (roll < 0.78) {
+    kind = 'bad'; emoji = BAD[Math.floor(Math.random() * BAD.length)];
+  } else {
+    kind = 'star'; emoji = '⭐';
+  }
+  items.push({ x, y: -30, spd, emoji, kind, pts, wobble: Math.random() * Math.PI * 2, ws: 0.02 + Math.random() * 0.02, r: 18 });
+}
+
+function checkHits() {
+  items = items.filter(it => {
+    if (it.y > H + 30) return false;
+    const ix = it.x + Math.sin(it.wobble) * 5;
+    const d = Math.hypot(diver.x - ix, diver.y - it.y);
+    if (d < diver.r + it.r + 2) {
+      if (it.kind === 'eco') {
+        const mult = doubleUntil > Date.now() ? 2 : 1;
+        const g = it.pts * mult;
+        score += g; caught++;
+        scVal.textContent = score;
+        level = 1 + Math.floor(score / 350);
+        levelTag.textContent = `LEVEL ${level}`;
+        addFloat(it.x, it.y - 18, `+${g}${mult > 1 ? ' ×2' : ''}`, '#00ffb0');
+        return false;
+      }
+      if (it.kind === 'bad') {
+        lives--; updateLives();
+        flashAlpha = 0.42;
+        addFloat(it.x, it.y - 18, '−1 ❤', '#ff5555');
+        if (lives <= 0) { endGame(); return false; }
+        return false;
+      }
+      if (it.kind === 'star') {
+        doubleUntil = Date.now() + 6000;
+        x2Tag.classList.add('on');
+        setTimeout(() => x2Tag.classList.remove('on'), 6000);
+        score += 5; scVal.textContent = score;
+        addFloat(it.x, it.y - 18, '2× ON! ⭐', '#ffe566');
+        return false;
+      }
+    }
+    return true;
+  });
+}
+
+function updateLives() {
+  liveBox.innerHTML = '';
+  for (let i = 0; i < 3; i++) {
+    const s = document.createElement('span');
+    s.style.fontSize = '14px';
+    s.textContent = i < lives ? '❤️' : '🖤';
+    liveBox.appendChild(s);
+  }
+}
+
+function endGame() {
+  gameOn = false;
+  document.getElementById('fScore').textContent = score;
+  document.getElementById('fLevel').textContent = level;
+  document.getElementById('fCaught').textContent = caught;
+  const msgs = [
+    'Every eco item rescued saves the ocean! 🐢',
+    'The ocean thanks you for your dive! 🌊',
+    `Level ${level} guardian — the sea is proud! 🤿`,
+    'Keep diving to protect marine life! 🪸'
+  ];
+  document.getElementById('overMsg').textContent = msgs[Math.floor(Math.random() * msgs.length)];
+  overScr.classList.remove('off');
+}
+
+function loop(ts) {
+  if (!gameOn) return;
+  lastTs = ts;
+  ctx.clearRect(0, 0, W, H);
+  drawBg();
+  drawBgFish();
+  drawJellies();
+  drawBubbles();
+  drawSeabed();
+  drawItems();
+  drawDiver();
+  drawFloats();
+  if (flashAlpha > 0) {
+    ctx.fillStyle = `rgba(255,0,0,${flashAlpha})`;
+    ctx.fillRect(0, 0, W, H);
+    flashAlpha -= 0.028;
+  }
+  diver.x += (diver.tx - diver.x) * 0.14;
+  spawnTimer++;
+  const rate = Math.max(8, Math.round((1200 - (level - 1) * 72) / 16));
+  if (spawnTimer >= rate) { spawnTimer = 0; spawnItem(); }
+  if (level >= 4 && frame % 200 === 0) spawnItem();
+  if (level >= 7 && frame % 140 === 0) spawnItem();
+  checkHits();
+  frame++;
+  requestAnimationFrame(loop);
+}
+
+function drawStatic() {
+  ctx.clearRect(0, 0, W, H);
+  drawBg();
+  drawSeabed();
+}
+
+function startGame() {
+  score = 0; lives = 3; frame = 0; level = 1; caught = 0;
+  items = []; floats = []; spawnTimer = 0; doubleUntil = 0; flashAlpha = 0;
+  scVal.textContent = '0';
+  levelTag.textContent = 'LEVEL 1';
+  x2Tag.classList.remove('on');
+  updateLives();
+  resize();
+  makeBubbles(); makeBgFish(); makeCaustics(); makeJellies();
+  diver.x = W / 2; diver.tx = W / 2; diver.y = H * 0.80;
+  startScr.classList.add('off');
+  overScr.classList.add('off');
+  gameOn = true;
+  requestAnimationFrame(loop);
+}
+
+function setDiverX(cx) {
+  const r = canvas.getBoundingClientRect();
+  const rx = (cx - r.left) * (W / r.width);
+  diver.tx = Math.max(diver.r, Math.min(W - diver.r, rx));
+}
+
+canvas.addEventListener('mousemove', e => setDiverX(e.clientX));
+window.addEventListener('keydown', e => {
+  const step = 30;
+  if (e.key === 'ArrowLeft')  { e.preventDefault(); diver.tx = Math.max(diver.r, diver.tx - step); }
+  if (e.key === 'ArrowRight') { e.preventDefault(); diver.tx = Math.min(W - diver.r, diver.tx + step); }
+});
+canvas.addEventListener('touchmove',  e => { e.preventDefault(); setDiverX(e.touches[0].clientX); }, { passive: false });
+canvas.addEventListener('touchstart', e => { e.preventDefault(); setDiverX(e.touches[0].clientX); }, { passive: false });
+
+document.getElementById('backBtn').onclick = () => {
+  gameOn = false;
+  const urlParams = new URLSearchParams(window.location.search);
+  const ret = urlParams.get('return');
+  if (ret) window.location.href = ret;
+  else window.location.href = '/map/Hemaa';
+};
+document.getElementById('startBtn').onclick   = startGame;
+document.getElementById('restartBtn').onclick = startGame;
+document.getElementById('menuBtn').onclick = () => {
+  gameOn = false;
+  overScr.classList.add('off');
+  startScr.classList.remove('off');
+};
+
+// Boot
+resize();
+makeBubbles(); makeBgFish(); makeCaustics(); makeJellies();
+updateLives();
+drawStatic();
+</script>
+</body>
+</html>

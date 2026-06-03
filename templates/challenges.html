@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Eco Challenges</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0;}
+
+        body{
+            font-family:Arial,sans-serif;
+            min-height:100vh;
+            background:#0b1f2e;
+            overflow-x:hidden;
+        }
+
+        .bg{
+            position:fixed;inset:0;z-index:0;
+            background:
+                radial-gradient(ellipse 80% 60% at 20% 80%,rgba(0,90,60,0.38) 0%,transparent 60%),
+                radial-gradient(ellipse 70% 50% at 80% 20%,rgba(10,40,80,0.55) 0%,transparent 60%),
+                linear-gradient(160deg,#071522 0%,#0b2a1a 45%,#081d30 100%);
+        }
+        .grid-bg{
+            position:fixed;inset:0;z-index:0;
+            background-image:
+                linear-gradient(rgba(0,200,120,0.04) 1px,transparent 1px),
+                linear-gradient(90deg,rgba(0,200,120,0.04) 1px,transparent 1px);
+            background-size:60px 60px;
+        }
+
+        .page{
+            position:relative;z-index:1;
+            min-height:100vh;
+            padding:20px 16px 48px;
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+        }
+
+        /* TOP BAR */
+        .topbar{
+            width:100%;
+            max-width:960px;
+            display:flex;
+            align-items:center;
+            margin-bottom:32px;
+            gap:12px;
+        }
+
+        .back-btn{
+            background:rgba(255,255,255,0.08);
+            border:1px solid rgba(255,255,255,0.18);
+            color:white;
+            font-size:22px;
+            font-weight:bold;
+            width:40px;height:40px;
+            border-radius:50%;
+            display:flex;align-items:center;justify-content:center;
+            flex-shrink:0;
+            text-decoration:none;
+            transition:0.2s;
+        }
+        .back-btn:hover{background:rgba(255,255,255,0.18);}
+
+        .page-title{
+            flex:1;
+            text-align:center;
+            font-size:clamp(18px,5vw,26px);
+            font-weight:700;
+            color:white;
+            letter-spacing:0.5px;
+            text-shadow:0 0 20px rgba(0,220,120,0.3);
+        }
+        .title-spacer{width:40px;flex-shrink:0;}
+
+        /* GRID */
+        .cards-grid{
+            width:100%;
+            max-width:960px;
+            display:grid;
+            grid-template-columns:repeat(auto-fill, minmax(220px, 1fr));
+            gap:16px;
+        }
+
+        /* CARD LINK */
+        .card-link{
+            text-decoration:none;
+            color:inherit;
+            display:block;
+        }
+
+        /* CARD */
+        .challenge-card{
+            background:rgba(255,255,255,0.06);
+            border:1px solid rgba(255,255,255,0.10);
+            border-radius:18px;
+            padding:24px 18px 20px;
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            gap:10px;
+            text-align:center;
+            color:white;
+            min-height:160px;
+            justify-content:center;
+            transition:transform 0.22s, border-color 0.22s, background 0.22s, box-shadow 0.22s;
+            height:100%;
+        }
+
+        .card-link:hover .challenge-card{
+            transform:translateY(-6px);
+            background:rgba(0,200,110,0.10);
+            border-color:rgba(0,220,130,0.45);
+            box-shadow:0 12px 32px rgba(0,0,0,0.35), 0 0 18px rgba(0,220,130,0.12);
+            cursor:pointer;
+        }
+        .card-link:active .challenge-card{
+            transform:translateY(-2px) scale(0.98);
+        }
+
+        /* Points badge */
+        .points-badge{
+            display:inline-flex;
+            align-items:center;
+            gap:4px;
+            background:rgba(0,220,130,0.12);
+            border:1px solid rgba(0,220,130,0.25);
+            border-radius:20px;
+            padding:3px 10px;
+            font-size:11px;
+            font-weight:700;
+            color:#34d399;
+            margin-bottom:4px;
+        }
+
+        .card-divider{
+            width:32px;
+            height:1px;
+            background:rgba(0,220,130,0.22);
+        }
+
+        .challenge-card h3{
+            font-size:clamp(13px,2.5vw,15px);
+            font-weight:700;
+            color:#e2e8f0;
+            margin:0;
+            line-height:1.35;
+        }
+
+        .challenge-card p{
+            font-size:clamp(11px,2vw,13px);
+            color:rgba(255,255,255,0.45);
+            margin:0;
+            line-height:1.5;
+        }
+
+        @media(max-width:480px){
+            .cards-grid{grid-template-columns:repeat(2,1fr);}
+        }
+        @media(max-width:300px){
+            .cards-grid{grid-template-columns:1fr;}
+        }
+    </style>
+</head>
+<body>
+
+<div class="bg"></div>
+<div class="grid-bg"></div>
+
+<div class="page">
+
+    <div class="topbar">
+        <a class="back-btn" href="/dashboard/{{ name }}/{{ role }}">&#8249;</a>
+        <div class="page-title">🌍 Eco Challenges</div>
+        <div class="title-spacer"></div>
+    </div>
+
+    <div class="cards-grid">
+        {% for c in challenges %}
+        <a href="/challenge/{{ name }}/{{ role }}?title={{ c.title }}&points={{ c.points }}" class="card-link">
+            <div class="challenge-card">
+                <div class="points-badge">⭐ {{ c.points }} pts</div>
+                <div class="card-divider"></div>
+                <h3>{{ c.title }}</h3>
+                <p>{{ c.desc }}</p>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+
+</div>
+
+</body>
+</html>

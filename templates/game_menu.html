@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Play Games</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0;}
+
+        body{
+            font-family:Arial,sans-serif;
+            min-height:100vh;
+            background:#0b1f2e;
+            overflow-x:hidden;
+        }
+
+        .bg{
+            position:fixed;inset:0;z-index:0;
+            background:
+                radial-gradient(ellipse 80% 60% at 20% 80%,rgba(0,90,60,0.38) 0%,transparent 60%),
+                radial-gradient(ellipse 70% 50% at 80% 20%,rgba(10,40,80,0.55) 0%,transparent 60%),
+                linear-gradient(160deg,#071522 0%,#0b2a1a 45%,#081d30 100%);
+        }
+        .grid-bg{
+            position:fixed;inset:0;z-index:0;
+            background-image:
+                linear-gradient(rgba(0,200,120,0.04) 1px,transparent 1px),
+                linear-gradient(90deg,rgba(0,200,120,0.04) 1px,transparent 1px);
+            background-size:60px 60px;
+        }
+
+        .page{
+            position:relative;z-index:1;
+            min-height:100vh;
+            padding:20px 16px 48px;
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+        }
+
+        /* TOP BAR */
+        .topbar{
+            width:100%;
+            max-width:960px;
+            display:flex;
+            align-items:center;
+            margin-bottom:32px;
+            gap:12px;
+        }
+
+        .back-btn{
+            background:rgba(255,255,255,0.08);
+            border:1px solid rgba(255,255,255,0.18);
+            color:white;
+            font-size:22px;
+            font-weight:bold;
+            width:40px;height:40px;
+            border-radius:50%;
+            display:flex;align-items:center;justify-content:center;
+            flex-shrink:0;
+            cursor:pointer;
+            transition:0.2s;
+            text-decoration:none;
+        }
+        .back-btn:hover{background:rgba(255,255,255,0.18);}
+
+        .page-title{
+            flex:1;
+            text-align:center;
+            font-size:clamp(18px,5vw,26px);
+            font-weight:700;
+            color:white;
+            letter-spacing:0.5px;
+            text-shadow:0 0 20px rgba(0,220,120,0.3);
+        }
+        .title-spacer{width:40px;flex-shrink:0;}
+
+        /* GRID */
+        .cards-grid{
+            width:100%;
+            max-width:960px;
+            display:grid;
+            grid-template-columns:repeat(auto-fill, minmax(240px, 1fr));
+            gap:16px;
+        }
+
+        /* CARD */
+        .card{
+            background:rgba(255,255,255,0.06);
+            border:1px solid rgba(255,255,255,0.10);
+            border-radius:18px;
+            padding:24px 18px 20px;
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            gap:8px;
+            cursor:pointer;
+            transition:transform 0.22s, border-color 0.22s, background 0.22s, box-shadow 0.22s;
+            text-align:center;
+            color:white;
+        }
+        .card:hover{
+            transform:translateY(-6px);
+            background:rgba(0,200,110,0.10);
+            border-color:rgba(0,220,130,0.45);
+            box-shadow:0 12px 32px rgba(0,0,0,0.35), 0 0 18px rgba(0,220,130,0.12);
+        }
+        .card:active{
+            transform:translateY(-2px) scale(0.98);
+        }
+
+        .icon{
+            font-size:40px;
+            line-height:1;
+            margin-bottom:4px;
+        }
+
+        .card h3{
+            font-size:clamp(13px,2.5vw,15px);
+            font-weight:700;
+            color:#e2e8f0;
+            margin:0;
+            line-height:1.3;
+        }
+
+        .card p{
+            font-size:clamp(11px,2vw,13px);
+            color:rgba(255,255,255,0.45);
+            margin:0;
+            line-height:1.4;
+        }
+
+        /* divider line between icon and text */
+        .card-divider{
+            width:32px;
+            height:1px;
+            background:rgba(0,220,130,0.25);
+            margin:2px 0;
+        }
+
+        @media(max-width:520px){
+            .cards-grid{grid-template-columns:repeat(2, 1fr);}
+        }
+        @media(max-width:320px){
+            .cards-grid{grid-template-columns:1fr;}
+        }
+    </style>
+</head>
+<body>
+
+<div class="bg"></div>
+<div class="grid-bg"></div>
+
+<div class="page">
+
+    <div class="topbar">
+        <a class="back-btn" href="/dashboard/{{ name }}/{{ role }}">&#8249;</a>
+        <div class="page-title">🌿 Choose Your Eco Game</div>
+        <div class="title-spacer"></div>
+    </div>
+
+    <div class="cards-grid">
+
+        <div class="card" onclick="location.href='/eco-catch'">
+            <div class="icon">🧺</div>
+            <div class="card-divider"></div>
+            <h3>Eco Catch</h3>
+            <p>Catch green items & avoid plastic</p>
+        </div>
+
+        <div class="card" onclick="location.href='/seed-jumper'">
+            <div class="icon">🌱</div>
+            <div class="card-divider"></div>
+            <h3>Seed Jumper</h3>
+            <p>Jump, collect seeds & grow nature</p>
+        </div>
+
+        <div class="card" onclick="location.href='/puzzle_levelpage/{{ name }}/{{ role }}'">
+            <div class="icon">🧩</div>
+            <div class="card-divider"></div>
+            <h3>Tile Puzzle</h3>
+            <p>Solve and restore nature</p>
+        </div>
+
+        <div class="card" onclick="location.href='/tree'">
+            <div class="icon">🌳</div>
+            <div class="card-divider"></div>
+            <h3>Grow Your Tree</h3>
+            <p>Water, sunlight, fertilize & watch it grow</p>
+        </div>
+
+        <div class="card" onclick="location.href='/toxic_arena'">
+            <div class="icon">☣️</div>
+            <div class="card-divider"></div>
+            <h3>Toxic Survival Arena</h3>
+            <p>Dodge toxins, survive & thrive!</p>
+        </div>
+
+        <div class="card" onclick="location.href='/quiz'">
+            <div class="icon">❓</div>
+            <div class="card-divider"></div>
+            <h3>Quiz Challenge</h3>
+            <p>Test your eco knowledge daily!</p>
+        </div>
+
+        <div class="card" onclick="location.href='/ocean'">
+            <div class="icon">🌊</div>
+            <div class="card-divider"></div>
+            <h3>Ocean Cleanup Adventure</h3>
+            <p>Collect trash and rescue sea animals</p>
+        </div>
+
+        <div class="card" onclick="location.href='/game1-city-builder.html'">
+            <div class="icon">⚡</div>
+            <div class="card-divider"></div>
+            <h3>Carbon Footprint Challenge</h3>
+            <p>Reduce your carbon footprint in fun ways!</p>
+        </div>
+
+        <div class="card" onclick="location.href='/rain_rhythm.html'">
+            <div class="icon">💧</div>
+            <div class="card-divider"></div>
+            <h3>Rain Rhythm</h3>
+            <p>Catch raindrops, save water & score points!</p>
+        </div>
+
+        <div class="card" onclick="location.href='/hatchling-run.html'">
+            <div class="icon">🐣</div>
+            <div class="card-divider"></div>
+            <h3>Hatchling Care</h3>
+            <p>Care for your hatchling and watch it grow!</p>
+        </div>
+
+        <div class="card" onclick="location.href='/worm.html'">
+            <div class="icon">🐛</div>
+            <div class="card-divider"></div>
+            <h3>Microbe Colony</h3>
+            <p>Manage your microbe colony and keep it thriving!</p>
+        </div>
+
+    </div>
+</div>
+
+<script>
+function goDashboard(){
+    window.location.href="/dashboard/{{ name }}/{{ role }}";
+}
+</script>
+
+</body>
+</html>

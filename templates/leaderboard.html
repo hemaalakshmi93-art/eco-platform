@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Eco Leaderboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0;}
+
+        body{
+            font-family:Arial,sans-serif;
+            min-height:100vh;
+            background:#0b1f2e;
+            color:#e2e8f0;
+            overflow-x:hidden;
+        }
+
+        /* Background layers */
+        .bg{
+            position:fixed;inset:0;z-index:0;
+            background:
+                radial-gradient(ellipse 80% 60% at 20% 80%,rgba(0,90,60,0.38) 0%,transparent 60%),
+                radial-gradient(ellipse 70% 50% at 80% 20%,rgba(10,40,80,0.55) 0%,transparent 60%),
+                linear-gradient(160deg,#071522 0%,#0b2a1a 45%,#081d30 100%);
+        }
+        .grid{
+            position:fixed;inset:0;z-index:0;
+            background-image:
+                linear-gradient(rgba(0,200,120,0.04) 1px,transparent 1px),
+                linear-gradient(90deg,rgba(0,200,120,0.04) 1px,transparent 1px);
+            background-size:60px 60px;
+        }
+
+        /* Page wrapper */
+        .page{
+            position:relative;z-index:1;
+            min-height:100vh;
+            padding:20px 16px 48px;
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+        }
+
+        /* TOP BAR */
+        .topbar{
+            width:100%;
+            max-width:520px;
+            display:flex;
+            align-items:center;
+            margin-bottom:28px;
+            gap:12px;
+        }
+
+        .back-btn{
+            text-decoration:none;
+            color:white;
+            background:rgba(255,255,255,0.08);
+            border:1px solid rgba(255,255,255,0.18);
+            font-size:22px;
+            font-weight:bold;
+            width:40px;height:40px;
+            border-radius:50%;
+            display:flex;align-items:center;justify-content:center;
+            flex-shrink:0;
+            transition:0.2s;
+        }
+        .back-btn:hover{background:rgba(255,255,255,0.18);}
+
+        .page-title{
+            font-size:clamp(18px,5vw,26px);
+            font-weight:700;
+            color:white;
+            letter-spacing:0.5px;
+            text-shadow:0 0 20px rgba(0,220,120,0.3);
+            flex:1;
+            text-align:center;
+        }
+        /* Invisible spacer to balance the back button */
+        .title-spacer{width:40px;flex-shrink:0;}
+
+        /* TOP 3 PODIUM STRIP */
+        .podium{
+            width:100%;
+            max-width:520px;
+            display:flex;
+            justify-content:center;
+            align-items:flex-end;
+            gap:10px;
+            margin-bottom:28px;
+        }
+
+        .podium-slot{
+            flex:1;
+            max-width:150px;
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            gap:8px;
+        }
+
+        .podium-avatar{
+            width:52px;height:52px;
+            border-radius:50%;
+            display:flex;align-items:center;justify-content:center;
+            font-size:20px;
+            font-weight:700;
+            border:2px solid rgba(255,255,255,0.15);
+        }
+        .podium-slot.rank1 .podium-avatar{
+            width:64px;height:64px;font-size:24px;
+            background:rgba(234,179,8,0.2);
+            border-color:rgba(234,179,8,0.55);
+        }
+        .podium-slot.rank2 .podium-avatar{
+            background:rgba(148,163,184,0.15);
+            border-color:rgba(148,163,184,0.45);
+        }
+        .podium-slot.rank3 .podium-avatar{
+            background:rgba(0,200,110,0.15);
+            border-color:rgba(0,200,110,0.4);
+        }
+
+        .podium-name{
+            font-size:12px;
+            font-weight:600;
+            color:#cbd5e1;
+            text-align:center;
+            max-width:100%;
+            overflow:hidden;
+            text-overflow:ellipsis;
+            white-space:nowrap;
+            width:100%;
+        }
+        .podium-pts{
+            font-size:11px;
+            color:rgba(255,255,255,0.45);
+        }
+
+        .podium-base{
+            width:100%;
+            border-radius:10px 10px 0 0;
+            display:flex;align-items:center;justify-content:center;
+            font-size:18px;font-weight:700;
+            padding:10px 0;
+        }
+        .podium-slot.rank1 .podium-base{height:64px;background:rgba(234,179,8,0.18);color:#f5c842;}
+        .podium-slot.rank2 .podium-base{height:48px;background:rgba(148,163,184,0.12);color:#94a3b8;}
+        .podium-slot.rank3 .podium-base{height:36px;background:rgba(0,200,110,0.12);color:#34d399;}
+
+        /* REST OF LIST */
+        .list{
+            width:100%;
+            max-width:520px;
+            display:flex;
+            flex-direction:column;
+            gap:10px;
+        }
+
+        .leader-card{
+            background:rgba(255,255,255,0.06);
+            border:1px solid rgba(255,255,255,0.10);
+            border-radius:14px;
+            padding:14px 18px;
+            display:flex;
+            align-items:center;
+            gap:14px;
+            transition:transform 0.2s, border-color 0.2s, background 0.2s;
+            cursor:pointer;
+        }
+        .leader-card:hover{
+            transform:translateY(-3px);
+            background:rgba(0,200,110,0.08);
+            border-color:rgba(0,200,110,0.3);
+        }
+
+        .leader-rank{
+            font-size:14px;
+            font-weight:700;
+            color:rgba(255,255,255,0.35);
+            width:28px;
+            text-align:center;
+            flex-shrink:0;
+        }
+
+        .leader-avatar{
+            width:38px;height:38px;
+            border-radius:50%;
+            background:rgba(0,200,110,0.12);
+            border:1px solid rgba(0,200,110,0.25);
+            display:flex;align-items:center;justify-content:center;
+            font-size:14px;font-weight:700;
+            color:#34d399;
+            flex-shrink:0;
+        }
+
+        .leader-name{
+            flex:1;
+            font-size:14px;
+            font-weight:600;
+            color:#cbd5e1;
+            overflow:hidden;
+            text-overflow:ellipsis;
+            white-space:nowrap;
+        }
+
+        .leader-points{
+            font-size:13px;
+            font-weight:700;
+            color:#34d399;
+            white-space:nowrap;
+        }
+
+        /* Medal badges for top 3 in list */
+        .medal{
+            width:22px;height:22px;
+            border-radius:50%;
+            display:flex;align-items:center;justify-content:center;
+            font-size:11px;font-weight:700;
+            flex-shrink:0;
+        }
+        .medal-1{background:rgba(234,179,8,0.2);color:#f5c842;border:1px solid rgba(234,179,8,0.4);}
+        .medal-2{background:rgba(148,163,184,0.15);color:#94a3b8;border:1px solid rgba(148,163,184,0.35);}
+        .medal-3{background:rgba(52,211,153,0.15);color:#34d399;border:1px solid rgba(52,211,153,0.35);}
+
+        @media(max-width:400px){
+            .podium-avatar{width:44px;height:44px;font-size:16px;}
+            .podium-slot.rank1 .podium-avatar{width:54px;height:54px;font-size:20px;}
+        }
+    </style>
+</head>
+<body>
+
+<div class="bg"></div>
+<div class="grid"></div>
+
+<div class="page">
+
+    <!-- TOP BAR -->
+    <div class="topbar">
+        <a href="/dashboard/{{ name }}/{{ role }}" class="back-btn">&#8249;</a>
+        <div class="page-title">🏆 Eco Leaderboard</div>
+        <div class="title-spacer"></div>
+    </div>
+
+    <!-- PODIUM: top 3 -->
+    {% if data|length >= 1 %}
+    <div class="podium">
+
+        <!-- Rank 2 (left) -->
+        {% if data|length >= 2 %}
+        <div class="podium-slot rank2">
+            <div class="podium-avatar">{{ data[1][0][0]|upper }}</div>
+            <div class="podium-name">{{ data[1][0] }}</div>
+            <div class="podium-pts">{{ data[1][1] }} pts</div>
+            <div class="podium-base">#2</div>
+        </div>
+        {% endif %}
+
+        <!-- Rank 1 (center, tallest) -->
+        <div class="podium-slot rank1">
+            <div class="podium-avatar">{{ data[0][0][0]|upper }}</div>
+            <div class="podium-name">{{ data[0][0] }}</div>
+            <div class="podium-pts">{{ data[0][1] }} pts</div>
+            <div class="podium-base">#1</div>
+        </div>
+
+        <!-- Rank 3 (right) -->
+        {% if data|length >= 3 %}
+        <div class="podium-slot rank3">
+            <div class="podium-avatar">{{ data[2][0][0]|upper }}</div>
+            <div class="podium-name">{{ data[2][0] }}</div>
+            <div class="podium-pts">{{ data[2][1] }} pts</div>
+            <div class="podium-base">#3</div>
+        </div>
+        {% endif %}
+
+    </div>
+    {% endif %}
+
+    <!-- FULL LIST -->
+    <div class="list">
+        {% for user in data %}
+        <div class="leader-card">
+            <div class="leader-rank">#{{ loop.index }}</div>
+            {% if loop.index == 1 %}
+                <div class="medal medal-1">🥇</div>
+            {% elif loop.index == 2 %}
+                <div class="medal medal-2">🥈</div>
+            {% elif loop.index == 3 %}
+                <div class="medal medal-3">🥉</div>
+            {% else %}
+                <div class="leader-avatar">{{ user[0][0]|upper }}</div>
+            {% endif %}
+            <div class="leader-name">{{ user[0] }}</div>
+            <div class="leader-points">{{ user[1] }} pts</div>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+</body>
+</html>

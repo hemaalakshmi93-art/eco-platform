@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --cyan: #22d3ee;
+            --violet: #8b5cf6;
+            --emerald: #10b981;
+            --navy: #07111f;
+            --glass: rgba(255,255,255,0.055);
+            --glass-border: rgba(255,255,255,0.10);
+            --text: #eef6ff;
+            --muted: #94a3b8;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--navy);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .bg-canvas {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background:
+                radial-gradient(ellipse 80% 60% at 10% 10%, rgba(34,211,238,0.12) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 50% at 90% 80%, rgba(139,92,246,0.14) 0%, transparent 55%),
+                radial-gradient(ellipse 50% 40% at 50% 50%, rgba(16,185,129,0.07) 0%, transparent 60%),
+                linear-gradient(160deg, #07111f 0%, #0d1a2e 40%, #111827 70%, #1a1040 100%);
+        }
+        .bg-canvas::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px);
+            background-size: 32px 32px;
+        }
+
+        .orb { position: fixed; border-radius: 50%; filter: blur(90px); animation: drift 12s ease-in-out infinite alternate; pointer-events: none; z-index: -1; }
+        .orb1 { width: 500px; height: 500px; background: rgba(34,211,238,0.12); top: -100px; left: -100px; animation-delay: 0s; }
+        .orb2 { width: 400px; height: 400px; background: rgba(139,92,246,0.13); bottom: 0; right: -80px; animation-delay: 3s; }
+        .orb3 { width: 280px; height: 280px; background: rgba(16,185,129,0.10); top: 40%; left: 40%; animation-delay: 6s; }
+        @keyframes drift { from { transform: translate(0,0) scale(1); } to { transform: translate(30px,-40px) scale(1.05); } }
+
+        .sidebar {
+            position: fixed; top: 0; left: -280px;
+            width: 270px; height: 100%;
+            background: linear-gradient(180deg, rgba(10,18,40,0.97), rgba(20,30,60,0.97));
+            backdrop-filter: blur(24px);
+            padding-top: 90px;
+            transition: left 0.38s cubic-bezier(.4,0,.2,1);
+            z-index: 2000;
+            border-right: 1px solid rgba(255,255,255,0.07);
+            box-shadow: 12px 0 40px rgba(0,0,0,0.5);
+        }
+        .sidebar.active { left: 0; }
+        .sidebar a {
+            display: flex; align-items: center; gap: 14px;
+            padding: 13px 22px; margin: 5px 12px;
+            color: var(--muted); text-decoration: none;
+            font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 600; letter-spacing: 0.03em;
+            border-radius: 12px; transition: 0.25s ease;
+        }
+        .sidebar a:hover { background: rgba(34,211,238,0.10); color: var(--cyan); transform: translateX(5px); }
+        .sidebar i { width: 20px; height: 20px; }
+        .close-btn {
+            position: absolute; top: 22px; right: 22px;
+            font-size: 18px; cursor: pointer; color: var(--muted);
+            width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;
+            border-radius: 8px; border: 1px solid var(--glass-border);
+            transition: 0.2s;
+        }
+        .close-btn:hover { color: var(--cyan); border-color: var(--cyan); transform: rotate(90deg); }
+
+        .navbar {
+            position: sticky; top: 0;
+            width: 100%; padding: 18px 36px;
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(7,17,31,0.82);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            z-index: 1000;
+        }
+        .navbar-brand { display: flex; align-items: center; gap: 12px; }
+        .menu-icon {
+            width: 38px; height: 38px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
+            cursor: pointer; border-radius: 10px;
+            border: 1px solid var(--glass-border);
+            background: var(--glass); transition: 0.2s;
+        }
+        .menu-icon:hover { border-color: rgba(34,211,238,0.4); background: rgba(34,211,238,0.08); }
+        .menu-icon span { display: block; width: 16px; height: 1.5px; background: var(--text); border-radius: 2px; }
+        .brand-name {
+            font-family: 'Syne', sans-serif; font-weight: 800; font-size: 18px;
+            background: linear-gradient(135deg, #22d3ee, #8b5cf6);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .navbar-links { display: flex; align-items: center; gap: 6px; }
+        .navbar-links a {
+            color: var(--muted); text-decoration: none;
+            font-size: 13px; font-weight: 500; padding: 8px 14px; border-radius: 8px; transition: 0.2s;
+        }
+        .navbar-links a:hover { color: var(--text); background: var(--glass); }
+        .navbar-links .logout-btn { color: var(--cyan); border: 1px solid rgba(34,211,238,0.25); background: rgba(34,211,238,0.06); }
+        .navbar-links .logout-btn:hover { background: rgba(34,211,238,0.14); }
+
+        .container { max-width: 1080px; margin: 0 auto; padding: 48px 24px 80px; }
+        .welcome-block { margin-bottom: 52px; }
+        .welcome-label { font-size: 12px; font-weight: 600; letter-spacing: 0.14em; color: var(--cyan); text-transform: uppercase; margin-bottom: 8px; }
+        .welcome-title { font-family: 'Syne', sans-serif; font-size: clamp(26px,4vw,38px); font-weight: 800; line-height: 1.15; background: linear-gradient(135deg, #ffffff 30%, #94a3b8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .welcome-title span { background: linear-gradient(135deg, var(--cyan), var(--violet)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+        .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+        .card {
+            background: var(--glass); border: 1px solid var(--glass-border); border-radius: 22px; padding: 28px;
+            position: relative; overflow: hidden;
+            transition: transform 0.32s ease, box-shadow 0.32s ease, border-color 0.32s ease;
+            cursor: pointer; backdrop-filter: blur(12px);
+        }
+        .card::after { content: ""; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, transparent 60%); pointer-events: none; }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 24px 50px rgba(0,0,0,0.3); }
+        .card-no-hover { cursor: default; }
+        .card-no-hover:hover { transform: none; box-shadow: none; }
+        .card .glow-strip { position: absolute; top: 0; left: 0; right: 0; height: 2px; border-radius: 22px 22px 0 0; }
+        .card-label { font-size: 11px; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
+        .card-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 20px; color: #fff; margin-bottom: 6px; line-height: 1.2; }
+        .card-sub { font-size: 13px; color: var(--muted); }
+
+        .card-points { grid-column: 1/3; display: flex; align-items: center; gap: 32px; background: linear-gradient(135deg, rgba(34,211,238,0.10) 0%, rgba(59,130,246,0.08) 50%, rgba(139,92,246,0.10) 100%); border-color: rgba(34,211,238,0.18); }
+        .card-points:hover { border-color: rgba(34,211,238,0.38); }
+        .points-num { font-family: 'Syne', sans-serif; font-size: clamp(42px,6vw,64px); font-weight: 800; line-height: 1; background: linear-gradient(135deg, #22d3ee, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .points-info { flex: 1; }
+        .badge-pill { display: inline-block; padding: 5px 14px; border-radius: 999px; font-size: 12px; font-weight: 600; background: rgba(139,92,246,0.18); border: 1px solid rgba(139,92,246,0.35); color: #c4b5fd; margin-bottom: 10px; }
+        .level-tag { display: inline-block; padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: 600; background: rgba(34,211,238,0.12); border: 1px solid rgba(34,211,238,0.22); color: var(--cyan); margin-left: 8px; }
+        .progress-wrap { margin-top: 14px; }
+        .progress-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+        .progress-bar { width: 100%; height: 6px; background: rgba(255,255,255,0.08); border-radius: 99px; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #22d3ee, #3b82f6, #8b5cf6); border-radius: 99px; width: 0%; transition: width 1.4s cubic-bezier(.4,0,.2,1); box-shadow: 0 0 10px rgba(34,211,238,0.5); }
+
+        .card-challenges { grid-column: 3; grid-row: 1; display: flex; flex-direction: column; justify-content: space-between; background: linear-gradient(135deg, rgba(16,185,129,0.09) 0%, rgba(34,211,238,0.07) 100%); border-color: rgba(16,185,129,0.18); min-height: 180px; }
+        .card-challenges:hover { border-color: rgba(16,185,129,0.38); }
+        .card-icon { font-size: 34px; line-height: 1; margin-bottom: 12px; }
+        .cta-arrow { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--emerald); letter-spacing: 0.04em; margin-top: 8px; }
+
+        .card-streak { background: linear-gradient(135deg, rgba(251,146,60,0.10) 0%, rgba(239,68,68,0.08) 100%); border-color: rgba(251,146,60,0.18); }
+        .card-streak:hover { border-color: rgba(251,146,60,0.38); }
+        .streak-num { font-family: 'Syne', sans-serif; font-size: 48px; font-weight: 800; color: #fb923c; line-height: 1; }
+
+        .card-graph { border-color: rgba(139,92,246,0.18); background: linear-gradient(135deg, rgba(139,92,246,0.09) 0%, rgba(59,130,246,0.07) 100%); }
+        .card-graph:hover { border-color: rgba(139,92,246,0.38); }
+        .sparkline { margin-top: 14px; display: flex; align-items: flex-end; gap: 4px; height: 36px; }
+        .sparkline-bar { flex: 1; border-radius: 4px 4px 0 0; background: linear-gradient(to top, rgba(139,92,246,0.6), rgba(34,211,238,0.4)); animation: rise 0.8s ease backwards; }
+        @keyframes rise { from { transform: scaleY(0); transform-origin: bottom; } to { transform: scaleY(1); } }
+
+        .card-map { background: linear-gradient(135deg, rgba(16,185,129,0.09) 0%, rgba(34,211,238,0.07) 100%); border-color: rgba(16,185,129,0.18); }
+        .card-map:hover { border-color: rgba(34,211,238,0.38); }
+        .map-dots { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 14px; }
+        .map-dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(34,211,238,0.4); animation: pulse-dot 2s ease-in-out infinite alternate; }
+        .map-dot:nth-child(2n) { background: rgba(16,185,129,0.5); animation-delay: 0.5s; }
+        .map-dot:nth-child(3n) { background: rgba(139,92,246,0.4); animation-delay: 1s; }
+        @keyframes pulse-dot { from { transform: scale(1); opacity: 0.5; } to { transform: scale(1.4); opacity: 1; } }
+
+        .card-game { grid-column: 1/-1; display: flex; align-items: center; gap: 28px; background: linear-gradient(135deg, rgba(139,92,246,0.12) 0%, rgba(59,130,246,0.10) 50%, rgba(34,211,238,0.08) 100%); border-color: rgba(139,92,246,0.22); padding: 32px 36px; }
+        .card-game:hover { border-color: rgba(139,92,246,0.45); }
+        .game-badge { width: 72px; height: 72px; border-radius: 20px; flex-shrink: 0; background: linear-gradient(135deg, #6d28d9, #22d3ee); display: flex; align-items: center; justify-content: center; font-size: 32px; box-shadow: 0 8px 24px rgba(109,40,217,0.4); }
+        .card-game .card-title { font-size: 24px; margin-bottom: 4px; }
+        .game-play-btn { margin-left: auto; padding: 12px 28px; background: linear-gradient(135deg, #7c3aed, #22d3ee); border: none; border-radius: 12px; cursor: pointer; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px; color: #fff; transition: 0.25s; box-shadow: 0 4px 18px rgba(124,58,237,0.45); }
+        .game-play-btn:hover { transform: scale(1.05); box-shadow: 0 8px 28px rgba(124,58,237,0.6); }
+
+        .students-card { margin-top: 20px; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 22px; padding: 28px; backdrop-filter: blur(12px); }
+        .students-card h3 { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; margin-bottom: 18px; color: #fff; }
+        .students-card li { list-style: none; padding: 10px 14px; border-radius: 10px; font-size: 14px; color: var(--muted); border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; gap: 10px; }
+        .students-card li::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: linear-gradient(135deg, var(--cyan), var(--violet)); flex-shrink: 0; }
+        .students-card li:last-child { border-bottom: none; }
+        .students-card ul { padding: 0; }
+
+        .card, .students-card { animation: fadeUp 0.6s ease backwards; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .card:nth-child(1) { animation-delay: 0.05s; }
+        .card:nth-child(2) { animation-delay: 0.12s; }
+        .card:nth-child(3) { animation-delay: 0.19s; }
+        .card:nth-child(4) { animation-delay: 0.26s; }
+        .card:nth-child(5) { animation-delay: 0.33s; }
+        .card:nth-child(6) { animation-delay: 0.40s; }
+        .card:nth-child(7) { animation-delay: 0.47s; }
+
+        @media (max-width: 820px) {
+            .dashboard-grid { grid-template-columns: 1fr 1fr; }
+            .card-points { grid-column: 1/-1; }
+            .card-challenges { grid-column: auto; grid-row: auto; }
+            .card-game { grid-column: 1/-1; flex-direction: column; text-align: center; }
+            .game-play-btn { margin-left: 0; }
+        }
+        @media (max-width: 540px) {
+            .dashboard-grid { grid-template-columns: 1fr; }
+            .card-points { flex-direction: column; text-align: center; }
+        }
+
+        /* ───────────────────────────────────────────
+           CHATBOT STYLES
+        ─────────────────────────────────────────── */
+
+        /* Floating button */
+        #chatToggleBtn {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, #10b981, #22d3ee);
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 10000;
+            box-shadow: 0 4px 20px rgba(16,185,129,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        #chatToggleBtn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 28px rgba(16,185,129,0.65);
+        }
+
+        /* Chat window */
+        #chatWindow {
+            position: fixed;
+            bottom: 90px;
+            right: 24px;
+            width: 340px;
+            background: rgba(10, 20, 40, 0.97);
+            border: 1px solid rgba(34,211,238,0.2);
+            border-radius: 18px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 12px 48px rgba(0,0,0,0.6);
+            animation: slideUp 0.25s ease;
+            height: 450px;
+            overflow: hidden;
+            display: none;
+        }
+        #chatWindow.open { display: flex; }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Header */
+        .chat-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 16px;
+            background: linear-gradient(135deg, rgba(16,185,129,0.2), rgba(34,211,238,0.12));
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        .chat-header-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #10b981, #22d3ee);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+        .chat-header-info { flex: 1; }
+        .chat-header-name {
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 14px;
+            color: #fff;
+        }
+        .chat-header-status {
+            font-size: 11px;
+            color: #10b981;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #10b981;
+            animation: blink-dot 2s infinite;
+        }
+        @keyframes blink-dot {
+            0%,100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        .chat-close-btn {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: 0.2s;
+            line-height: 1;
+        }
+        .chat-close-btn:hover { color: #fff; background: rgba(255,255,255,0.08); }
+
+        /* Messages area */
+        #chatMessages {
+            flex: 1;
+            height: 300px;
+            max-height: 300px;
+            overflow-y: auto !important;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            scroll-behavior: smooth;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(34,211,238,0.2) transparent;
+        }
+        #chatMessages::-webkit-scrollbar { width: 4px; }
+        #chatMessages::-webkit-scrollbar-thumb { background: rgba(34,211,238,0.2); border-radius: 4px; }
+
+        /* Message bubbles */
+        .chat-msg {
+            max-width: 85%;
+            word-break: break-word;
+            line-height: 1.5;
+            font-size: 13px;
+            padding: 10px 13px;
+            border-radius: 14px;
+            animation: msgPop 0.2s ease;
+        }
+        @keyframes msgPop {
+            from { opacity: 0; transform: scale(0.95); }
+            to   { opacity: 1; transform: scale(1); }
+        }
+        .chat-msg.bot {
+            align-self: flex-start;
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: #eef6ff;
+            border-radius: 4px 14px 14px 14px;
+        }
+        .chat-msg.user {
+            align-self: flex-end;
+            background: linear-gradient(135deg, #10b981, #22d3ee);
+            color: #022c22;
+            font-weight: 500;
+            border-radius: 14px 4px 14px 14px;
+        }
+
+        /* Typing indicator */
+        .typing-bubble {
+            align-self: flex-start;
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 4px 14px 14px 14px;
+            padding: 12px 16px;
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+        .typing-bubble span {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #10b981;
+            animation: bounce 1.2s infinite;
+        }
+        .typing-bubble span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-bubble span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes bounce {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-5px); }
+        }
+
+        /* Quick suggestions */
+        .chat-suggestions {
+            padding: 6px 14px 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .suggestion-chip {
+            background: rgba(16,185,129,0.1);
+            border: 1px solid rgba(16,185,129,0.25);
+            color: #10b981;
+            font-size: 11px;
+            padding: 5px 11px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            transition: 0.2s;
+            white-space: nowrap;
+        }
+        .suggestion-chip:hover {
+            background: rgba(16,185,129,0.22);
+            border-color: #10b981;
+        }
+
+        /* Input area */
+        .chat-input-row {
+            display: flex;
+            gap: 8px;
+            padding: 12px 14px;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            align-items: flex-end;
+        }
+        #chatInput {
+            flex: 1;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            color: #eef6ff;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px;
+            padding: 9px 12px;
+            resize: none;
+            outline: none;
+            max-height: 80px;
+            transition: border-color 0.2s;
+            line-height: 1.4;
+        }
+        #chatInput:focus { border-color: rgba(34,211,238,0.4); }
+        #chatInput::placeholder { color: #64748b; }
+        #chatSendBtn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, #10b981, #22d3ee);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: transform 0.2s;
+        }
+        #chatSendBtn:hover { transform: scale(1.1); }
+        #chatSendBtn:disabled { background: rgba(255,255,255,0.1); cursor: not-allowed; transform: none; }
+        #chatSendBtn svg { width: 16px; height: 16px; fill: white; }
+    </style>
+</head>
+<body>
+
+<div class="bg-canvas"></div>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="orb orb3"></div>
+
+<!-- SIDEBAR -->
+<div id="sidebar" class="sidebar">
+    <span class="close-btn" onclick="toggleSidebar()">✖</span>
+    <a href="/profile/{{ name }}/{{ role }}"><i data-lucide="user"></i> <span>Profile</span></a>
+    <a href="/settings/{{ name }}"><i data-lucide="settings"></i> <span>Settings</span></a>
+    <a href="/game/{{ name }}/{{ role }}"><i data-lucide="gamepad-2"></i> <span>Play Games</span></a>
+    <a href="/course"><i data-lucide="book-open"></i> <span>Course</span></a>
+</div>
+
+<!-- NAVBAR -->
+<div class="navbar">
+    <div class="navbar-brand">
+        <div class="menu-icon" onclick="toggleSidebar()">
+            <span></span><span></span><span></span>
+        </div>
+        <span class="brand-name">EcoLearn 🌱</span>
+    </div>
+    <div class="navbar-links">
+        <a href="/">🏠 Home</a>
+        <a href="/leaderboard">🏆 Leaderboard</a>
+        <a href="/login_page" class="logout-btn">Logout</a>
+    </div>
+</div>
+
+<!-- MAIN -->
+<div class="container">
+
+    <div class="welcome-block">
+        <div class="welcome-label">Dashboard</div>
+        <div class="welcome-title">
+            Welcome back, <span>{{ name }}</span> 👋
+        </div>
+        <div style="color: var(--muted); font-size:14px; margin-top:6px;">{{ role }} · Your eco journey continues.</div>
+    </div>
+
+    <div class="dashboard-grid">
+
+        <div class="card card-points card-no-hover">
+            <div class="glow-strip" style="background: linear-gradient(90deg,#22d3ee,#8b5cf6);"></div>
+            <div>
+                <div class="points-num">{{ points }}</div>
+                <div style="color:var(--muted); font-size:13px; margin-top:4px;">Total Points</div>
+            </div>
+            <div class="points-info">
+                <div class="card-label">Status</div>
+                <div>
+                    <span class="badge-pill">{{ badge }}</span>
+                    <span class="level-tag">{{ level }}</span>
+                </div>
+                <div class="progress-wrap">
+                    <div class="progress-label">
+                        <span>Progress to next level</span>
+                        <span id="progressLabel">{{ points }} pts</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressBar"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card card-challenges" onclick="location.href='/challenges/{{ name }}/{{ role }}'">
+            <div class="glow-strip" style="background: linear-gradient(90deg,#10b981,#22d3ee);"></div>
+            <div>
+                <div class="card-icon">🌍</div>
+                <div class="card-title">Eco Challenges</div>
+                <div class="card-sub">Complete tasks & earn points</div>
+            </div>
+            <div class="cta-arrow">Start Now →</div>
+        </div>
+
+        <div class="card card-graph" onclick="location.href='/graph/{{ name }}'">
+            <div class="glow-strip" style="background: linear-gradient(90deg,#8b5cf6,#3b82f6);"></div>
+            <div class="card-label">Analytics</div>
+            <div class="card-title">📊 View Graph</div>
+            <div class="sparkline">
+                <div class="sparkline-bar" style="height:40%; animation-delay:0s"></div>
+                <div class="sparkline-bar" style="height:65%; animation-delay:0.07s"></div>
+                <div class="sparkline-bar" style="height:50%; animation-delay:0.14s"></div>
+                <div class="sparkline-bar" style="height:80%; animation-delay:0.21s"></div>
+                <div class="sparkline-bar" style="height:60%; animation-delay:0.28s"></div>
+                <div class="sparkline-bar" style="height:90%; animation-delay:0.35s"></div>
+                <div class="sparkline-bar" style="height:70%; animation-delay:0.42s"></div>
+            </div>
+        </div>
+
+        <div class="card card-streak card-no-hover">
+            <div class="glow-strip" style="background: linear-gradient(90deg,#fb923c,#ef4444);"></div>
+            <div class="card-label">Daily Streak</div>
+            <div style="display:flex; align-items:flex-end; gap:10px; margin-top:6px;">
+                <div class="streak-num">{{ streak }}</div>
+                <div style="color:#fb923c; font-size:14px; margin-bottom:8px; font-weight:600;">days 🔥</div>
+            </div>
+            <div class="card-sub" style="margin-top:8px;">Keep it going!</div>
+        </div>
+
+        <div class="card card-map" onclick="location.href='/map/{{ name }}'">
+            <div class="glow-strip" style="background: linear-gradient(90deg,#10b981,#22d3ee);"></div>
+            <div class="card-label">Explore</div>
+            <div class="card-title">🗺️ Mission Map</div>
+            <div class="card-sub">Explore eco zones</div>
+            <div class="map-dots">
+                <div class="map-dot"></div><div class="map-dot"></div><div class="map-dot"></div>
+                <div class="map-dot"></div><div class="map-dot"></div><div class="map-dot"></div>
+                <div class="map-dot"></div><div class="map-dot"></div>
+            </div>
+        </div>
+
+        <div class="card card-game" onclick="location.href='/game/{{ name }}/{{ role }}'">
+            <div class="glow-strip" style="background: linear-gradient(90deg,#7c3aed,#22d3ee);"></div>
+            <div class="game-badge">🎮</div>
+            <div>
+                <div class="card-label">Entertainment</div>
+                <div class="card-title">Play Game</div>
+                <div class="card-sub">Jump in and earn eco points while you play</div>
+            </div>
+            <button class="game-play-btn" onclick="location.href='/game/{{ name }}/{{ role }}'">Play Now ▶</button>
+        </div>
+
+    </div>
+
+    {% if role == "teacher" %}
+    <div class="students-card">
+        <h3>👨‍🎓 Students Joined</h3>
+        <ul>
+            {% for s in students %}
+                <li>{{ s[0] }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+</div>
+
+<!-- ─────────────────────────────────────────────────
+     CHATBOT
+───────────────────────────────────────────────── -->
+
+<!-- Toggle Button -->
+<button id="chatToggleBtn" onclick="toggleChat()" title="Chat with EcoBot">🌱</button>
+
+<!-- Chat Window -->
+<div id="chatWindow">
+
+    <!-- Header -->
+    <div class="chat-header">
+        <div class="chat-header-avatar">🌿</div>
+        <div class="chat-header-info">
+            <div class="chat-header-name">EcoBot</div>
+            <div class="chat-header-status">
+                <span class="status-dot"></span> Online
+            </div>
+        </div>
+        <button class="chat-close-btn" onclick="toggleChat()">✕</button>
+    </div>
+
+    <!-- Messages -->
+    <div id="chatMessages">
+        <div class="chat-msg bot">
+            Hi there! 👋 I'm EcoBot, your environment assistant.<br><br>
+            You can ask me anything about nature, pollution, climate, recycling — or just say hello!
+        </div>
+    </div>
+
+    <!-- Quick suggestions -->
+    <div class="chat-suggestions" id="chatSuggestions">
+        <button class="suggestion-chip" onclick="useSuggestion('What is carbon footprint?')">🌍 Carbon footprint?</button>
+        <button class="suggestion-chip" onclick="useSuggestion('How to save water at home?')">💧 Save water?</button>
+        <button class="suggestion-chip" onclick="useSuggestion('What causes global warming?')">🔥 Global warming?</button>
+        <button class="suggestion-chip" onclick="useSuggestion('How to recycle properly?')">♻️ Recycling tips?</button>
+    </div>
+
+    <!-- Input -->
+    <div class="chat-input-row">
+        <textarea
+            id="chatInput"
+            placeholder="Type a message..."
+            rows="1"
+            onkeydown="handleKey(event)"
+            oninput="autoResize(this)"
+        ></textarea>
+        <button id="chatSendBtn" onclick="sendMessage()">
+            <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+        </button>
+    </div>
+</div>
+
+<!-- ─────────────────────────────────────────────────
+     SCRIPTS
+───────────────────────────────────────────────── -->
+<script>
+    // ── Progress bar ──
+    // Each level is 100 points. We show how far into the current level the user is.
+    let pts = Number("{{ points }}") || 0;
+    let levelSize = 100;
+    let progressPct = pts % levelSize;          // e.g. 445 % 100 = 45%
+    if (progressPct === 0 && pts > 0) progressPct = 100; // exactly on a level boundary = full bar
+    setTimeout(() => {
+        document.getElementById("progressBar").style.width = progressPct + "%";
+        document.getElementById("progressLabel").textContent = pts + " pts (" + progressPct + "% to next level)";
+    }, 300);
+
+    // ── Sidebar ──
+    function toggleSidebar() {
+        document.getElementById("sidebar").classList.toggle("active");
+    }
+
+    // ── Lucide icons ──
+    lucide.createIcons();
+</script>
+
+<script>
+const GROQ_API_KEY = "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"; // Your existing Groq key
+
+const SYSTEM_INSTRUCTION = `You are EcoBot, a friendly assistant on EcoLearn.
+- Reply in maximum 2-3 short sentences only. Never write long answers.
+- Be warm and friendly.
+- Only answer environment topics: pollution, climate, recycling, sustainability etc.
+- If asked unrelated topics, politely redirect.
+- No bullet points or lists. Short conversational answers only.`;
+
+let chatHistory = [];
+let isOpen = false;
+
+function toggleChat() {
+    isOpen = !isOpen;
+    const win = document.getElementById("chatWindow");
+    if (isOpen) win.classList.add("open");
+    else win.classList.remove("open");
+}
+
+function useSuggestion(text) {
+    document.getElementById("chatInput").value = text;
+    document.getElementById("chatSuggestions").style.display = "none";
+    sendMessage();
+}
+
+function handleKey(e) {
+    if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+    }
+}
+
+function autoResize(el) {
+    el.style.height = "auto";
+    el.style.height = Math.min(el.scrollHeight, 80) + "px";
+}
+
+function addMessage(text, role) {
+    const container = document.getElementById("chatMessages");
+    const div = document.createElement("div");
+    div.className = "chat-msg " + role;
+    div.innerHTML = text.replace(/\n/g, "<br>");
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+}
+
+function showTyping() {
+    const container = document.getElementById("chatMessages");
+    const div = document.createElement("div");
+    div.className = "typing-bubble";
+    div.id = "typingIndicator";
+    div.innerHTML = "<span></span><span></span><span></span>";
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+}
+
+function removeTyping() {
+    const el = document.getElementById("typingIndicator");
+    if (el) el.remove();
+}
+
+async function sendMessage() {
+    const input = document.getElementById("chatInput");
+    const text = input.value.trim();
+    if (!text) return;
+
+    document.getElementById("chatSuggestions").style.display = "none";
+    addMessage(text, "user");
+    input.value = "";
+    input.style.height = "auto";
+    document.getElementById("chatSendBtn").disabled = true;
+
+    chatHistory.push({ role: "user", content: text });
+    showTyping();
+
+    try {
+        const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + GROQ_API_KEY
+            },
+            body: JSON.stringify({
+                model: "llama-3.3-70b-versatile",
+                messages: [
+                    { role: "system", content: SYSTEM_INSTRUCTION },
+                    ...chatHistory
+                ],
+                max_tokens: 120
+            })
+        });
+
+        const data = await response.json();
+        removeTyping();
+
+        if (data.error) {
+            addMessage("Error: " + data.error.message, "bot");
+            chatHistory.pop();
+        } else {
+            const reply = data.choices?.[0]?.message?.content || "Hmm, I couldn't get a response. Try again!";
+            addMessage(reply, "bot");
+            chatHistory.push({ role: "assistant", content: reply });
+        }
+
+    } catch (err) {
+        removeTyping();
+        addMessage("Oops! Network error. Please check your connection.", "bot");
+        chatHistory.pop();
+    }
+
+    document.getElementById("chatSendBtn").disabled = false;
+}
+</script>
+</body>
+</html>

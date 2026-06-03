@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Turtle Rescue</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #050f20;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Nunito', sans-serif;
+    }
+
+    #app {
+      position: relative;
+      width: 680px;
+      max-width: 98vw;
+    }
+
+    #hud {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 18px;
+      background: #0a1e3d;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-bottom: none;
+      border-radius: 14px 14px 0 0;
+    }
+    .hud-badge {
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .hud-val { font-family: 'Fredoka One', cursive; font-size: 20px; }
+    #score-val { color: #4fffb0; }
+    #timer-val { color: #ffd166; }
+    #lives-val { color: #ff6b8a; letter-spacing: 2px; }
+
+    #game-canvas {
+      display: block;
+      width: 100%;
+      cursor: crosshair;
+      border-left: 1px solid rgba(255,255,255,0.1);
+      border-right: 1px solid rgba(255,255,255,0.1);
+    }
+
+    #bottom-bar {
+      padding: 8px 16px;
+      background: #0a1e3d;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-top: none;
+      border-radius: 0 0 14px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #progress-wrap {
+      width: 85%; height: 7px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 4px; overflow: hidden;
+    }
+    #progress-bar {
+      height: 100%; width: 100%;
+      background: linear-gradient(90deg, #00c47a, #4fffb0);
+      border-radius: 4px;
+      transition: width 1s linear;
+    }
+
+    #overlay {
+      position: absolute;
+      top: 47px; left: 0; right: 0; bottom: 42px;
+      background: rgba(4,15,38,0.93);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      padding: 20px;
+      border-left: 1px solid rgba(255,255,255,0.1);
+      border-right: 1px solid rgba(255,255,255,0.1);
+    }
+    #overlay.hidden { display: none; }
+
+    .ov-icon { font-size: 58px; }
+    .ov-title {
+      font-family: 'Fredoka One', cursive;
+      font-size: 34px; color: #4fffb0; text-align: center;
+    }
+    .ov-desc {
+      font-size: 14px; color: rgba(255,255,255,0.65);
+      text-align: center; max-width: 300px; line-height: 1.6;
+    }
+    .legend { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+    .leg {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 20px; padding: 4px 12px;
+      font-size: 13px; color: rgba(255,255,255,0.8);
+      display: flex; align-items: center; gap: 5px;
+    }
+    .g { color: #4fffb0; font-weight: 700; }
+    .y { color: #ffd166; font-weight: 700; }
+    .r { color: #ff6b8a; font-weight: 700; }
+
+    .btn {
+      padding: 12px 38px;
+      background: #00c47a; color: #fff;
+      border: none; border-radius: 40px;
+      font-family: 'Fredoka One', cursive;
+      font-size: 20px; cursor: pointer; margin-top: 6px;
+      transition: transform 0.15s, background 0.15s;
+    }
+    .btn:hover { background: #00a866; transform: translateY(-2px); }
+    .btn:active { transform: scale(0.97); }
+  </style>
+</head>
+<body>
+<div id="app">
+  <div id="hud">
+    <div class="hud-badge">🐢 Rescued: <span class="hud-val" id="score-val">0</span></div>
+    <div class="hud-badge">⏱ <span class="hud-val" id="timer-val">60</span>s</div>
+    <div class="hud-badge">❤️ <span class="hud-val" id="lives-val">❤️❤️❤️</span></div>
+  </div>
+
+  <canvas id="game-canvas"></canvas>
+
+  <div id="bottom-bar">
+    <div id="progress-wrap"><div id="progress-bar"></div></div>
+  </div>
+
+  <div id="overlay">
+    <div class="ov-icon">🐢</div>
+    <div class="ov-title">Turtle Rescue!</div>
+    <div class="ov-desc">Click turtles to save them! Avoid nets and trash — they cost a life. Don't let turtles swim away!</div>
+    <div class="legend">
+      <div class="leg">🐢 Turtle <span class="g">+1</span></div>
+      <div class="leg">🐠 Rare Fish <span class="y">+3</span></div>
+      <div class="leg">🕸 Net <span class="r">-1❤️</span></div>
+      <div class="leg">🧴 Trash <span class="r">-1❤️</span></div>
+    </div>
+    <button class="btn" id="main-btn">🌊 Start Mission</button>
+  </div>
+</div>
+
+<script>
+  // ── Canvas setup ───────────────────────────────────────────────
+  var canvas = document.getElementById('game-canvas');
+  var ctx    = canvas.getContext('2d');
+  var W = 680, H = 440;
+  canvas.width  = W;
+  canvas.height = H;
+
+  // ── State ──────────────────────────────────────────────────────
+  var score, lives, timeLeft, items, floaties;
+  var gameRunning = false;
+  var spawnAccum  = 0;
+  var difficulty  = 1;
+  var diffAccum   = 0;
+  var rafId       = null;
+  var timerID     = null;
+  var lastTime    = 0;
+  var waveOff     = 0;
+
+  // ── Item definitions ───────────────────────────────────────────
+  var TYPES = [
+    { type:'turtle', emoji:'🐢', size:42, points: 1, bad:false, speed:1.0 },
+    { type:'rare',   emoji:'🐠', size:38, points: 3, bad:false, speed:1.6 },
+    { type:'net',    emoji:'🕸',  size:46, points:-1, bad:true,  speed:0.6 },
+    { type:'trash',  emoji:'🧴',  size:38, points:-1, bad:true,  speed:0.7 },
+  ];
+
+  function pickType() {
+    var r = Math.random();
+    if (r < 0.53) return TYPES[0];
+    if (r < 0.68) return TYPES[1];
+    if (r < 0.84) return TYPES[2];
+    return TYPES[3];
+  }
+
+  // ── Start ──────────────────────────────────────────────────────
+  function startGame() {
+    score       = 0;
+    lives       = 3;
+    timeLeft    = 60;
+    items       = [];
+    floaties    = [];
+    gameRunning = true;
+    spawnAccum  = 0;
+    difficulty  = 1;
+    diffAccum   = 0;
+
+    updateHUD();
+    document.getElementById('progress-bar').style.width = '100%';
+    document.getElementById('overlay').classList.add('hidden');
+
+    // Kill any previous loops
+    if (rafId)    { cancelAnimationFrame(rafId); rafId = null; }
+    if (timerID)  { clearInterval(timerID);      timerID = null; }
+
+    // 1-second countdown
+    timerID = setInterval(function() {
+      if (!gameRunning) { clearInterval(timerID); return; }
+      timeLeft--;
+      document.getElementById('timer-val').textContent = timeLeft;
+      document.getElementById('progress-bar').style.width = (timeLeft / 60 * 100) + '%';
+      if (timeLeft <= 0) {
+        clearInterval(timerID);
+        endGame(true);
+      }
+    }, 1000);
+
+    lastTime = performance.now();
+    rafId    = requestAnimationFrame(gameLoop);
+  }
+
+  // ── Game loop ──────────────────────────────────────────────────
+  function gameLoop(now) {
+    if (!gameRunning) return;
+    var dt = (now - lastTime) / 1000;
+    if (dt > 0.08) dt = 0.08;   // clamp big gaps (tab switch etc.)
+    lastTime = now;
+
+    update(dt);
+    render();
+
+    rafId = requestAnimationFrame(gameLoop);
+  }
+
+  // ── Update ─────────────────────────────────────────────────────
+  function update(dt) {
+    // Difficulty ramp
+    diffAccum += dt;
+    if (diffAccum >= 10) {
+      difficulty = Math.min(difficulty + 0.4, 4);
+      diffAccum  = 0;
+    }
+
+    // Spawn
+    var interval = Math.max(0.38, 1.4 - difficulty * 0.22);
+    spawnAccum  += dt;
+    if (spawnAccum >= interval) {
+      spawnItem();
+      spawnAccum = 0;
+    }
+
+    // Move items
+    for (var i = items.length - 1; i >= 0; i--) {
+      var it = items[i];
+      it.x    += it.vx * dt * 60;
+      it.y    += it.vy * dt * 60;
+      it.life -= dt;
+      if (it.flash > 0) it.flash -= dt * 4;
+
+      var gone = it.x < -90 || it.x > W + 90 || it.y < -90 || it.y > H + 90;
+      if (it.life <= 0 || gone) {
+        if (!it.bad && it.life <= 0) loseLife();
+        items.splice(i, 1);
+      }
+    }
+
+    // Move floaties
+    for (var j = floaties.length - 1; j >= 0; j--) {
+      floaties[j].y    -= 1.5;
+      floaties[j].life -= dt;
+      if (floaties[j].life <= 0) floaties.splice(j, 1);
+    }
+  }
+
+  function spawnItem() {
+    var cfg  = pickType();
+    var sp   = cfg.speed * (1 + (difficulty - 1) * 0.3);
+    var edge = Math.floor(Math.random() * 3);
+    var x, y, vx, vy;
+
+    if (edge === 0) {          // top
+      x  = 50 + Math.random() * (W - 100);
+      y  = -65;
+      vx = (Math.random() - 0.5) * sp * 1.2;
+      vy = sp * (0.8 + Math.random() * 0.5);
+    } else if (edge === 1) {   // left
+      x  = -65;
+      y  = 50 + Math.random() * (H - 100);
+      vx = sp * (0.8 + Math.random() * 0.5);
+      vy = (Math.random() - 0.5) * sp * 0.8;
+    } else {                   // right
+      x  = W + 65;
+      y  = 50 + Math.random() * (H - 100);
+      vx = -sp * (0.8 + Math.random() * 0.5);
+      vy = (Math.random() - 0.5) * sp * 0.8;
+    }
+
+    var maxLife = Math.max(4.5, 8.5 - difficulty * 0.9);
+    items.push({
+      type:   cfg.type,
+      emoji:  cfg.emoji,
+      size:   cfg.size,
+      bad:    cfg.bad,
+      points: cfg.points,
+      x: x, y: y, vx: vx, vy: vy,
+      life: maxLife, flash: 0
+    });
+  }
+
+  // ── Render ─────────────────────────────────────────────────────
+  function render() {
+    ctx.clearRect(0, 0, W, H);
+
+    // Ocean background
+    var grad = ctx.createLinearGradient(0, 0, 0, H);
+    grad.addColorStop(0,   '#0b3d72');
+    grad.addColorStop(0.5, '#0d5fa0');
+    grad.addColorStop(1,   '#1480c8');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+
+    // Wave lines
+    waveOff += 0.5;
+    for (var row = 0; row < 5; row++) {
+      ctx.beginPath();
+      ctx.strokeStyle = 'rgba(255,255,255,' + (0.03 + row * 0.01) + ')';
+      ctx.lineWidth   = 1;
+      var yBase = 60 + row * 85;
+      for (var x = 0; x <= W; x += 6) {
+        var y = yBase + Math.sin((x + waveOff * (1 + row * 0.25)) * 0.02) * 8;
+        if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+
+    // Items
+    ctx.textAlign    = 'center';
+    ctx.textBaseline = 'middle';
+
+    for (var i = 0; i < items.length; i++) {
+      var it    = items[i];
+      var alpha = it.life < 1.5 ? it.life / 1.5 : 1;
+      ctx.globalAlpha = alpha;
+      ctx.shadowBlur  = it.flash > 0 ? 22 : 0;
+      ctx.shadowColor = it.bad ? '#ff4466' : '#4fffb0';
+      ctx.font        = it.size + 'px serif';
+      ctx.fillText(it.emoji, it.x, it.y);
+
+      if (it.type === 'rare' && it.flash <= 0) {
+        ctx.shadowBlur  = 0;
+        ctx.strokeStyle = 'rgba(255,209,102,' + (alpha * 0.55) + ')';
+        ctx.lineWidth   = 2;
+        ctx.beginPath();
+        ctx.arc(it.x, it.y, it.size * 0.7, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    }
+
+    ctx.globalAlpha = 1;
+    ctx.shadowBlur  = 0;
+
+    // Floaties
+    for (var j = 0; j < floaties.length; j++) {
+      var f = floaties[j];
+      ctx.globalAlpha  = Math.min(f.life * 2, 1);
+      ctx.font         = 'bold 17px Nunito, sans-serif';
+      ctx.fillStyle    = f.color;
+      ctx.textAlign    = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(f.text, f.x, f.y);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // ── Click ──────────────────────────────────────────────────────
+  canvas.addEventListener('click', function(e) {
+    if (!gameRunning) return;
+    var rect  = canvas.getBoundingClientRect();
+    var scaleX = W / rect.width;
+    var scaleY = H / rect.height;
+    var cx = (e.clientX - rect.left) * scaleX;
+    var cy = (e.clientY - rect.top)  * scaleY;
+
+    for (var i = items.length - 1; i >= 0; i--) {
+      var it   = items[i];
+      var dist = Math.sqrt((cx - it.x) * (cx - it.x) + (cy - it.y) * (cy - it.y));
+      if (dist < it.size * 0.82) {
+        if (!it.bad) {
+          score += it.points;
+          floaties.push({ x: it.x, y: it.y - 20, text: '+' + it.points,
+            color: it.points > 1 ? '#ffd166' : '#4fffb0', life: 1.5 });
+        } else {
+          floaties.push({ x: it.x, y: it.y - 20, text: '💔 -1', color: '#ff6b8a', life: 1.5 });
+          loseLife();
+          if (!gameRunning) return;
+        }
+        it.flash = 1;
+        updateHUD();
+        // Remove after flash
+        ;(function(captured) {
+          setTimeout(function() {
+            var idx = items.indexOf(captured);
+            if (idx !== -1) items.splice(idx, 1);
+          }, 220);
+        })(it);
+        break;
+      }
+    }
+  });
+
+  // ── Lives ──────────────────────────────────────────────────────
+  function loseLife() {
+    lives = Math.max(0, lives - 1);
+    updateHUD();
+    if (lives <= 0) endGame(false);
+  }
+
+  // ── HUD ────────────────────────────────────────────────────────
+  function updateHUD() {
+    document.getElementById('score-val').textContent = score;
+    var h = '';
+    for (var i = 0; i < 3; i++) h += (i < lives ? '❤️' : '🖤');
+    document.getElementById('lives-val').textContent = h;
+  }
+
+  // ── End ────────────────────────────────────────────────────────
+  function endGame(timeUp) {
+    gameRunning = false;
+    cancelAnimationFrame(rafId);
+    clearInterval(timerID);
+
+    var icon, title, msg;
+    if (timeUp) {
+      if      (score >= 20) { icon = '🏆'; title = 'Ocean Hero!'; }
+      else if (score >= 10) { icon = '🌊'; title = 'Good Job!'; }
+      else                  { icon = '🐢'; title = 'Keep Trying!'; }
+      msg = 'You rescued <b style="color:#4fffb0">' + score + '</b> creature' + (score !== 1 ? 's' : '') + ' in 60 seconds!';
+    } else {
+      icon  = '💔';
+      title = 'Mission Failed!';
+      msg   = 'You rescued <b style="color:#4fffb0">' + score + '</b> creature' + (score !== 1 ? 's' : '') + ' before losing all lives.';
+    }
+
+    var ov = document.getElementById('overlay');
+    ov.innerHTML =
+      '<div class="ov-icon">' + icon + '</div>' +
+      '<div class="ov-title">' + title + '</div>' +
+      '<div class="ov-desc">'  + msg   + '</div>' +
+      '<div class="legend">' +
+        '<div class="leg">🐢 Turtle <span class="g">+1</span></div>' +
+        '<div class="leg">🐠 Rare Fish <span class="y">+3</span></div>' +
+        '<div class="leg">🕸 Net <span class="r">-1❤️</span></div>' +
+        '<div class="leg">🧴 Trash <span class="r">-1❤️</span></div>' +
+      '</div>' +
+      '<button class="btn" id="main-btn">🔄 Play Again</button>';
+    ov.classList.remove('hidden');
+    document.getElementById('main-btn').addEventListener('click', startGame);
+  }
+
+  // ── Boot ───────────────────────────────────────────────────────
+  document.getElementById('main-btn').addEventListener('click', startGame);
+</script>
+</body>
+</html>

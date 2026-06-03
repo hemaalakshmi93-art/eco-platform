@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carbon Footprint City Builder</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: #0f1a0f; color: #e0f0e0; min-height: 100vh; }
+  header { background: #1a2e1a; padding: 14px 24px; display: flex; align-items: center; gap: 16px; border-bottom: 1px solid #2d4a2d; }
+  header h1 { font-size: 20px; font-weight: 700; color: #7dda7d; }
+  header p { font-size: 13px; color: #8aaa8a; }
+  #hud { display: flex; gap: 10px; flex-wrap: wrap; padding: 12px 20px; background: #162216; border-bottom: 1px solid #2d4a2d; }
+  .stat { background: #1e301e; border: 1px solid #2d4a2d; border-radius: 10px; padding: 8px 14px; min-width: 90px; }
+  .stat-label { font-size: 10px; color: #6a8a6a; text-transform: uppercase; letter-spacing: 0.5px; }
+  .stat-val { font-size: 18px; font-weight: 700; color: #c0e0c0; margin-top: 2px; }
+  .co2-wrap { flex: 1; min-width: 180px; }
+  .co2-bar-bg { background: #1e301e; border-radius: 20px; height: 12px; overflow: hidden; margin-top: 6px; border: 1px solid #2d4a2d; }
+  .co2-bar { height: 100%; border-radius: 20px; transition: width 0.5s, background 0.5s; }
+  #palette { display: flex; gap: 8px; flex-wrap: wrap; padding: 12px 20px; background: #162216; border-bottom: 1px solid #2d4a2d; }
+  .tile-btn { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 12px; border: 1.5px solid #2d4a2d; border-radius: 10px; background: #1e301e; cursor: pointer; transition: all 0.15s; min-width: 70px; }
+  .tile-btn:hover { background: #253525; border-color: #4a7a4a; }
+  .tile-btn.active { border-color: #5dba5d; background: #1e3a1e; box-shadow: 0 0 0 2px #5dba5d44; }
+  .tile-btn .ico { font-size: 22px; }
+  .tile-btn .name { font-size: 11px; color: #a0c0a0; font-weight: 600; }
+  .tile-btn .info { font-size: 10px; color: #5a7a5a; text-align: center; }
+  #main { display: flex; gap: 16px; padding: 16px 20px; }
+  #canvas-wrap { position: relative; border: 2px solid #2d4a2d; border-radius: 12px; overflow: hidden; flex-shrink: 0; }
+  canvas { display: block; cursor: crosshair; }
+  #tooltip { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); color: #c0e0c0; font-size: 12px; padding: 5px 14px; border-radius: 20px; pointer-events: none; opacity: 0; transition: opacity 0.3s; white-space: nowrap; border: 1px solid #3a5a3a; }
+  #tooltip.show { opacity: 1; }
+  #sidebar { flex: 1; display: flex; flex-direction: column; gap: 12px; min-width: 180px; }
+  .info-card { background: #1a2e1a; border: 1px solid #2d4a2d; border-radius: 10px; padding: 14px; }
+  .info-card h3 { font-size: 12px; text-transform: uppercase; color: #5dba5d; letter-spacing: 0.5px; margin-bottom: 10px; }
+  .info-card p { font-size: 12px; color: #8aaa8a; line-height: 1.7; }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #8aaa8a; margin-bottom: 6px; }
+  .legend-dot { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+  #income-tick { font-size: 11px; color: #5dba5d; text-align: center; padding: 6px; background: #1e3a1e; border-radius: 6px; border: 1px dashed #2d4a2d; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>🏙️ Carbon Footprint City Builder</h1>
+    <p>Build a city — but keep your CO2 in check!</p>
+  </div>
+</header>
+
+<div id="hud">
+  <div class="stat"><div class="stat-label">Budget</div><div class="stat-val" id="budget-val">$5,000</div></div>
+  <div class="stat"><div class="stat-label">Population</div><div class="stat-val" id="pop-val">0</div></div>
+  <div class="stat co2-wrap">
+    <div style="display:flex;justify-content:space-between;">
+      <span class="stat-label">CO2 Pollution</span>
+      <span id="co2-num" style="font-size:11px;color:#8aaa8a;">0 pts</span>
+    </div>
+    <div class="co2-bar-bg"><div class="co2-bar" id="co2-bar" style="width:0%;background:#5dba5d;"></div></div>
+  </div>
+  <div class="stat"><div class="stat-label">Temp Rise</div><div class="stat-val" id="temp-val" style="color:#5dba5d;">+0.0°C</div></div>
+  <div class="stat"><div class="stat-label">Eco Score</div><div class="stat-val" id="score-val" style="color:#f0c060;">0</div></div>
+</div>
+
+<div id="palette">
+  <button class="tile-btn active" onclick="selectTile('house',this)"><span class="ico">🏠</span><span class="name">House</span><span class="info">$200 · +2pop · -3CO2</span></button>
+  <button class="tile-btn" onclick="selectTile('apartment',this)"><span class="ico">🏢</span><span class="name">Apartment</span><span class="info">$500 · +10pop · -8CO2</span></button>
+  <button class="tile-btn" onclick="selectTile('factory',this)"><span class="ico">🏭</span><span class="name">Factory</span><span class="info">$800 · +$300 · +20CO2</span></button>
+  <button class="tile-btn" onclick="selectTile('solar',this)"><span class="ico">☀️</span><span class="name">Solar Farm</span><span class="info">$600 · -15CO2</span></button>
+  <button class="tile-btn" onclick="selectTile('tree',this)"><span class="ico">🌳</span><span class="name">Tree</span><span class="info">$100 · -8CO2</span></button>
+  <button class="tile-btn" onclick="selectTile('park',this)"><span class="ico">🌿</span><span class="name">Park</span><span class="info">$300 · -12CO2 · +score</span></button>
+  <button class="tile-btn" onclick="selectTile('road',this)"><span class="ico">🛣️</span><span class="name">Road</span><span class="info">$50 · +5CO2</span></button>
+  <button class="tile-btn" onclick="selectTile('wind',this)"><span class="ico">💨</span><span class="name">Wind Farm</span><span class="info">$900 · -20CO2</span></button>
+  <button class="tile-btn" onclick="selectTile('hospital',this)"><span class="ico">🏥</span><span class="name">Hospital</span><span class="info">$700 · +15pop · +8CO2</span></button>
+  <button class="tile-btn" onclick="selectTile('school',this)"><span class="ico">🏫</span><span class="name">School</span><span class="info">$400 · +5pop · -2CO2</span></button>
+  <button class="tile-btn" onclick="selectTile('erase',this)"><span class="ico">🗑️</span><span class="name">Demolish</span><span class="info">Free · 50% refund</span></button>
+</div>
+
+<div id="main">
+  <div id="canvas-wrap">
+    <canvas id="city-canvas"></canvas>
+    <div id="tooltip"></div>
+  </div>
+
+  <div id="sidebar">
+    <div class="info-card">
+      <h3>How to Play</h3>
+      <p>• Click grid to place tiles<br>• Right-click or use 🗑️ to demolish<br>• Click and drag to paint<br>• Income auto-collects every 3s<br>• Keep CO2 bar green to score!</p>
+    </div>
+    <div class="info-card">
+      <h3>CO2 Legend</h3>
+      <div class="legend-item"><div class="legend-dot" style="background:#5dba5d;"></div>Green (0–30) — Excellent</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#e8a020;"></div>Amber (30–65) — Warning</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#e04040;"></div>Red (65+) — Crisis!</div>
+    </div>
+    <div class="info-card">
+      <h3>Tip</h3>
+      <p>Every factory earns $300 passive income but adds 20 CO2. Balance it with 2–3 solar/wind tiles to stay green!</p>
+    </div>
+    <div id="income-tick">⏱ Income updates every 3 seconds</div>
+  </div>
+</div>
+
+<script>
+const COLS = 16, ROWS = 11, T = 40;
+const canvas = document.getElementById('city-canvas');
+const ctx = canvas.getContext('2d');
+canvas.width = COLS * T;
+canvas.height = ROWS * T;
+
+const TILES = {
+  house:     { emoji:'🏠', co2:-3,  pop:2,  income:20,  cost:200,  color:'#1e4a3a' },
+  apartment: { emoji:'🏢', co2:-8,  pop:10, income:60,  cost:500,  color:'#1e3a5a' },
+  factory:   { emoji:'🏭', co2:20,  pop:0,  income:300, cost:800,  color:'#4a2a1e' },
+  solar:     { emoji:'☀️', co2:-15, pop:0,  income:-10, cost:600,  color:'#4a3a1e' },
+  tree:      { emoji:'🌳', co2:-8,  pop:0,  income:0,   cost:100,  color:'#1e4a1e' },
+  park:      { emoji:'🌿', co2:-12, pop:0,  income:-20, cost:300,  color:'#1e3a2a' },
+  road:      { emoji:'🛣️', co2:5,   pop:0,  income:0,   cost:50,   color:'#2a2a2a' },
+  wind:      { emoji:'💨', co2:-20, pop:0,  income:-20, cost:900,  color:'#1e2a4a' },
+  hospital:  { emoji:'🏥', co2:8,   pop:15, income:80,  cost:700,  color:'#3a1e3a' },
+  school:    { emoji:'🏫', co2:-2,  pop:5,  income:30,  cost:400,  color:'#2a3a1e' },
+};
+
+let grid = Array.from({length:ROWS}, () => Array(COLS).fill(null));
+let selected = 'house', budget = 5000, painting = false, hover = null;
+
+function selectTile(type, btn) {
+  selected = type;
+  document.querySelectorAll('.tile-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+window.selectTile = selectTile;
+
+function getTotals() {
+  let pop=0, income=0, co2=0;
+  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++) {
+    const t=grid[r][c]; if(!t) continue;
+    pop+=TILES[t].pop; income+=TILES[t].income; co2+=TILES[t].co2;
+  }
+  return {pop, income, co2:Math.max(0,co2)};
+}
+
+function updateHUD() {
+  const {pop,co2} = getTotals();
+  const pct = Math.min(100, co2);
+  const barColor = pct<30?'#5dba5d':pct<65?'#e8a020':'#e04040';
+  const tempColor = pct<30?'#5dba5d':pct<65?'#e8a020':'#e04040';
+  const score = Math.max(0, pop*10 - co2*5 + Math.floor(budget/200));
+  document.getElementById('budget-val').textContent = '$'+budget.toLocaleString();
+  document.getElementById('pop-val').textContent = pop;
+  document.getElementById('co2-num').textContent = Math.round(co2)+' pts';
+  document.getElementById('co2-bar').style.width = Math.max(0,pct)+'%';
+  document.getElementById('co2-bar').style.background = barColor;
+  document.getElementById('temp-val').textContent = (co2>0?'+':'')+( co2*0.025).toFixed(1)+'°C';
+  document.getElementById('temp-val').style.color = tempColor;
+  document.getElementById('score-val').textContent = score;
+}
+
+function showMsg(text) {
+  const t = document.getElementById('tooltip');
+  t.textContent = text; t.className='show';
+  clearTimeout(t._tid);
+  t._tid = setTimeout(()=>t.className='',2200);
+}
+
+function draw() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++) {
+    ctx.fillStyle = (r+c)%2===0?'#1a2e1a':'#182a18';
+    ctx.fillRect(c*T,r*T,T,T);
+    const t=grid[r][c]; if(!t) continue;
+    ctx.fillStyle=TILES[t].color;
+    ctx.beginPath(); ctx.roundRect(c*T+2,r*T+2,T-4,T-4,6); ctx.fill();
+    ctx.font=`${T-14}px serif`; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(TILES[t].emoji, c*T+T/2, r*T+T/2+1);
+  }
+  ctx.strokeStyle='rgba(80,140,80,0.12)'; ctx.lineWidth=0.5;
+  for(let r=0;r<=ROWS;r++){ctx.beginPath();ctx.moveTo(0,r*T);ctx.lineTo(COLS*T,r*T);ctx.stroke();}
+  for(let c=0;c<=COLS;c++){ctx.beginPath();ctx.moveTo(c*T,0);ctx.lineTo(c*T,ROWS*T);ctx.stroke();}
+  if(hover){
+    ctx.strokeStyle='#5dba5d'; ctx.lineWidth=2;
+    ctx.strokeRect(hover.c*T+1,hover.r*T+1,T-2,T-2);
+  }
+  updateHUD();
+}
+
+function getCell(e) {
+  const rect=canvas.getBoundingClientRect();
+  return {c:Math.floor((e.clientX-rect.left)/(rect.width/COLS)), r:Math.floor((e.clientY-rect.top)/(rect.height/ROWS))};
+}
+
+function place(e) {
+  const {r,c}=getCell(e);
+  if(r<0||r>=ROWS||c<0||c>=COLS) return;
+  if(selected==='erase'){
+    if(grid[r][c]){
+      const ref=Math.floor(TILES[grid[r][c]].cost*0.5);
+      budget+=ref; grid[r][c]=null;
+      showMsg('Demolished! Refunded $'+ref); draw();
+    } return;
+  }
+  if(grid[r][c]===selected) return;
+  const info=TILES[selected];
+  if(budget<info.cost){showMsg('❌ Not enough budget!');return;}
+  if(grid[r][c]){budget+=Math.floor(TILES[grid[r][c]].cost*0.4);}
+  budget-=info.cost; grid[r][c]=selected;
+  const eff=info.co2<0?`🌿 -${Math.abs(info.co2)} CO2`:`🏭 +${info.co2} CO2`;
+  showMsg(`${info.emoji} Placed! ${eff}`);
+  draw();
+}
+
+canvas.addEventListener('mousedown',e=>{painting=true;place(e);});
+canvas.addEventListener('mousemove',e=>{
+  const {r,c}=getCell(e);
+  hover=(r>=0&&r<ROWS&&c>=0&&c<COLS)?{r,c}:null;
+  if(painting)place(e); else draw();
+});
+canvas.addEventListener('mouseup',()=>painting=false);
+canvas.addEventListener('mouseleave',()=>{hover=null;painting=false;draw();});
+canvas.addEventListener('contextmenu',e=>{
+  e.preventDefault();
+  const {r,c}=getCell(e);
+  if(r>=0&&r<ROWS&&c>=0&&c<COLS&&grid[r][c]){
+    const ref=Math.floor(TILES[grid[r][c]].cost*0.5);
+    budget+=ref; grid[r][c]=null;
+    showMsg('Demolished! Refunded $'+ref); draw();
+  }
+});
+
+setInterval(()=>{
+  let inc=0;
+  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++) if(grid[r][c]) inc+=TILES[grid[r][c]].income;
+  if(inc>0){budget=Math.max(0,budget+inc); showMsg('💰 Income: +$'+inc);}
+  draw();
+},3000);
+
+draw();
+</script>
+</body>
+</html>

@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profile</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F7F6F3;--card:#FFF;--border:#E8E4DC;--border2:#D4CFC4;
+  --text:#1A1916;--muted:#7C7868;--hint:#B0AA9A;
+  --accent:#2563EB;--accent-light:#EFF6FF;--accent-dark:#1D4ED8;
+  --green:#16A34A;--red:#DC2626;--amber:#D97706;
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.05);
+  --r:14px;--rs:9px;
+}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;line-height:1.5}
+
+/* TOPBAR */
+.topbar{position:sticky;top:0;z-index:100;background:rgba(247,246,243,.93);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 24px;height:54px;display:flex;align-items:center;gap:12px}
+.back-btn{display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:var(--card);border:1px solid var(--border);text-decoration:none;color:var(--text);transition:.15s}
+.back-btn:hover{background:#F0EDE6}
+.back-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.topbar-title{font-size:15px;font-weight:600}
+
+/* TABS */
+.tab-bar{display:flex;gap:2px;padding:18px 24px 0;border-bottom:1px solid var(--border);background:var(--bg)}
+.tab{padding:8px 16px;border:none;background:transparent;font-family:'Outfit',sans-serif;font-size:14px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2.5px solid transparent;margin-bottom:-1px;transition:.15s}
+.tab.on{color:var(--accent);border-bottom-color:var(--accent)}
+.tab:hover:not(.on){color:var(--text)}
+.pane{display:none}.pane.on{display:block}
+
+/* LAYOUT */
+.wrap{max-width:1040px;margin:0 auto;padding:24px 24px 60px}
+.two-col-layout{display:grid;grid-template-columns:290px 1fr;gap:18px}
+@media(max-width:740px){.two-col-layout{grid-template-columns:1fr}}
+
+/* CARD */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow)}
+.card-body{padding:20px}
+.card-title{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+
+/* AVATAR CARD */
+.av-card{padding:22px;text-align:center}
+.av-ring{width:108px;height:108px;border-radius:50%;margin:0 auto 12px;border:3px solid var(--accent);background:var(--accent-light);overflow:hidden;box-shadow:0 0 0 5px var(--accent-light)}
+.av-ring svg{width:100%;height:100%}
+.edit-av-btn{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:100px;border:1px solid var(--border);background:var(--card);font-family:'Outfit',sans-serif;font-size:11px;font-weight:500;color:var(--muted);cursor:pointer;transition:.15s;margin-bottom:14px}
+.edit-av-btn:hover{background:#F0EDE6;color:var(--text)}
+.edit-av-btn svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
+.disp-name{font-family:'Playfair Display',serif;font-size:21px;font-weight:700;margin-bottom:3px}
+.disp-sub{font-size:12px;color:var(--muted);margin-bottom:12px}
+.role-pill{display:inline-block;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:600}
+.pill-teacher{background:#EFF6FF;color:#1D4ED8}.pill-student{background:#F0FDF4;color:#15803D}
+
+/* REFERRAL */
+.ref-section{margin-top:14px;padding-top:14px;border-top:1px solid var(--border)}
+.ref-label{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.ref-box{background:#F7F6F3;border:1px dashed var(--border2);border-radius:var(--rs);padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.ref-code{font-family:monospace;font-size:17px;font-weight:700;color:var(--accent);letter-spacing:.1em}
+.ref-none{font-size:12px;color:var(--hint);font-style:italic}
+.copy-btn{border:none;background:var(--accent);color:#fff;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif}
+
+/* STATS MINI */
+.stat-row{display:flex;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)}
+.stat-box{flex:1;background:#F7F6F3;border-radius:var(--rs);padding:9px;text-align:center}
+.stat-val{font-size:18px;font-weight:700}.stat-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-top:1px}
+
+/* FIELDS */
+.fields{display:flex;flex-direction:column;gap:12px;margin-bottom:16px}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.04em}
+.field input,.field textarea{border:1px solid var(--border);border-radius:var(--rs);padding:9px 12px;font-size:14px;font-family:'Outfit',sans-serif;color:var(--text);background:var(--card);outline:none;transition:border .15s,box-shadow .15s}
+.field input:focus,.field textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.09)}
+.field input[readonly]{background:#F7F6F3;color:var(--muted)}
+.field textarea{resize:vertical;min-height:74px;line-height:1.55}
+.two-col-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:480px){.two-col-fields{grid-template-columns:1fr}}
+
+/* STATS GRID */
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+.sg-item{background:#F7F6F3;border-radius:var(--rs);padding:12px;text-align:center}
+.sg-n{font-size:22px;font-weight:700}.sg-l{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-top:2px}
+
+/* PROGRESS */
+.prog{margin-bottom:14px}
+.prog-top{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:5px}
+.prog-bar{height:7px;background:#EDE9E0;border-radius:100px;overflow:hidden}
+.prog-fill{height:100%;border-radius:100px;background:linear-gradient(90deg,var(--accent),#7C3AED)}
+
+/* ACHIEVEMENTS */
+.ach-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+.ach-item{text-align:center;padding:12px 6px;background:#F7F6F3;border-radius:var(--rs);transition:.15s;position:relative}
+.ach-item.earned{background:#F0FDF4;border:1px solid #BBF7D0}
+.ach-item.locked{opacity:.42}
+.ach-item.claimable{background:#FFFBEB;border:1px solid #FDE68A}
+.ach-icon{font-size:26px;margin-bottom:4px}
+.ach-name{font-size:10px;font-weight:600;color:var(--text);line-height:1.3}
+.ach-status{font-size:9px;color:var(--muted);margin-top:2px}
+.ach-req{font-size:9px;color:var(--hint);margin-top:3px;line-height:1.3}
+.ach-claim-btn{margin-top:6px;border:none;background:var(--green);color:#fff;border-radius:5px;padding:3px 9px;font-size:10px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif}
+.prog-mini{margin-top:4px;background:#E5E7EB;border-radius:3px;height:3px;overflow:hidden}
+.prog-mini-fill{height:3px;border-radius:3px;background:var(--accent)}
+.prog-mini-txt{font-size:8px;color:var(--hint);margin-top:1px}
+
+/* NOTIF TOGGLES */
+.notif-list{display:flex;flex-direction:column;gap:10px}
+.notif-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#F7F6F3;border-radius:var(--rs)}
+.notif-info p{font-size:13px;font-weight:500}.notif-info span{font-size:11px;color:var(--muted)}
+.tog{position:relative;width:38px;height:21px;flex-shrink:0}
+.tog input{opacity:0;width:0;height:0}
+.tog-track{position:absolute;inset:0;background:#D1CCC0;border-radius:100px;cursor:pointer;transition:.2s}
+.tog-track::before{content:'';position:absolute;left:3px;top:3px;width:15px;height:15px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.tog input:checked+.tog-track{background:var(--accent)}
+.tog input:checked+.tog-track::before{transform:translateX(17px)}
+
+/* DANGER */
+.danger-box{border:1px solid #FEE2E2;border-radius:var(--rs);padding:14px}
+.danger-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.danger-row p{font-size:13px;font-weight:500}.danger-row span{font-size:11px;color:var(--muted)}
+.btn-danger{border:1px solid #FECACA;background:#FEF2F2;color:var(--red);border-radius:6px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif}
+
+/* SAVE BAR */
+.save-bar{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;padding-top:14px;border-top:1px solid var(--border)}
+.btn-primary{background:var(--accent);color:#fff;border:none;border-radius:var(--rs);padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:.15s}
+.btn-primary:hover{background:var(--accent-dark)}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:var(--rs);padding:9px 16px;font-size:13px;cursor:pointer;font-family:'Outfit',sans-serif;transition:.15s}
+.btn-ghost:hover{background:#F0EDE6}
+
+/* BUILDER */
+.builder-layout{display:grid;grid-template-columns:1fr 270px;gap:18px}
+@media(max-width:720px){.builder-layout{grid-template-columns:1fr}}
+.builder-preview{background:var(--card);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow);padding:24px;display:flex;flex-direction:column;align-items:center;gap:16px;position:sticky;top:72px;align-self:start}
+.big-av{width:170px;height:170px;border-radius:50%;background:var(--accent-light);border:3px solid var(--accent);box-shadow:0 0 0 5px var(--accent-light);overflow:hidden}
+.big-av svg{width:100%;height:100%}
+.opts-scroll{display:flex;flex-direction:column;gap:12px;max-height:calc(100vh - 160px);overflow-y:auto;padding-right:2px}
+.opts-scroll::-webkit-scrollbar{width:3px}
+.opts-scroll::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+.opt-card{background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:12px}
+.opt-head{font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.opt-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.opt-item{border:1.5px solid var(--border);border-radius:8px;padding:5px;cursor:pointer;transition:.12s;background:#F7F6F3;display:flex;align-items:center;justify-content:center;min-height:42px}
+.opt-item:hover{border-color:var(--accent);background:var(--accent-light)}
+.opt-item.sel{border-color:var(--accent);background:var(--accent-light)}
+.opt-item svg{width:26px;height:26px}
+.color-row{display:flex;flex-wrap:wrap;gap:7px}
+.c-dot{width:26px;height:26px;border-radius:50%;cursor:pointer;border:2.5px solid transparent;transition:.12s}
+.c-dot:hover,.c-dot.sel{border-color:var(--accent);transform:scale(1.18)}
+.gender-bar{display:flex;background:#F0EDE6;border-radius:100px;padding:3px;gap:0}
+.gender-opt{padding:6px 18px;border-radius:100px;font-size:12px;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--muted);font-family:'Outfit',sans-serif;transition:.15s}
+.gender-opt.on{background:var(--card);color:var(--accent);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.apply-btn{background:var(--accent);color:#fff;border:none;border-radius:var(--rs);padding:10px 24px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif}
+.apply-btn:hover{background:var(--accent-dark)}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(14px);background:#1A1916;color:#fff;border-radius:100px;padding:9px 20px;font-size:13px;font-weight:500;opacity:0;transition:.25s;pointer-events:none;z-index:9999;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="/dashboard/{{ name }}/{{ role }}" class="back-btn" id="back-link">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+  </a>
+  <span class="topbar-title">My Profile</span>
+</div>
+
+<div class="tab-bar">
+  <button class="tab on"  onclick="switchTab('profile')">Profile</button>
+  <button class="tab"     onclick="switchTab('avatar')">Avatar Studio</button>
+  <button class="tab"     onclick="switchTab('settings')">Settings</button>
+</div>
+
+<!-- ═══════════ PROFILE PANE ═══════════ -->
+<div id="pane-profile" class="pane on">
+<div class="wrap">
+<div class="two-col-layout">
+
+  <div style="display:flex;flex-direction:column;gap:16px">
+
+    <!-- Avatar card -->
+    <div class="card av-card">
+      <div class="av-ring"><svg id="mini-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"></svg></div>
+      <button class="edit-av-btn" onclick="switchTab('avatar')">
+        <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z"/></svg>
+        Edit Avatar
+      </button>
+      <div class="disp-name" id="disp-name">{{ name }}</div>
+      <div class="disp-sub" id="disp-sub">{{ role|capitalize }} · {{ level }}</div>
+      <span class="role-pill {% if role=='teacher' %}pill-teacher{% else %}pill-student{% endif %}">{{ role|capitalize }}</span>
+      <div class="ref-section">
+        <div class="ref-label">Referral Code</div>
+        <div class="ref-box">
+          {% if referral_code %}
+            <span class="ref-code" id="ref-code-txt">{{ referral_code }}</span>
+            <button class="copy-btn" onclick="copyRef()">Copy</button>
+          {% else %}
+            <span class="ref-none">No referral code assigned</span>
+          {% endif %}
+        </div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-box"><div class="stat-val">🔥{{ streak }}</div><div class="stat-lbl">Streak</div></div>
+        <div class="stat-box"><div class="stat-val">⭐{{ points }}</div><div class="stat-lbl">Points</div></div>
+      </div>
+    </div>
+
+    <!-- Activity -->
+    <div class="card card-body">
+      <div class="card-title">Activity</div>
+      <div class="stats-grid">
+        <div class="sg-item"><div class="sg-n">{{ challenges }}</div><div class="sg-l">Challenges</div></div>
+        <div class="sg-item"><div class="sg-n">{{ games }}</div><div class="sg-l">Games</div></div>
+        <div class="sg-item"><div class="sg-n">{{ trees }}</div><div class="sg-l">Trees</div></div>
+      </div>
+      {% set lp = points % 100 %}
+      <div class="prog">
+        <div class="prog-top"><span>Level {{ (points // 100) + 1 }} Progress</span><span>{{ lp }} / 100 pts</span></div>
+        <div class="prog-bar"><div class="prog-fill" style="width:{{ lp }}%"></div></div>
+      </div>
+      <div class="prog" style="margin-bottom:0">
+        <div class="prog-top"><span>Badge</span><span>{{ badge }}</span></div>
+        <div class="prog-bar"><div class="prog-fill" style="width:{{ lp }}%;background:linear-gradient(90deg,#16A34A,#15803D)"></div></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:16px">
+
+    <!-- Personal info -->
+    <div class="card card-body">
+      <div class="card-title">Personal Information</div>
+      <div class="fields">
+        <div class="field"><label>Full Name</label><input type="text" id="inp-name" value="{{ name }}"></div>
+        <div class="field"><label>Email Address</label><input type="email" id="inp-email" value="{{ email }}" readonly></div>
+        <div class="two-col-fields">
+          <div class="field"><label>Role</label><input type="text" value="{{ role|capitalize }}" readonly></div>
+          <div class="field"><label>Level</label><input type="text" value="{{ level }}" readonly></div>
+        </div>
+        <div class="field"><label>Bio</label><textarea id="inp-bio">{{ bio }}</textarea></div>
+      </div>
+      <div class="save-bar">
+        <button class="btn-ghost" onclick="discardChanges()">Discard</button>
+        <button class="btn-primary" onclick="saveProfile()">Save Changes</button>
+      </div>
+    </div>
+
+    <!-- Achievements -->
+    <div class="card card-body">
+      <div class="card-title">Achievements</div>
+      <p style="font-size:11px;color:var(--muted);margin-bottom:12px">Meet the goal → click <strong>Claim</strong> → badge saved to your account permanently.</p>
+      <div class="ach-grid" id="ach-grid"></div>
+    </div>
+
+  </div>
+</div>
+</div>
+</div>
+
+<!-- ═══════════ AVATAR PANE ═══════════ -->
+<div id="pane-avatar" class="pane">
+<div class="wrap">
+<div class="builder-layout">
+  <div class="opts-scroll">
+
+    <div class="opt-card">
+      <div class="opt-head">Gender</div>
+      <div class="gender-bar">
+        <button class="gender-opt on" onclick="setGender('male',this)">Male</button>
+        <button class="gender-opt"    onclick="setGender('female',this)">Female</button>
+      </div>
+    </div>
+
+    <div class="opt-card"><div class="opt-head">Skin Tone</div>
+      <div class="color-row" id="skin-opts">
+        <div class="c-dot sel" style="background:#FDDBB4" data-v="#FDDBB4" onclick="pickColor('skin',this)"></div>
+        <div class="c-dot"     style="background:#F5C28A" data-v="#F5C28A" onclick="pickColor('skin',this)"></div>
+        <div class="c-dot"     style="background:#E8A06A" data-v="#E8A06A" onclick="pickColor('skin',this)"></div>
+        <div class="c-dot"     style="background:#C67C52" data-v="#C67C52" onclick="pickColor('skin',this)"></div>
+        <div class="c-dot"     style="background:#8D5524" data-v="#8D5524" onclick="pickColor('skin',this)"></div>
+        <div class="c-dot"     style="background:#5C3317" data-v="#5C3317" onclick="pickColor('skin',this)"></div>
+      </div>
+    </div>
+
+    <div class="opt-card"><div class="opt-head">Hairstyle</div><div class="opt-grid" id="opt-hair"></div></div>
+
+    <div class="opt-card"><div class="opt-head">Hair Color</div>
+      <div class="color-row" id="hair-colors">
+        <div class="c-dot sel" style="background:#1A1108" data-v="#1A1108" onclick="pickColor('hairColor',this)"></div>
+        <div class="c-dot"     style="background:#4A2C0A" data-v="#4A2C0A" onclick="pickColor('hairColor',this)"></div>
+        <div class="c-dot"     style="background:#8B4513" data-v="#8B4513" onclick="pickColor('hairColor',this)"></div>
+        <div class="c-dot"     style="background:#D2691E" data-v="#D2691E" onclick="pickColor('hairColor',this)"></div>
+        <div class="c-dot"     style="background:#FFD700" data-v="#FFD700" onclick="pickColor('hairColor',this)"></div>
+        <div class="c-dot"     style="background:#C0C0C0" data-v="#C0C0C0" onclick="pickColor('hairColor',this)"></div>
+        <div class="c-dot"     style="background:#FF4081" data-v="#FF4081" onclick="pickColor('hairColor',this)"></div>
+        <div class="c-dot"     style="background:#00BCD4" data-v="#00BCD4" onclick="pickColor('hairColor',this)"></div>
+      </div>
+    </div>
+
+    <div class="opt-card"><div class="opt-head">Eye Shape</div><div class="opt-grid" id="opt-eyes"></div></div>
+
+    <div class="opt-card"><div class="opt-head">Eye Color</div>
+      <div class="color-row" id="eye-colors">
+        <div class="c-dot sel" style="background:#3D2B1F" data-v="#3D2B1F" onclick="pickColor('eyeColor',this)"></div>
+        <div class="c-dot"     style="background:#4A7C59" data-v="#4A7C59" onclick="pickColor('eyeColor',this)"></div>
+        <div class="c-dot"     style="background:#5B8DB8" data-v="#5B8DB8" onclick="pickColor('eyeColor',this)"></div>
+        <div class="c-dot"     style="background:#A0785A" data-v="#A0785A" onclick="pickColor('eyeColor',this)"></div>
+      </div>
+    </div>
+
+    <div class="opt-card"><div class="opt-head">Eyebrows</div><div class="opt-grid" id="opt-brows"></div></div>
+    <div class="opt-card"><div class="opt-head">Mouth</div><div class="opt-grid" id="opt-mouth"></div></div>
+    <div class="opt-card"><div class="opt-head">Glasses</div><div class="opt-grid" id="opt-glasses"></div></div>
+    <div class="opt-card"><div class="opt-head">Hat</div><div class="opt-grid" id="opt-hat"></div></div>
+    <div class="opt-card"><div class="opt-head">Earrings</div><div class="opt-grid" id="opt-earrings"></div></div>
+
+    <div class="opt-card"><div class="opt-head">Outfit Color</div>
+      <div class="color-row" id="outfit-colors">
+        <div class="c-dot sel" style="background:#2563EB" data-v="#2563EB" onclick="pickColor('outfitColor',this)"></div>
+        <div class="c-dot"     style="background:#16A34A" data-v="#16A34A" onclick="pickColor('outfitColor',this)"></div>
+        <div class="c-dot"     style="background:#DC2626" data-v="#DC2626" onclick="pickColor('outfitColor',this)"></div>
+        <div class="c-dot"     style="background:#D97706" data-v="#D97706" onclick="pickColor('outfitColor',this)"></div>
+        <div class="c-dot"     style="background:#7C3AED" data-v="#7C3AED" onclick="pickColor('outfitColor',this)"></div>
+        <div class="c-dot"     style="background:#DB2777" data-v="#DB2777" onclick="pickColor('outfitColor',this)"></div>
+        <div class="c-dot"     style="background:#0891B2" data-v="#0891B2" onclick="pickColor('outfitColor',this)"></div>
+        <div class="c-dot"     style="background:#374151" data-v="#374151" onclick="pickColor('outfitColor',this)"></div>
+      </div>
+    </div>
+
+    <div class="opt-card"><div class="opt-head">Background</div>
+      <div class="color-row" id="bg-colors">
+        <div class="c-dot sel" style="background:#DBEAFE" data-v="#DBEAFE" onclick="pickColor('bgColor',this)"></div>
+        <div class="c-dot"     style="background:#D1FAE5" data-v="#D1FAE5" onclick="pickColor('bgColor',this)"></div>
+        <div class="c-dot"     style="background:#FEF3C7" data-v="#FEF3C7" onclick="pickColor('bgColor',this)"></div>
+        <div class="c-dot"     style="background:#FCE7F3" data-v="#FCE7F3" onclick="pickColor('bgColor',this)"></div>
+        <div class="c-dot"     style="background:#EDE9FE" data-v="#EDE9FE" onclick="pickColor('bgColor',this)"></div>
+        <div class="c-dot"     style="background:#F1F5F9" data-v="#F1F5F9" onclick="pickColor('bgColor',this)"></div>
+        <div class="c-dot"     style="background:#1E293B" data-v="#1E293B" onclick="pickColor('bgColor',this)"></div>
+        <div class="c-dot"     style="background:#FFFFFF" data-v="#FFFFFF" onclick="pickColor('bgColor',this)"></div>
+      </div>
+    </div>
+
+  </div><!-- /opts-scroll -->
+
+  <div class="builder-preview">
+    <div class="big-av"><svg id="big-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"></svg></div>
+    <div style="font-size:11px;color:var(--muted)">Preview</div>
+    <button class="apply-btn" onclick="applyAvatar()">Apply to Profile</button>
+    <div style="font-size:11px;color:var(--muted);text-align:center;line-height:1.6;border-top:1px solid var(--border);padding-top:12px;width:100%">
+      <strong style="color:var(--text);display:block;margin-bottom:4px">Tips</strong>
+      Hats sit on top of hair. Glasses go over eyes. Mix and match!
+    </div>
+  </div>
+
+</div>
+</div>
+</div>
+
+<!-- ═══════════ SETTINGS PANE ═══════════ -->
+<div id="pane-settings" class="pane">
+<div class="wrap" style="max-width:640px">
+  <div style="display:flex;flex-direction:column;gap:14px">
+
+    <div class="card card-body">
+      <div class="card-title">Notifications</div>
+      <div class="notif-list">
+        <div class="notif-item">
+          <div class="notif-info"><p>Challenge Reminders</p><span>Reminded about ongoing challenges</span></div>
+          <label class="tog"><input type="checkbox" id="s-challenge" checked onchange="saveSetting('challenge_reminders',this.checked)"><span class="tog-track"></span></label>
+        </div>
+        <div class="notif-item">
+          <div class="notif-info"><p>Streak Alerts</p><span>Don't let your streak break</span></div>
+          <label class="tog"><input type="checkbox" id="s-streak" checked onchange="saveSetting('streak_alerts',this.checked)"><span class="tog-track"></span></label>
+        </div>
+        <div class="notif-item">
+          <div class="notif-info"><p>New Badges</p><span>When you earn achievements</span></div>
+          <label class="tog"><input type="checkbox" id="s-badges" onchange="saveSetting('badge_notif',this.checked)"><span class="tog-track"></span></label>
+        </div>
+        <div class="notif-item">
+          <div class="notif-info"><p>Weekly Report</p><span>Weekly eco activity summary</span></div>
+          <label class="tog"><input type="checkbox" id="s-weekly" checked onchange="saveSetting('weekly_report',this.checked)"><span class="tog-track"></span></label>
+        </div>
+      </div>
+    </div>
+
+    <div class="card card-body">
+      <div class="card-title">Privacy</div>
+      <div class="notif-list">
+        <div class="notif-item">
+          <div class="notif-info"><p>Public Profile</p><span>Others can view your profile</span></div>
+          <label class="tog"><input type="checkbox" id="s-public" checked onchange="saveSetting('public_profile',this.checked)"><span class="tog-track"></span></label>
+        </div>
+        <div class="notif-item">
+          <div class="notif-info"><p>Show on Leaderboard</p><span>Appear in public rankings</span></div>
+          <label class="tog"><input type="checkbox" id="s-leaderboard" checked onchange="saveSetting('show_leaderboard',this.checked)"><span class="tog-track"></span></label>
+        </div>
+      </div>
+    </div>
+
+    <div class="card card-body">
+      <div class="card-title">Change Password</div>
+      <div class="fields">
+        <div class="field"><label>Current Password</label><input type="password" id="pw-cur" placeholder="Current password"></div>
+        <div class="field"><label>New Password</label><input type="password" id="pw-new" placeholder="New password (min 6 chars)"></div>
+        <div class="field"><label>Confirm New Password</label><input type="password" id="pw-conf" placeholder="Confirm new password"></div>
+      </div>
+      <div class="save-bar"><button class="btn-primary" onclick="changePassword()">Update Password</button></div>
+    </div>
+
+    <div class="card card-body">
+      <div class="card-title" style="color:var(--red);border-bottom-color:#FEE2E2">Danger Zone</div>
+      <div class="danger-box" style="margin-bottom:10px">
+        <div class="danger-row">
+          <div><p>Deactivate Account</p><span>Temporarily hide your account</span></div>
+          <button class="btn-danger" onclick="confirmDeactivate()">Deactivate</button>
+        </div>
+      </div>
+      <div class="danger-box">
+        <div class="danger-row">
+          <div><p>Delete Account</p><span>Permanently erase all data</span></div>
+          <button class="btn-danger" onclick="confirmDelete()">Delete</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── USER DATA FROM FLASK ─────────────────────────────────
+var UNAME  = "{{ name }}";
+var UROLE  = "{{ role }}";
+var UPTS   = parseInt("{{ points }}" || 0) || 0;
+var USTRK  = parseInt("{{ streak }}" || 0) || 0;
+var UTRE   = parseInt("{{ trees }}"  || 0) || 0;
+var ORIG_BIO = "";
+
+// ─── TABS ─────────────────────────────────────────────────
+function switchTab(id) {
+  document.querySelectorAll(".tab").forEach(function(t,i){
+    t.classList.toggle("on", ["profile","avatar","settings"][i] === id);
+  });
+  document.querySelectorAll(".pane").forEach(function(p){
+    p.classList.toggle("on", p.id === "pane-"+id);
+  });
+}
+
+// ─── TOAST ────────────────────────────────────────────────
+function showToast(msg) {
+  var t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(t._t);
+  t._t = setTimeout(function(){ t.classList.remove("show"); }, 2600);
+}
+
+// ─── SETTINGS ─────────────────────────────────────────────
+var STG_KEY = "stg_" + UNAME;
+var stg = { challenge_reminders:true, streak_alerts:true, badge_notif:false, weekly_report:true, public_profile:true, show_leaderboard:true };
+(function(){
+  try { var s = localStorage.getItem(STG_KEY); if(s) stg = Object.assign(stg, JSON.parse(s)); } catch(e){}
+  var map = { challenge_reminders:"s-challenge", streak_alerts:"s-streak", badge_notif:"s-badges", weekly_report:"s-weekly", public_profile:"s-public", show_leaderboard:"s-leaderboard" };
+  Object.keys(map).forEach(function(k){ var el = document.getElementById(map[k]); if(el) el.checked = stg[k]; });
+})();
+function saveSetting(k, v) {
+  stg[k] = v;
+  try { localStorage.setItem(STG_KEY, JSON.stringify(stg)); } catch(e){}
+  fetch("/update_settings", { method:"POST", headers:{"Content-Type":"application/x-www-form-urlencoded"}, body:"name="+encodeURIComponent(UNAME)+"&key="+encodeURIComponent(k)+"&value="+(v?"1":"0") }).catch(function(){});
+  showToast(v ? "✅ Enabled" : "⚪ Disabled");
+}
+function changePassword() {
+  var cur=document.getElementById("pw-cur").value, nw=document.getElementById("pw-new").value, cf=document.getElementById("pw-conf").value;
+  if(!cur||!nw||!cf){ showToast("Fill all password fields"); return; }
+  if(nw!==cf){ showToast("Passwords don't match ❌"); return; }
+  if(nw.length<6){ showToast("Min 6 characters"); return; }
+  fetch("/change_password",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:"name="+encodeURIComponent(UNAME)+"&current="+encodeURIComponent(cur)+"&new_password="+encodeURIComponent(nw)})
+  .then(function(r){return r.text();}).then(function(res){ showToast(res==="success"?"Password updated ✅":"Wrong current password ❌"); if(res==="success"){document.getElementById("pw-cur").value="";document.getElementById("pw-new").value="";document.getElementById("pw-conf").value="";} }).catch(function(){ showToast("Error ❌"); });
+}
+function confirmDeactivate(){ if(confirm("Deactivate your account?")){ fetch("/deactivate_account",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:"name="+encodeURIComponent(UNAME)}).then(function(){window.location="/logout";}).catch(function(){showToast("Error ❌");}); } }
+function confirmDelete(){ if(confirm("⚠️ Permanently delete all data?")){ if(confirm("Last chance — cannot be undone.")){ fetch("/delete_account",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:"name="+encodeURIComponent(UNAME)}).then(function(){window.location="/";}).catch(function(){showToast("Error ❌");}); } } }
+
+// ─── PROFILE SAVE ─────────────────────────────────────────
+function saveProfile() {
+  var nm=document.getElementById("inp-name").value.trim(), bio=document.getElementById("inp-bio").value.trim();
+  if(!nm){ showToast("Name cannot be empty"); return; }
+  fetch("/update_profile",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:"name="+encodeURIComponent(UNAME)+"&new_name="+encodeURIComponent(nm)+"&bio="+encodeURIComponent(bio)})
+  .then(function(r){return r.text();}).then(function(res){
+    if(res==="success"){ document.getElementById("disp-name").textContent=nm; UNAME=nm; ORIG_BIO=bio; document.getElementById("back-link").href="/dashboard/"+encodeURIComponent(nm)+"/"+UROLE; showToast("Saved ✅"); }
+    else showToast("Error saving ❌");
+  }).catch(function(){ showToast("Error ❌"); });
+}
+function discardChanges(){ document.getElementById("inp-name").value=UNAME; document.getElementById("inp-bio").value=ORIG_BIO; showToast("Changes discarded"); }
+function copyRef(){ var el=document.getElementById("ref-code-txt"); if(el){ navigator.clipboard.writeText(el.textContent).then(function(){showToast("Code copied! 📋");}).catch(function(){showToast("Code: "+el.textContent);}); } }
+
+// ─── ACHIEVEMENTS ─────────────────────────────────────────
+// These check REAL data from Flask. When you click Claim, it POSTs
+// to /claim_badge which saves to DB permanently.
+var BADGES = [
+  { id:"earth",    icon:"🌍", name:"Earth Guardian", req:"Earn 10 points",         need:10,  stat:"pts",  met: UPTS>=10   },
+  { id:"streak7",  icon:"🔥", name:"Streak Master",  req:"7 consecutive day login", need:7,   stat:"strk", met: USTRK>=7   },
+  { id:"tree1",    icon:"🌳", name:"Tree Planter",   req:"Plant your 1st tree",    need:1,   stat:"tre",  met: UTRE>=1    },
+  { id:"eco50",    icon:"♻️", name:"Eco Hero",       req:"Earn 50 points",         need:50,  stat:"pts",  met: UPTS>=50   },
+  { id:"champ",    icon:"🏆", name:"Champion",       req:"Earn 100 points",        need:100, stat:"pts",  met: UPTS>=100  },
+  { id:"trees5",   icon:"🌲", name:"Forest Friend",  req:"Plant 5 trees",          need:5,   stat:"tre",  met: UTRE>=5    },
+  { id:"streak30", icon:"⚡", name:"Unstoppable",    req:"30 consecutive logins",  need:30,  stat:"strk", met: USTRK>=30  },
+  { id:"legend",   icon:"👑", name:"Legend",         req:"Earn 500 points",        need:500, stat:"pts",  met: UPTS>=500  }
+];
+
+// Server-claimed badges from Flask: pass claimed_badges=json.dumps(list) in render_template
+var SRV_CLAIMED = [];
+try { var _rc = '{{ claimed_badges|tojson|safe }}'; if(_rc && _rc!=="None" && _rc!=="null") SRV_CLAIMED = JSON.parse(_rc); } catch(e){ SRV_CLAIMED=[]; }
+var LOC_CLAIMED = {};
+try { var _lc = localStorage.getItem("cb_"+UNAME); if(_lc) LOC_CLAIMED = JSON.parse(_lc); } catch(e){}
+function claimed(id){ return SRV_CLAIMED.indexOf(id)!==-1 || !!LOC_CLAIMED[id]; }
+function statVal(s){ return s==="pts"?UPTS : s==="strk"?USTRK : UTRE; }
+
+function renderAch() {
+  var g = document.getElementById("ach-grid"); if(!g) return;
+  g.innerHTML = "";
+  BADGES.forEach(function(b) {
+    var done = claimed(b.id);
+    var ready = b.met && !done;
+    var d = document.createElement("div");
+    d.className = "ach-item " + (done ? "earned" : ready ? "claimable" : "locked");
+    var cur = Math.min(statVal(b.stat), b.need);
+    var pct = Math.round(cur/b.need*100);
+    var statusHTML = done
+      ? '<div class="ach-status" style="color:#16A34A;font-weight:600">✅ Claimed</div>'
+      : ready
+        ? '<div class="ach-status" style="color:#D97706;font-weight:600">🎉 Ready!</div>'
+        : '<div class="ach-status">🔒 Locked</div>'
+          + '<div class="prog-mini"><div class="prog-mini-fill" style="width:'+pct+'%"></div></div>'
+          + '<div class="prog-mini-txt">'+cur+' / '+b.need+'</div>';
+    d.innerHTML = '<div class="ach-icon">'+b.icon+'</div>'
+      + '<div class="ach-name">'+b.name+'</div>'
+      + statusHTML
+      + '<div class="ach-req">'+b.req+'</div>'
+      + (ready ? '<button class="ach-claim-btn" onclick="claimBadge(\''+b.id+'\',this)">Claim</button>' : '');
+    g.appendChild(d);
+  });
+}
+function claimBadge(id, btn) {
+  if(btn){ btn.disabled=true; btn.textContent="Saving…"; }
+  fetch("/claim_badge",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:"name="+encodeURIComponent(UNAME)+"&badge="+encodeURIComponent(id)})
+  .then(function(r){return r.text();})
+  .then(function(res){
+    if(res==="success"||res==="already_claimed"){
+      if(SRV_CLAIMED.indexOf(id)===-1) SRV_CLAIMED.push(id);
+      LOC_CLAIMED[id]=true; try{localStorage.setItem("cb_"+UNAME,JSON.stringify(LOC_CLAIMED));}catch(e){}
+      showToast("🎉 Badge saved to your account permanently!");
+    } else { showToast("❌ Server error — try again"); if(btn){btn.disabled=false;btn.textContent="Claim";} }
+    renderAch();
+  })
+  .catch(function(){
+    LOC_CLAIMED[id]=true; try{localStorage.setItem("cb_"+UNAME,JSON.stringify(LOC_CLAIMED));}catch(e){}
+    if(SRV_CLAIMED.indexOf(id)===-1) SRV_CLAIMED.push(id);
+    showToast("⚠️ Saved locally — will sync when online");
+    renderAch();
+  });
+}
+
+// ─── AVATAR STATE ─────────────────────────────────────────
+var AV = { gender:"male", skin:"#FDDBB4", hair:0, hairColor:"#1A1108", eye:0, eyeColor:"#3D2B1F", brow:0, mouth:0, glass:-1, hat:-1, earring:-1, outfit:"#2563EB", bg:"#DBEAFE" };
+(function(){ try{ var s=localStorage.getItem("av_"+UNAME); if(s) AV=JSON.parse(s); }catch(e){} })();
+
+// ─── SVG HELPERS ─────────────────────────────────────────
+function shade(hex, pct) {
+  var n=parseInt(hex.replace("#",""),16);
+  var r=Math.min(255,Math.max(0,((n>>16)&255)+(pct*2.55|0)));
+  var g=Math.min(255,Math.max(0,((n>>8) &255)+(pct*2.55|0)));
+  var b=Math.min(255,Math.max(0,( n     &255)+(pct*2.55|0)));
+  return "#"+[r,g,b].map(function(x){return x.toString(16).padStart(2,"0");}).join("");
+}
+
+// ─── AVATAR SVG PARTS ────────────────────────────────────
+// COORDINATE SYSTEM (200×200 viewBox):
+//   Face ellipse: cx=100 cy=116 rx=48 ry=56  → top of face at y=60
+//   Hair sits BEHIND face. Hair blob must cover y=0..~70 solid.
+//   Face ellipse is drawn ON TOP → its edge = the hairline. No gap.
+//   Hat sits on TOP of face (drawn last). Hat covers only y≈0..72.
+//   Hat must NOT extend below y=80 or it covers the face.
+
+function drawHair(c) {
+  // Each style: big solid blob. The face ellipse will cover the bottom,
+  // so only the top dome shows as hair. Simple = no gaps, no bugs.
+  var styles = [
+    // 0 side part – simple dome
+    '<ellipse cx="100" cy="68" rx="56" ry="70" fill="'+c+'"/>',
+
+    // 1 crew cut – slightly flat top
+    '<rect x="44" y="0" width="112" height="68" fill="'+c+'"/>'
+    + '<ellipse cx="100" cy="68" rx="56" ry="14" fill="'+c+'"/>',
+
+    // 2 curly afro – dome + bumps
+    '<ellipse cx="100" cy="60" rx="58" ry="68" fill="'+c+'"/>'
+    + '<circle cx="50" cy="56" r="24" fill="'+c+'"/>'
+    + '<circle cx="72" cy="32" r="24" fill="'+c+'"/>'
+    + '<circle cx="100" cy="22" r="24" fill="'+c+'"/>'
+    + '<circle cx="128" cy="32" r="24" fill="'+c+'"/>'
+    + '<circle cx="150" cy="56" r="24" fill="'+c+'"/>',
+
+    // 3 slicked back – dome with highlight
+    '<ellipse cx="100" cy="68" rx="56" ry="70" fill="'+c+'"/>'
+    + '<path d="M50,80 Q80,52 150,68" fill="none" stroke="'+shade(c,25)+'" stroke-width="5" stroke-linecap="round" opacity="0.4"/>',
+
+    // 4 buzz cut – short tight dome
+    '<ellipse cx="100" cy="74" rx="54" ry="62" fill="'+c+'"/>',
+
+    // 5 mohawk – faded sides + tall strip
+    '<ellipse cx="100" cy="76" rx="54" ry="60" fill="'+c+'" opacity="0.3"/>'
+    + '<ellipse cx="100" cy="40" rx="13" ry="52" fill="'+c+'"/>'
+  ];
+  if(AV.gender === "female") {
+    styles = [
+      // 0 long straight – dome + side curtains
+      '<ellipse cx="100" cy="66" rx="56" ry="72" fill="'+c+'"/>'
+      + '<rect x="40" y="108" width="22" height="84" rx="11" fill="'+c+'"/>'
+      + '<rect x="138" y="108" width="22" height="84" rx="11" fill="'+c+'"/>',
+
+      // 1 ponytail – dome + tail
+      '<ellipse cx="100" cy="66" rx="55" ry="70" fill="'+c+'"/>'
+      + '<ellipse cx="100" cy="20" rx="16" ry="20" fill="'+c+'"/>'
+      + '<rect x="93" y="36" width="14" height="58" rx="7" fill="'+c+'"/>',
+
+      // 2 bun – dome + bun
+      '<ellipse cx="100" cy="70" rx="54" ry="68" fill="'+c+'"/>'
+      + '<ellipse cx="100" cy="22" rx="26" ry="24" fill="'+c+'"/>',
+
+      // 3 wavy long – dome + wide curtains
+      '<ellipse cx="100" cy="66" rx="56" ry="72" fill="'+c+'"/>'
+      + '<rect x="38" y="106" width="24" height="80" rx="12" fill="'+c+'"/>'
+      + '<rect x="138" y="106" width="24" height="80" rx="12" fill="'+c+'"/>'
+      + '<ellipse cx="50" cy="148" rx="16" ry="12" fill="'+c+'"/>'
+      + '<ellipse cx="150" cy="148" rx="16" ry="12" fill="'+c+'"/>',
+
+      // 4 bob – dome + blunt panel
+      '<ellipse cx="100" cy="68" rx="55" ry="70" fill="'+c+'"/>'
+      + '<rect x="45" y="108" width="110" height="38" fill="'+c+'"/>'
+      + '<ellipse cx="100" cy="146" rx="55" ry="9" fill="'+c+'"/>',
+
+      // 5 pigtails – dome + side bunches
+      '<ellipse cx="100" cy="68" rx="54" ry="70" fill="'+c+'"/>'
+      + '<ellipse cx="40" cy="112" rx="20" ry="36" fill="'+c+'"/>'
+      + '<ellipse cx="160" cy="112" rx="20" ry="36" fill="'+c+'"/>'
+    ];
+  }
+  return styles[AV.hair] || styles[0];
+}
+
+function drawFace(skin) {
+  var ear = shade(skin, -12);
+  // Ears + face ellipse. Top of face ≈ y=60.
+  return '<ellipse cx="58" cy="126" rx="10" ry="14" fill="'+ear+'"/>'
+       + '<ellipse cx="142" cy="126" rx="10" ry="14" fill="'+ear+'"/>'
+       + '<ellipse cx="100" cy="116" rx="48" ry="56" fill="'+skin+'"/>';
+}
+
+function drawEyes(style, col) {
+  var s = [
+    // 0 normal almond
+    '<ellipse cx="76" cy="112" rx="10" ry="6.5" fill="white"/><circle cx="76" cy="112" r="4.5" fill="'+col+'"/><circle cx="76" cy="112" r="2.5" fill="#111"/><circle cx="77.5" cy="110.5" r="1.2" fill="white"/>'
+    +'<ellipse cx="124" cy="112" rx="10" ry="6.5" fill="white"/><circle cx="124" cy="112" r="4.5" fill="'+col+'"/><circle cx="124" cy="112" r="2.5" fill="#111"/><circle cx="125.5" cy="110.5" r="1.2" fill="white"/>',
+    // 1 round
+    '<circle cx="76" cy="112" r="9" fill="white"/><circle cx="76" cy="112" r="5.5" fill="'+col+'"/><circle cx="76" cy="112" r="3" fill="#111"/><circle cx="78" cy="110" r="1.4" fill="white"/>'
+    +'<circle cx="124" cy="112" r="9" fill="white"/><circle cx="124" cy="112" r="5.5" fill="'+col+'"/><circle cx="124" cy="112" r="3" fill="#111"/><circle cx="126" cy="110" r="1.4" fill="white"/>',
+    // 2 half-open
+    '<path d="M66,112 Q76,105 86,112" fill="none" stroke="#444" stroke-width="1.5"/><path d="M67,112 Q76,117 85,112" fill="white"/><ellipse cx="76" cy="113" rx="5" ry="3.5" fill="'+col+'"/><ellipse cx="76" cy="113" rx="2.5" ry="2" fill="#111"/>'
+    +'<path d="M114,112 Q124,105 134,112" fill="none" stroke="#444" stroke-width="1.5"/><path d="M115,112 Q124,117 133,112" fill="white"/><ellipse cx="124" cy="113" rx="5" ry="3.5" fill="'+col+'"/><ellipse cx="124" cy="113" rx="2.5" ry="2" fill="#111"/>',
+    // 3 angled
+    '<path d="M65,114 Q76,107 89,113 Q85,119 65,114Z" fill="white"/><circle cx="76" cy="112" r="2.8" fill="#111"/>'
+    +'<path d="M111,114 Q124,107 135,113 L131,119Z" fill="white"/><circle cx="124" cy="112" r="2.8" fill="#111"/>'
+  ];
+  return s[style] || s[0];
+}
+
+function drawBrows(style, hc) {
+  var s = [
+    '<path d="M64,104 Q76,99 88,103" fill="none" stroke="'+hc+'" stroke-width="2.3" stroke-linecap="round"/><path d="M112,104 Q124,99 136,103" fill="none" stroke="'+hc+'" stroke-width="2.3" stroke-linecap="round"/>',
+    '<rect x="64" y="100" width="24" height="4.5" rx="2.2" fill="'+hc+'"/><rect x="112" y="100" width="24" height="4.5" rx="2.2" fill="'+hc+'"/>',
+    '<path d="M66,105 Q76,98 86,103" fill="none" stroke="'+hc+'" stroke-width="1.7" stroke-linecap="round"/><path d="M114,105 Q124,98 134,103" fill="none" stroke="'+hc+'" stroke-width="1.7" stroke-linecap="round"/>',
+    '<path d="M65,100 Q76,93 87,100" fill="none" stroke="'+hc+'" stroke-width="2.3" stroke-linecap="round"/><path d="M113,100 Q124,93 135,100" fill="none" stroke="'+hc+'" stroke-width="2.3" stroke-linecap="round"/>'
+  ];
+  return s[style] || s[0];
+}
+
+function drawNose(skin) {
+  var d = shade(skin,-20);
+  return '<ellipse cx="100" cy="130" rx="4.5" ry="3" fill="'+d+'" opacity="0.4"/>'
+       + '<circle cx="96.5" cy="131" r="2.5" fill="'+d+'" opacity="0.3"/>'
+       + '<circle cx="103.5" cy="131" r="2.5" fill="'+d+'" opacity="0.3"/>';
+}
+
+function drawMouth(style) {
+  var s = [
+    '<path d="M87,148 Q100,160 113,148" fill="none" stroke="#C8776A" stroke-width="2.3" stroke-linecap="round"/><path d="M89,150 Q100,157 111,150" fill="#E8A090" opacity="0.5"/>',
+    '<path d="M84,147 Q100,163 116,147" fill="#C8776A"/><path d="M84,147 Q100,153 116,147" fill="#E8A090"/>',
+    '<line x1="89" y1="150" x2="111" y2="150" stroke="#C8776A" stroke-width="2.3" stroke-linecap="round"/>',
+    '<path d="M91,148 Q100,144 109,148 Q100,155 91,148Z" fill="#C8776A"/>',
+    '<path d="M86,146 Q100,162 114,146" fill="#C8776A"/><path d="M88,149 Q100,156 112,149" fill="#E85050"/><path d="M88,151 Q100,145 112,151" fill="white" opacity="0.65"/>',
+    '<path d="M91,150 Q100,157 112,147" fill="none" stroke="#C8776A" stroke-width="2.3" stroke-linecap="round"/>'
+  ];
+  return s[style] || s[0];
+}
+
+function drawGlasses(style) {
+  if(style < 0) return "";
+  var s = [
+    '<circle cx="78" cy="122" r="13" fill="none" stroke="#555" stroke-width="2"/><circle cx="122" cy="122" r="13" fill="none" stroke="#555" stroke-width="2"/><line x1="91" y1="122" x2="109" y2="122" stroke="#555" stroke-width="1.8"/><line x1="53" y1="120" x2="65" y2="121" stroke="#555" stroke-width="1.6"/><line x1="147" y1="120" x2="135" y2="121" stroke="#555" stroke-width="1.6"/>',
+    '<rect x="64" y="114" width="28" height="17" rx="4" fill="none" stroke="#555" stroke-width="2"/><rect x="108" y="114" width="28" height="17" rx="4" fill="none" stroke="#555" stroke-width="2"/><line x1="92" y1="122" x2="108" y2="122" stroke="#555" stroke-width="1.8"/><line x1="53" y1="120" x2="64" y2="121" stroke="#555" stroke-width="1.6"/><line x1="147" y1="120" x2="136" y2="121" stroke="#555" stroke-width="1.6"/>',
+    '<rect x="62" y="114" width="30" height="16" rx="7" fill="#111" fill-opacity="0.85"/><rect x="108" y="114" width="30" height="16" rx="7" fill="#111" fill-opacity="0.85"/><line x1="92" y1="122" x2="108" y2="122" stroke="#333" stroke-width="2.2"/><line x1="52" y1="118" x2="62" y2="120" stroke="#333" stroke-width="1.8"/><line x1="148" y1="118" x2="138" y2="120" stroke="#333" stroke-width="1.8"/>',
+    '<path d="M64,120 Q70,112 88,115 Q92,122 92,124 Q78,130 64,124Z" fill="none" stroke="#996" stroke-width="1.8"/><path d="M136,120 Q130,112 112,115 Q108,122 108,124 Q122,130 136,124Z" fill="none" stroke="#996" stroke-width="1.8"/><line x1="92" y1="122" x2="108" y2="122" stroke="#996" stroke-width="1.6"/>'
+  ];
+  return s[style] || "";
+}
+
+function drawHat(style) {
+  // CORRECT APPROACH: Use SVG <clipPath> to restrict hat to top of head only (y < 72).
+  // The clip rectangle cuts off everything below y=72 so the hat NEVER covers eyes/face.
+  // Brim ellipses are drawn separately BELOW the clip so they appear as a flat brim.
+  if(style < 0) return "";
+
+  // Clip definition: only show hat content above y=72
+  var clip = '<defs><clipPath id="hatclip"><rect x="0" y="0" width="200" height="72"/></clipPath></defs>';
+
+  var s = [
+    // 0 baseball cap
+    clip
+    + '<g clip-path="url(#hatclip)">'
+    + '<ellipse cx="100" cy="50" rx="52" ry="58" fill="#1D4ED8"/>'
+    + '</g>'
+    + '<ellipse cx="100" cy="72" rx="52" ry="10" fill="#2563EB"/>'
+    + '<path d="M150,68 Q176,64 170,78 Q162,84 150,76Z" fill="#2563EB"/>',
+
+    // 1 beanie
+    clip
+    + '<g clip-path="url(#hatclip)">'
+    + '<ellipse cx="100" cy="46" rx="54" ry="60" fill="#7C3AED"/>'
+    + '</g>'
+    + '<ellipse cx="100" cy="72" rx="52" ry="10" fill="#5B21B6"/>'
+    + '<path d="M50,42 Q100,34 150,42" fill="none" stroke="#6D28D9" stroke-width="5" opacity="0.55"/>'
+    + '<path d="M50,56 Q100,48 150,56" fill="none" stroke="#6D28D9" stroke-width="5" opacity="0.55"/>'
+    + '<circle cx="100" cy="10" r="11" fill="#A78BFA"/>',
+
+    // 2 top hat
+    '<rect x="74" y="4" width="52" height="62" rx="4" fill="#1A1108"/>'
+    + '<ellipse cx="100" cy="66" rx="56" ry="11" fill="#0f0c06"/>'
+    + '<rect x="76" y="60" width="48" height="8" rx="4" fill="#D97706"/>',
+
+    // 3 crown (no clip needed — pointy shape stays above face naturally)
+    '<path d="M58,74 L58,38 L76,58 L100,24 L124,58 L142,38 L142,74Z" fill="#D97706"/>'
+    + '<rect x="56" y="70" width="88" height="12" rx="6" fill="#B45309"/>'
+    + '<circle cx="100" cy="26" r="7" fill="#EF4444"/>'
+    + '<circle cx="76" cy="58" r="6" fill="#10B981"/>'
+    + '<circle cx="124" cy="58" r="6" fill="#3B82F6"/>',
+
+    // 4 cowboy hat
+    clip
+    + '<g clip-path="url(#hatclip)">'
+    + '<ellipse cx="100" cy="48" rx="50" ry="56" fill="#A0522D"/>'
+    + '</g>'
+    + '<ellipse cx="100" cy="72" rx="64" ry="12" fill="#8B4513"/>'
+    + '<ellipse cx="100" cy="72" rx="64" ry="8" fill="#6B3410" opacity="0.35"/>',
+
+    // 5 bucket hat
+    clip
+    + '<g clip-path="url(#hatclip)">'
+    + '<ellipse cx="100" cy="50" rx="50" ry="56" fill="#15803D"/>'
+    + '</g>'
+    + '<ellipse cx="100" cy="72" rx="54" ry="11" fill="#16A34A"/>'
+    + '<path d="M48,68 Q100,60 152,68" fill="none" stroke="#166534" stroke-width="4" stroke-linecap="round" opacity="0.7"/>'
+  ];
+  return s[style] || "";
+}
+
+function drawEarrings(style) {
+  if(style < 0) return "";
+  var s = [
+    '<circle cx="54" cy="128" r="4" fill="#D4AF37"/><circle cx="146" cy="128" r="4" fill="#D4AF37"/>',
+    '<circle cx="54" cy="130" r="7" fill="none" stroke="#D4AF37" stroke-width="2.5"/><circle cx="146" cy="130" r="7" fill="none" stroke="#D4AF37" stroke-width="2.5"/>',
+    '<line x1="54" y1="125" x2="54" y2="133" stroke="#D4AF37" stroke-width="1.7"/><circle cx="54" cy="137" r="4" fill="#D4AF37"/><line x1="146" y1="125" x2="146" y2="133" stroke="#D4AF37" stroke-width="1.7"/><circle cx="146" cy="137" r="4" fill="#D4AF37"/>',
+    '<circle cx="54" cy="128" r="4" fill="#C0C0C0"/><circle cx="146" cy="128" r="4" fill="#C0C0C0"/>',
+    '<path d="M54,124 L58,130 L54,136 L50,130Z" fill="#87CEEB"/><path d="M146,124 L150,130 L146,136 L142,130Z" fill="#87CEEB"/>',
+    '<line x1="54" y1="125" x2="54" y2="146" stroke="#D4AF37" stroke-width="1.7"/><line x1="51" y1="143" x2="54" y2="146" stroke="#D4AF37" stroke-width="1.3"/><line x1="57" y1="143" x2="54" y2="146" stroke="#D4AF37" stroke-width="1.3"/><line x1="146" y1="125" x2="146" y2="146" stroke="#D4AF37" stroke-width="1.7"/><line x1="143" y1="143" x2="146" y2="146" stroke="#D4AF37" stroke-width="1.3"/><line x1="149" y1="143" x2="146" y2="146" stroke="#D4AF37" stroke-width="1.3"/>'
+  ];
+  return s[style] || "";
+}
+
+function drawOutfit(gender, col) {
+  var dark = shade(col, -28);
+  if(gender === "male") {
+    return '<path d="M60,200 L52,164 Q46,152 46,142 Q54,136 68,134 Q76,158 100,160 Q124,158 132,134 Q146,136 154,142 Q154,152 148,164 L140,200Z" fill="'+col+'"/>'
+         + '<line x1="100" y1="160" x2="100" y2="200" stroke="'+dark+'" stroke-width="2"/>';
+  }
+  return '<path d="M58,200 L50,170 Q44,157 44,147 Q52,140 68,138 Q74,154 100,157 Q126,154 132,138 Q148,140 156,147 Q156,157 150,170 L142,200Z" fill="'+col+'"/>'
+       + '<path d="M68,138 Q100,157 132,138 Q132,154 100,167 Q68,154 68,138Z" fill="'+dark+'" opacity="0.3"/>';
+}
+
+// ─── RENDER AVATAR ────────────────────────────────────────
+// DRAW ORDER (back → front):
+// 1. Background fill
+// 2. Outfit / clothes
+// 3. Hair blob (large, behind face)
+// 4. Face ellipse ON TOP of hair → creates the hairline automatically
+// 5. Earrings
+// 6. Brows, eyes, nose, mouth
+// 7. Glasses
+// 8. Hat (only when no hat: hair drawn before face; with hat: hat last)
+function renderAV(id) {
+  var hair = drawHair(AV.hairColor);
+  var hasHat = AV.hat >= 0;
+  var svg =
+    '<rect width="200" height="200" fill="'+AV.bg+'"/>'
+    + drawOutfit(AV.gender, AV.outfit)
+    + (hasHat ? '' : hair)           // hair behind face (no hat mode)
+    + drawFace(AV.skin)              // face covers lower part of hair → hairline!
+    + drawEarrings(AV.earring)
+    + drawBrows(AV.brow, AV.hairColor)
+    + drawEyes(AV.eye, AV.eyeColor)
+    + drawNose(AV.skin)
+    + drawMouth(AV.mouth)
+    + drawGlasses(AV.glass)
+    + (hasHat ? hair : '')           // hair peeking under hat
+    + drawHat(AV.hat);              // hat on top of everything
+  document.getElementById(id).innerHTML = svg;
+}
+function refreshAV() { renderAV("big-svg"); renderAV("mini-svg"); }
+
+// ─── BUILDER GRIDS ────────────────────────────────────────
+var ICONS = {
+  hair: [
+    '<svg viewBox="0 0 28 28"><ellipse cx="14" cy="12" rx="11" ry="13" fill="#555"/></svg>',
+    '<svg viewBox="0 0 28 28"><rect x="3" y="2" width="22" height="13" fill="#555"/><ellipse cx="14" cy="15" rx="11" ry="4" fill="#555"/></svg>',
+    '<svg viewBox="0 0 28 28"><circle cx="7" cy="12" r="6" fill="#555"/><circle cx="14" cy="6" r="6" fill="#555"/><circle cx="21" cy="12" r="6" fill="#555"/></svg>',
+    '<svg viewBox="0 0 28 28"><ellipse cx="14" cy="12" rx="11" ry="13" fill="#555"/><path d="M6,14 Q14,8 22,12" fill="none" stroke="#888" stroke-width="2" stroke-linecap="round"/></svg>',
+    '<svg viewBox="0 0 28 28"><ellipse cx="14" cy="14" rx="11" ry="11" fill="#555" opacity="0.8"/></svg>',
+    '<svg viewBox="0 0 28 28"><ellipse cx="14" cy="16" rx="11" ry="9" fill="#555" opacity="0.35"/><ellipse cx="14" cy="8" rx="4" ry="10" fill="#555"/></svg>'
+  ],
+  eye: [
+    '<svg viewBox="0 0 28 28"><ellipse cx="14" cy="14" rx="8" ry="6" fill="none" stroke="#555" stroke-width="1.5"/><circle cx="14" cy="14" r="3" fill="#555"/></svg>',
+    '<svg viewBox="0 0 28 28"><circle cx="14" cy="14" r="8" fill="none" stroke="#555" stroke-width="1.5"/><circle cx="14" cy="14" r="4" fill="#555"/></svg>',
+    '<svg viewBox="0 0 28 28"><path d="M6,14 Q14,8 22,14" fill="none" stroke="#555" stroke-width="1.5"/><path d="M7,14 Q14,18 21,14" fill="#aaa" opacity="0.5"/></svg>',
+    '<svg viewBox="0 0 28 28"><path d="M5,15 Q14,8 23,13 L20,18Z" fill="#555" opacity="0.8"/></svg>'
+  ],
+  brow: [
+    '<svg viewBox="0 0 28 28"><path d="M6,12 Q14,9 22,12" fill="none" stroke="#555" stroke-width="2.2" stroke-linecap="round"/></svg>',
+    '<svg viewBox="0 0 28 28"><rect x="6" y="11" width="16" height="4" rx="2" fill="#555"/></svg>',
+    '<svg viewBox="0 0 28 28"><path d="M7,13 Q14,9 21,12" fill="none" stroke="#555" stroke-width="1.5" stroke-linecap="round"/></svg>',
+    '<svg viewBox="0 0 28 28"><path d="M6,10 Q14,7 22,10" fill="none" stroke="#555" stroke-width="2.2" stroke-linecap="round"/></svg>'
+  ],
+  mouth: [
+    '<svg viewBox="0 0 28 28"><path d="M7,15 Q14,22 21,15" fill="none" stroke="#C8776A" stroke-width="2.2" stroke-linecap="round"/></svg>',
+    '<svg viewBox="0 0 28 28"><path d="M6,15 Q14,23 22,15" fill="#C8776A"/></svg>',
+    '<svg viewBox="0 0 28 28"><line x1="8" y1="17" x2="20" y2="17" stroke="#C8776A" stroke-width="2.2" stroke-linecap="round"/></svg>',
+    '<svg viewBox="0 0 28 28"><path d="M10,15 Q14,12 18,15 Q14,19 10,15Z" fill="#C8776A"/></svg>',
+    '<svg viewBox="0 0 28 28"><path d="M6,14 Q14,22 22,14" fill="#C8776A"/><path d="M8,16 Q14,14 20,16" fill="white" opacity="0.6"/></svg>',
+    '<svg viewBox="0 0 28 28"><path d="M9,17 Q14,21 20,15" fill="none" stroke="#C8776A" stroke-width="2.2" stroke-linecap="round"/></svg>'
+  ],
+  glass: [
+    '<svg viewBox="0 0 28 28"><circle cx="9" cy="14" r="6" fill="none" stroke="#555" stroke-width="1.5"/><circle cx="19" cy="14" r="6" fill="none" stroke="#555" stroke-width="1.5"/><line x1="15" y1="14" x2="13" y2="14" stroke="#555" stroke-width="1.5"/></svg>',
+    '<svg viewBox="0 0 28 28"><rect x="3" y="11" width="9" height="7" rx="2" fill="none" stroke="#555" stroke-width="1.5"/><rect x="16" y="11" width="9" height="7" rx="2" fill="none" stroke="#555" stroke-width="1.5"/></svg>',
+    '<svg viewBox="0 0 28 28"><rect x="3" y="11" width="9" height="7" rx="4" fill="#222" opacity="0.85"/><rect x="16" y="11" width="9" height="7" rx="4" fill="#222" opacity="0.85"/></svg>',
+    '<svg viewBox="0 0 28 28"><path d="M3,15 Q8,9 14,13 L14,15Z" fill="none" stroke="#996" stroke-width="1.5"/><path d="M25,15 Q20,9 14,13 L14,15Z" fill="none" stroke="#996" stroke-width="1.5"/></svg>'
+  ],
+  hat: [
+    '<svg viewBox="0 0 28 28"><path d="M4,16 Q4,4 14,2 Q24,4 24,16 L22,10 Q18,6 14,5 Q10,6 6,10Z" fill="#1D4ED8"/><ellipse cx="14" cy="16" rx="13" ry="4" fill="#2563EB"/><path d="M24,15 Q30,13 28,19 Q25,21 23,17Z" fill="#2563EB"/></svg>',
+    '<svg viewBox="0 0 28 28"><path d="M4,17 Q4,2 14,0 Q24,2 24,17 Q22,10 14,8 Q6,10 4,17Z" fill="#7C3AED"/><rect x="4" y="14" width="20" height="5" rx="2.5" fill="#5B21B6"/><circle cx="14" cy="2" r="4" fill="#A78BFA"/></svg>',
+    '<svg viewBox="0 0 28 28"><rect x="9" y="2" width="10" height="14" rx="2" fill="#1A1108"/><ellipse cx="14" cy="16" rx="13" ry="4" fill="#111108"/></svg>',
+    '<svg viewBox="0 0 28 28"><path d="M7,18 L7,8 L11,13 L14,5 L17,13 L21,8 L21,18Z" fill="#D97706"/><rect x="6" y="17" width="16" height="3.5" rx="1.8" fill="#B45309"/></svg>',
+    '<svg viewBox="0 0 28 28"><path d="M6,16 Q6,2 14,0 Q22,2 22,16 Q20,9 14,7 Q8,9 6,16Z" fill="#A0522D"/><ellipse cx="14" cy="16" rx="13" ry="4" fill="#8B4513"/></svg>',
+    '<svg viewBox="0 0 28 28"><path d="M6,16 Q6,2 14,0 Q22,2 22,16 Q20,9 14,7 Q8,9 6,16Z" fill="#15803D"/><ellipse cx="14" cy="16" rx="13" ry="4" fill="#16A34A"/></svg>'
+  ],
+  earring: [
+    '<svg viewBox="0 0 28 28"><circle cx="14" cy="14" r="5" fill="#D4AF37"/></svg>',
+    '<svg viewBox="0 0 28 28"><circle cx="14" cy="14" r="7" fill="none" stroke="#D4AF37" stroke-width="2.5"/></svg>',
+    '<svg viewBox="0 0 28 28"><line x1="14" y1="7" x2="14" y2="15" stroke="#D4AF37" stroke-width="2"/><circle cx="14" cy="19" r="5" fill="#D4AF37"/></svg>',
+    '<svg viewBox="0 0 28 28"><circle cx="14" cy="14" r="5" fill="#C0C0C0"/></svg>',
+    '<svg viewBox="0 0 28 28"><path d="M14,7 L19,14 L14,21 L9,14Z" fill="#87CEEB"/></svg>',
+    '<svg viewBox="0 0 28 28"><line x1="14" y1="7" x2="14" y2="22" stroke="#D4AF37" stroke-width="2"/><line x1="11" y1="19" x2="14" y2="22" stroke="#D4AF37" stroke-width="1.5"/><line x1="17" y1="19" x2="14" y2="22" stroke="#D4AF37" stroke-width="1.5"/></svg>'
+  ]
+};
+
+var NONE_ICO = '<svg viewBox="0 0 28 28"><line x1="6" y1="6" x2="22" y2="22" stroke="#bbb" stroke-width="2.5" stroke-linecap="round"/><line x1="22" y1="6" x2="6" y2="22" stroke="#bbb" stroke-width="2.5" stroke-linecap="round"/></svg>';
+
+function buildGrid(elId, avProp, icons, hasNone) {
+  var el = document.getElementById(elId); if(!el) return;
+  el.innerHTML = "";
+  if(hasNone) {
+    var nd = document.createElement("div");
+    nd.className = "opt-item" + (AV[avProp]===-1 ? " sel" : "");
+    nd.dataset.i = "-1";
+    nd.innerHTML = NONE_ICO;
+    nd.onclick = (function(p,el2){ return function(){ pickOpt(p,-1,el2); }; })(avProp, el);
+    el.appendChild(nd);
+  }
+  icons.forEach(function(ico, i) {
+    var d = document.createElement("div");
+    d.className = "opt-item" + (AV[avProp]===i ? " sel" : "");
+    d.dataset.i = i;
+    d.innerHTML = ico;
+    d.onclick = (function(p,idx,el2){ return function(){ pickOpt(p,idx,el2); }; })(avProp, i, el);
+    el.appendChild(d);
+  });
+}
+
+function pickOpt(prop, val, grid) {
+  AV[prop] = val;
+  grid.querySelectorAll(".opt-item").forEach(function(d){ d.classList.toggle("sel", parseInt(d.dataset.i)===val); });
+  saveAV(); refreshAV();
+}
+
+function buildAllGrids() {
+  buildGrid("opt-hair", "hair", ICONS.hair, false);
+  buildGrid("opt-eyes", "eye", ICONS.eye, false);
+  buildGrid("opt-brows", "brow", ICONS.brow, false);
+  buildGrid("opt-mouth", "mouth", ICONS.mouth, false);
+  buildGrid("opt-glasses", "glass", ICONS.glass, true);
+  buildGrid("opt-hat", "hat", ICONS.hat, true);
+  buildGrid("opt-earrings", "earring", ICONS.earring, true);
+}
+
+function setGender(g, btn) {
+  AV.gender = g;
+  document.querySelectorAll(".gender-opt").forEach(function(b){ b.classList.remove("on"); });
+  btn.classList.add("on");
+  AV.hair = 0;
+  buildAllGrids(); saveAV(); refreshAV();
+}
+
+function pickColor(prop, el) {
+  var groupId = { skin:"skin-opts", hairColor:"hair-colors", eyeColor:"eye-colors", outfitColor:"outfit-colors", bgColor:"bg-colors" }[prop];
+  document.querySelectorAll("#"+groupId+" .c-dot").forEach(function(d){ d.classList.remove("sel"); });
+  el.classList.add("sel");
+  AV[prop] = el.dataset.v;
+  saveAV(); refreshAV();
+}
+
+function saveAV() { try{ localStorage.setItem("av_"+UNAME, JSON.stringify(AV)); }catch(e){} }
+function applyAvatar() { saveAV(); renderAV("mini-svg"); showToast("Avatar applied! ✨"); switchTab("profile"); }
+
+// ─── INIT ─────────────────────────────────────────────────
+window.addEventListener("DOMContentLoaded", function() {
+  // Restore bio original value
+  var bioEl = document.getElementById("inp-bio");
+  if(bioEl) ORIG_BIO = bioEl.value;
+
+  // Build avatar grids and restore selections
+  buildAllGrids();
+
+  // Restore gender button
+  if(AV.gender === "female") {
+    var gbtns = document.querySelectorAll(".gender-opt");
+    if(gbtns[0]) gbtns[0].classList.remove("on");
+    if(gbtns[1]) gbtns[1].classList.add("on");
+  }
+
+  // Restore color dot selections
+  var colorMap = { skin:"#skin-opts", hairColor:"#hair-colors", eyeColor:"#eye-colors", outfitColor:"#outfit-colors", bgColor:"#bg-colors" };
+  Object.keys(colorMap).forEach(function(prop) {
+    document.querySelectorAll(colorMap[prop]+" .c-dot").forEach(function(d){
+      d.classList.toggle("sel", d.dataset.v === AV[prop]);
+    });
+  });
+
+  // Render avatars
+  refreshAV();
+
+  // Render achievements
+  renderAch();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EcoQuest</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--green:#22c55e;--sky:#38bdf8;--glass:rgba(255,255,255,0.07);--border:rgba(255,255,255,0.12);--text:#e2e8f0;--muted:#94a3b8}
+body{
+  font-family:'DM Sans',sans-serif;
+  background:linear-gradient(135deg,#050816,#0b1324,#0f172a,#111827);
+  min-height:100vh;color:var(--text);overflow-x:hidden;
+}
+body::before{content:"";position:fixed;inset:0;background-image:radial-gradient(rgba(255,255,255,0.04) 1px,transparent 1px);background-size:28px 28px;z-index:0;pointer-events:none}
+body::after{content:"";position:fixed;inset:0;background:radial-gradient(circle at 30% 30%,rgba(34,197,94,0.15),transparent 35%),radial-gradient(circle at 70% 70%,rgba(56,189,248,0.15),transparent 35%);filter:blur(60px);z-index:0;pointer-events:none;animation:glow 8s ease-in-out infinite alternate}
+@keyframes glow{from{transform:translate(0,0)}to{transform:translate(15px,-15px)}}
+.page{max-width:960px;margin:0 auto;padding:48px 20px;position:relative;z-index:1}
+.hero{text-align:center;margin-bottom:56px}
+.badge{display:inline-flex;align-items:center;gap:8px;background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.3);border-radius:100px;padding:6px 18px;font-size:12px;color:#86efac;letter-spacing:0.08em;text-transform:uppercase;font-weight:500;margin-bottom:24px}
+h1{font-family:'Syne',sans-serif;font-size:clamp(36px,7vw,64px);font-weight:800;line-height:1.05;background:linear-gradient(135deg,#fff 0%,#86efac 50%,#7dd3fc 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:16px}
+.hero p{color:var(--muted);font-size:17px;max-width:500px;margin:0 auto;line-height:1.7}
+.score-bar{display:inline-flex;align-items:center;gap:10px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.25);border-radius:14px;padding:10px 20px;margin-top:24px;font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:#86efac}
+.section-label{font-family:'Syne',sans-serif;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);margin-bottom:18px;font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.card{
+  background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);
+  border-radius:18px;padding:22px;text-decoration:none;color:var(--text);
+  display:block;transition:all 0.22s;position:relative;overflow:hidden;
+}
+.card::before{content:"";position:absolute;inset:0;background:linear-gradient(135deg,rgba(34,197,94,0.06),transparent);opacity:0;transition:opacity 0.22s}
+.card:hover{border-color:rgba(34,197,94,0.35);transform:translateY(-3px);box-shadow:0 12px 32px rgba(0,0,0,0.3)}
+.card:hover::before{opacity:1}
+.card.done{border-color:rgba(34,197,94,0.5);background:rgba(34,197,94,0.08)}
+.card-emoji{font-size:26px;margin-bottom:10px;display:block}
+.card-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:6px;color:#f1f5f9}
+.card-desc{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:12px}
+.card-footer{display:flex;align-items:center;justify-content:space-between}
+.pts{font-size:12px;font-weight:600;background:rgba(56,189,248,0.12);color:#7dd3fc;border-radius:8px;padding:3px 10px}
+.done-tag{font-size:11px;color:#86efac;font-weight:600}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="hero">
+    <div class="badge">🌍 EcoQuest Challenge Platform</div>
+    <h1>Do Good.<br>Earn Points.</h1>
+    <p>Complete real-world eco-challenges, snap your proof, and let AI verify your impact.</p>
+    <div class="score-bar">⭐ <span id="totalPts">0</span> pts earned</div>
+  </div>
+
+  <div class="section-label">Choose a challenge to complete</div>
+  <div class="grid">
+    {% for c in challenges %}
+    <a href="/challenge/{{ c.id }}" class="card" id="card-{{ c.id }}">
+      <span class="card-emoji">{{ c.title.split(' ')[0] }}</span>
+      <div class="card-title">{{ c.title.split(' ', 1)[1] }}</div>
+      <div class="card-desc">{{ c.desc }}</div>
+      <div class="card-footer">
+        <span class="pts">⭐ {{ c.points }} pts</span>
+        <span class="done-tag" id="done-{{ c.id }}" style="display:none">✅ Done</span>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+</div>
+
+<script>
+async function loadScore() {
+  const res = await fetch('/score');
+  const data = await res.json();
+  document.getElementById('totalPts').textContent = data.points;
+  (data.completed || []).forEach(id => {
+    const el = document.getElementById('done-' + id);
+    const card = document.getElementById('card-' + id);
+    if (el) el.style.display = 'inline';
+    if (card) card.classList.add('done');
+  });
+}
+loadScore();
+</script>
+</body>
+</html>

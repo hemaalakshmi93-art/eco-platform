@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Smart Fishing Adventure</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --deep: #0a1628;
+    --ocean: #0d3b6e;
+    --mid: #1565a8;
+    --surf: #2196f3;
+    --foam: #87ceeb;
+    --gold: #ffd700;
+    --gold2: #ffb300;
+    --danger: #ff4757;
+    --good: #2ed573;
+    --white: #f0f8ff;
+    --sand: #ffe0b2;
+    --coral: #ff6b6b;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--deep);
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+    touch-action: manipulation;
+  }
+
+  /* ──────────────────── SCREENS ──────────────────── */
+  .screen { display: none; width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; }
+  .screen.active { display: flex; }
+
+  /* ──────────────────── TITLE SCREEN ──────────────────── */
+  #titleScreen {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(180deg, #001a3a 0%, #0d3b6e 50%, #1565a8 100%);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .title-fish-bg {
+    position: absolute; width: 100%; height: 100%; pointer-events: none; overflow: hidden;
+  }
+
+  .deco-fish {
+    position: absolute;
+    font-size: clamp(24px, 5vw, 48px);
+    animation: swim-across 12s linear infinite;
+    opacity: 0.25;
+  }
+
+  @keyframes swim-across {
+    0%   { transform: translateX(-80px) scaleX(1); }
+    49%  { transform: translateX(110vw) scaleX(1); }
+    50%  { transform: translateX(110vw) scaleX(-1); }
+    99%  { transform: translateX(-80px) scaleX(-1); }
+    100% { transform: translateX(-80px) scaleX(1); }
+  }
+
+  .wave-strip {
+    position: absolute; bottom: 0; left: 0; width: 200%; height: 100px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 80'%3E%3Cpath fill='%230d3b6e' d='M0,40 C360,80 1080,0 1440,40 L1440,80 L0,80 Z'/%3E%3C/svg%3E") repeat-x bottom;
+    animation: wave-move 4s linear infinite;
+    opacity: 0.5;
+  }
+  @keyframes wave-move { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+  .game-logo {
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(36px, 9vw, 82px);
+    color: var(--gold);
+    text-shadow: 0 4px 20px rgba(255,215,0,0.5), 0 0 60px rgba(255,215,0,0.2);
+    letter-spacing: 2px;
+    animation: logo-float 3s ease-in-out infinite;
+    line-height: 1.1;
+    text-align: center;
+    padding: 0 20px;
+  }
+  @keyframes logo-float {
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(-10px); }
+  }
+
+  .logo-sub {
+    font-size: clamp(13px, 3vw, 20px);
+    color: var(--foam);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-top: 6px;
+    opacity: 0.85;
+    font-weight: 700;
+  }
+
+  .btn-primary {
+    margin-top: 36px;
+    padding: 16px 48px;
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(18px, 4vw, 26px);
+    background: linear-gradient(135deg, var(--gold) 0%, var(--gold2) 100%);
+    color: #1a0a00;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 6px 24px rgba(255,215,0,0.4), 0 2px 0 #8a6500;
+    transition: transform 0.15s, box-shadow 0.15s;
+    letter-spacing: 1px;
+    position: relative;
+    z-index: 1;
+  }
+  .btn-primary:active { transform: translateY(2px); box-shadow: 0 2px 10px rgba(255,215,0,0.3); }
+
+  .coins-display-title {
+    margin-top: 22px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.1);
+    border: 1.5px solid rgba(255,215,0,0.3);
+    border-radius: 30px;
+    padding: 8px 24px;
+    color: var(--gold);
+    font-size: clamp(14px, 3vw, 18px);
+    font-weight: 800;
+  }
+
+  /* ──────────────────── MAP SCREEN ──────────────────── */
+  #mapScreen {
+    flex-direction: column;
+    background: linear-gradient(180deg, #001a3a 0%, #0d3b6e 60%, #1a5276 100%);
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  .map-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: clamp(12px, 3vw, 20px) clamp(16px, 4vw, 32px);
+    background: rgba(0,0,0,0.3);
+    backdrop-filter: blur(8px);
+    position: sticky; top: 0; z-index: 10;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    flex-shrink: 0;
+  }
+
+  .map-header h1 {
+    font-family: 'Fredoka One', cursive;
+    color: var(--gold);
+    font-size: clamp(18px, 4vw, 28px);
+    text-shadow: 0 2px 10px rgba(255,215,0,0.4);
+  }
+
+  .header-coins {
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(255,215,0,0.12);
+    border: 1.5px solid rgba(255,215,0,0.4);
+    border-radius: 20px;
+    padding: 6px 16px;
+    color: var(--gold);
+    font-weight: 800;
+    font-size: clamp(14px, 3vw, 18px);
+  }
+
+  .map-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: clamp(16px, 4vw, 28px);
+    padding: clamp(20px, 5vw, 40px) clamp(16px, 4vw, 40px);
+  }
+
+  .level-card {
+    width: clamp(90px, 20vw, 130px);
+    aspect-ratio: 1;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 8px 10px 8px;
+    cursor: pointer;
+    position: relative;
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 2.5px solid transparent;
+    background: linear-gradient(135deg, #1e5f8e, #0d3b6e);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  }
+
+  .level-card.unlocked {
+    background: linear-gradient(135deg, #1a6bb5, #0d4a8a);
+    border-color: rgba(135,206,235,0.4);
+    cursor: pointer;
+  }
+
+  .level-card.unlocked:active { transform: scale(0.95); }
+
+  .level-card.locked {
+    opacity: 0.45;
+    cursor: not-allowed;
+    filter: grayscale(0.5);
+  }
+
+  .level-card.current-unlock {
+    border-color: var(--gold);
+    box-shadow: 0 0 24px rgba(255,215,0,0.4), 0 4px 20px rgba(0,0,0,0.3);
+    animation: pulse-card 2s ease-in-out infinite;
+  }
+  @keyframes pulse-card {
+    0%, 100% { box-shadow: 0 0 20px rgba(255,215,0,0.4), 0 4px 20px rgba(0,0,0,0.3); }
+    50%       { box-shadow: 0 0 36px rgba(255,215,0,0.7), 0 4px 24px rgba(0,0,0,0.4); }
+  }
+
+  .level-number {
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(22px, 5vw, 34px);
+    color: white;
+    line-height: 1;
+  }
+
+  .level-label {
+    font-size: clamp(9px, 2vw, 12px);
+    color: var(--foam);
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .level-icon {
+    font-size: clamp(20px, 4vw, 28px);
+    margin-bottom: 4px;
+  }
+
+  .lock-icon {
+    font-size: clamp(22px, 5vw, 32px);
+    opacity: 0.6;
+  }
+
+  .stars-row {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin-top: 4px;
+  }
+
+  .star { font-size: clamp(12px, 2.5vw, 15px); color: #555; line-height: 1; }
+  .star.lit { color: var(--gold); text-shadow: 0 0 6px rgba(255,215,0,0.6); }
+
+  /* ──────────────────── GAME SCREEN ──────────────────── */
+  #gameScreen {
+    flex-direction: column;
+    position: relative;
+    background: linear-gradient(180deg, #001a3a 0%, #0d3b6e 40%, #1565a8 80%, #1a7abf 100%);
+    overflow: hidden;
+  }
+
+  /* Animated sea bottom */
+  .sea-floor {
+    position: absolute; bottom: 0; left: 0;
+    width: 100%; height: clamp(50px, 12vh, 90px);
+    background: linear-gradient(180deg, transparent, #0a1f3a 60%, #061224 100%);
+    z-index: 1;
+    pointer-events: none;
+  }
+  .sea-floor::before {
+    content: '🪸🌿🪸🌿🪸🌿🪸🌿🪸🌿🪸🌿🪸🌿🪸🌿🪸🌿🪸🌿';
+    position: absolute; bottom: 4px; left: 0;
+    font-size: clamp(16px, 3vw, 22px);
+    white-space: nowrap;
+    overflow: hidden;
+    width: 100%;
+    letter-spacing: 4px;
+  }
+
+  /* Bubbles */
+  .bubble {
+    position: absolute; border-radius: 50%;
+    background: rgba(135,206,235,0.15);
+    border: 1px solid rgba(135,206,235,0.3);
+    pointer-events: none; z-index: 0;
+    animation: rise linear infinite;
+  }
+  @keyframes rise {
+    0%   { transform: translateY(0) scale(1); opacity: 0.6; }
+    100% { transform: translateY(-110vh) scale(1.4); opacity: 0; }
+  }
+
+  /* HUD */
+  #hud {
+    position: relative; z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: clamp(8px, 2vw, 14px) clamp(12px, 3vw, 20px);
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .back-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: clamp(36px, 8vw, 48px);
+    height: clamp(36px, 8vw, 48px);
+    background: rgba(255,255,255,0.1);
+    border: 1.5px solid rgba(255,255,255,0.25);
+    border-radius: 12px;
+    color: white;
+    font-size: clamp(18px, 4vw, 24px);
+    cursor: pointer;
+    transition: background 0.15s;
+    flex-shrink: 0;
+  }
+  .back-btn:active { background: rgba(255,255,255,0.25); }
+
+  .hud-pills {
+    display: flex;
+    gap: clamp(6px, 2vw, 12px);
+    flex-wrap: wrap;
+    justify-content: center;
+    flex: 1;
+  }
+
+  .hud-pill {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 20px;
+    padding: 5px 12px;
+    color: white;
+    font-size: clamp(11px, 2.5vw, 15px);
+    font-weight: 700;
+  }
+
+  .hud-pill .label {
+    color: rgba(255,255,255,0.55);
+    font-size: clamp(9px, 2vw, 12px);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .pill-val { color: var(--gold); font-family: 'Fredoka One', cursive; }
+  .pill-val.score-val { color: var(--good); }
+
+  /* PROGRESS BAR */
+  #progressWrap {
+    position: relative; z-index: 20;
+    padding: 6px clamp(12px, 3vw, 20px);
+    background: rgba(0,0,0,0.25);
+    flex-shrink: 0;
+  }
+  #progressBg {
+    width: 100%; height: clamp(8px, 2vw, 12px);
+    background: rgba(255,255,255,0.12);
+    border-radius: 20px;
+    overflow: hidden;
+  }
+  #progressFill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--good), #00e5ff);
+    border-radius: 20px;
+    transition: width 0.4s ease;
+    width: 0%;
+    box-shadow: 0 0 10px rgba(46,213,115,0.5);
+  }
+
+  /* TIMER */
+  #timerBar {
+    position: relative; z-index: 20;
+    height: clamp(5px, 1.5vw, 8px);
+    background: rgba(255,255,255,0.08);
+    flex-shrink: 0;
+  }
+  #timerFill {
+    height: 100%;
+    background: linear-gradient(90deg, #ff4757, #ffa502);
+    width: 100%;
+    transition: width 0.1s linear;
+    box-shadow: 0 0 8px rgba(255,71,87,0.6);
+  }
+
+  /* FISH / CREATURES */
+  .creature {
+    position: absolute;
+    font-size: clamp(28px, 6vw, 48px);
+    cursor: pointer;
+    z-index: 10;
+    transition: transform 0.15s;
+    user-select: none;
+    -webkit-user-select: none;
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,0.4));
+  }
+  .creature:active { transform: scale(1.35) !important; }
+
+  .creature-label {
+    position: absolute;
+    bottom: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: clamp(8px, 1.8vw, 11px);
+    font-weight: 700;
+    white-space: nowrap;
+    pointer-events: none;
+    background: rgba(0,0,0,0.55);
+    padding: 1px 6px;
+    border-radius: 8px;
+  }
+
+  .label-good { color: var(--good); }
+  .label-bad  { color: var(--danger); }
+
+  /* SPLASH FX */
+  .splash {
+    position: absolute;
+    font-size: clamp(18px, 4vw, 28px);
+    font-family: 'Fredoka One', cursive;
+    pointer-events: none;
+    z-index: 30;
+    animation: splash-up 0.8s ease-out forwards;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    font-weight: 900;
+  }
+  @keyframes splash-up {
+    0%   { opacity: 1; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(-60px) scale(1.4); }
+  }
+
+  /* OVERLAY */
+  #overlay {
+    display: none;
+    position: absolute; inset: 0;
+    z-index: 50;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.65);
+    backdrop-filter: blur(6px);
+  }
+  #overlay.show { display: flex; }
+
+  .overlay-card {
+    background: linear-gradient(135deg, #0d3b6e, #1565a8);
+    border: 2px solid rgba(135,206,235,0.3);
+    border-radius: 28px;
+    padding: clamp(24px, 6vw, 48px) clamp(28px, 7vw, 60px);
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    max-width: 90vw;
+    animation: card-pop 0.35s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  @keyframes card-pop {
+    from { transform: scale(0.6); opacity: 0; }
+    to   { transform: scale(1);   opacity: 1; }
+  }
+
+  .overlay-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(28px, 7vw, 48px);
+    color: var(--gold);
+    text-shadow: 0 3px 15px rgba(255,215,0,0.5);
+    margin-bottom: 8px;
+  }
+
+  .overlay-sub {
+    color: var(--foam);
+    font-size: clamp(13px, 3vw, 18px);
+    margin-bottom: 16px;
+    font-weight: 600;
+  }
+
+  .stars-big {
+    font-size: clamp(28px, 7vw, 44px);
+    margin: 12px 0;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .overlay-coins {
+    background: rgba(255,215,0,0.12);
+    border: 1.5px solid rgba(255,215,0,0.4);
+    border-radius: 16px;
+    padding: 8px 20px;
+    color: var(--gold);
+    font-weight: 800;
+    font-size: clamp(14px, 3.5vw, 20px);
+    margin: 12px auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-row {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+
+  .btn-secondary {
+    padding: 12px 28px;
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(14px, 3vw, 18px);
+    background: rgba(255,255,255,0.1);
+    color: white;
+    border: 1.5px solid rgba(255,255,255,0.3);
+    border-radius: 50px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-secondary:active { background: rgba(255,255,255,0.2); }
+
+  /* LEVEL INTRO */
+  #levelIntro {
+    display: none;
+    position: absolute; inset: 0; z-index: 40;
+    align-items: center; justify-content: center;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+  }
+  #levelIntro.show { display: flex; }
+
+  .intro-card {
+    text-align: center;
+    animation: card-pop 0.4s ease;
+    padding: 20px;
+  }
+
+  .intro-level {
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(16px, 4vw, 22px);
+    color: var(--foam);
+    text-transform: uppercase;
+    letter-spacing: 3px;
+  }
+
+  .intro-num {
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(70px, 18vw, 120px);
+    color: var(--gold);
+    line-height: 1;
+    text-shadow: 0 0 60px rgba(255,215,0,0.5);
+  }
+
+  .intro-tip {
+    font-size: clamp(13px, 3vw, 17px);
+    color: white;
+    background: rgba(255,255,255,0.08);
+    padding: 10px 24px;
+    border-radius: 20px;
+    margin-top: 10px;
+    max-width: 320px;
+  }
+
+  /* responsive layout for game area */
+  #gameArea {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* tooltip */
+  #tooltip {
+    position: fixed;
+    bottom: clamp(60px, 15vh, 100px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.75);
+    color: white;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: clamp(12px, 3vw, 15px);
+    font-weight: 700;
+    pointer-events: none;
+    z-index: 100;
+    opacity: 0;
+    transition: opacity 0.3s;
+    white-space: nowrap;
+  }
+</style>
+</head>
+<body>
+
+<!-- TITLE SCREEN -->
+<div id="titleScreen" class="screen active">
+  <div class="title-fish-bg" id="titleFishBg"></div>
+  <div class="wave-strip"></div>
+  <div class="game-logo">🎣 Smart<br>Fishing!</div>
+  <div class="logo-sub">Ocean Adventure</div>
+  <div class="coins-display-title">🪙 <span id="titleCoins">0</span> Coins</div>
+  <button class="btn-primary" onclick="showMap()">▶ Play Now</button>
+</div>
+
+<!-- MAP SCREEN -->
+<div id="mapScreen" class="screen">
+  <div class="map-header">
+    <button class="back-btn" onclick="showTitle()">‹</button>
+    <h1>🗺 Choose Level</h1>
+    <div class="header-coins">🪙 <span id="mapCoins">0</span></div>
+  </div>
+  <div class="map-grid" id="mapGrid"></div>
+</div>
+
+<!-- GAME SCREEN -->
+<div id="gameScreen" class="screen">
+  <!-- HUD -->
+  <div id="hud">
+    <button class="back-btn" id="backBtn" onclick="confirmBack()">‹</button>
+    <div class="hud-pills">
+      <div class="hud-pill">
+        <span class="label">Level</span>
+        <span class="pill-val" id="hudLevel">1</span>
+      </div>
+      <div class="hud-pill">
+        <span class="label">Score</span>
+        <span class="pill-val score-val" id="hudScore">0</span>
+        <span style="color:rgba(255,255,255,0.4);font-size:11px">/</span>
+        <span class="pill-val" id="hudTarget">20</span>
+      </div>
+      <div class="hud-pill">🪙 <span class="pill-val" id="hudCoins">0</span></div>
+    </div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div id="progressWrap">
+    <div id="progressBg"><div id="progressFill"></div></div>
+  </div>
+
+  <!-- TIMER -->
+  <div id="timerBar"><div id="timerFill"></div></div>
+
+  <!-- GAME AREA -->
+  <div id="gameArea" id="gameArea"></div>
+  <div class="sea-floor"></div>
+
+  <!-- LEVEL INTRO -->
+  <div id="levelIntro">
+    <div class="intro-card">
+      <div class="intro-level">Level</div>
+      <div class="intro-num" id="introNum">1</div>
+      <div class="intro-tip" id="introTip">Catch fish, avoid sharks!</div>
+    </div>
+  </div>
+
+  <!-- RESULT OVERLAY -->
+  <div id="overlay">
+    <div class="overlay-card">
+      <div class="overlay-title" id="overlayTitle">Level Complete!</div>
+      <div class="overlay-sub"  id="overlaySub">Great fishing!</div>
+      <div class="stars-big"    id="overlayStars">⭐⭐⭐</div>
+      <div class="overlay-coins">🪙 +<span id="overlayCoins">0</span> coins earned</div>
+      <div class="btn-row">
+        <button class="btn-secondary" onclick="backToMap()">🗺 Map</button>
+        <button class="btn-primary"   onclick="retryLevel()" id="retryBtn">🔄 Retry</button>
+        <button class="btn-primary"   onclick="nextLevel()"  id="nextBtn">Next ›</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="tooltip">Tap fish to catch! Avoid 🦈</div>
+
+<script>
+// ─────────────────────── DATA ───────────────────────
+const TOTAL_LEVELS = 10;
+const LEVEL_TIPS = [
+  "Tap fish to catch them! Avoid the shark 🦈",
+  "Faster fish! Stay focused 🎯",
+  "Jellyfish slow you down ⚠️",
+  "More sharks appearing! Be careful 🦈",
+  "Catch special golden fish for bonus 💛",
+  "Speed is key — fish vanish faster!",
+  "Combo multiplier active! Catch streaks 🔥",
+  "Avoid ALL danger creatures now!",
+  "The big fish are rare but worth more 🐳",
+  "FINAL CHALLENGE — catch everything! 🏆"
+];
+
+const CREATURES = [
+  { emoji:"🐟", points:2,  type:"good",  label:"+2",  w:0.30 },
+  { emoji:"🐠", points:3,  type:"good",  label:"+3",  w:0.25 },
+  { emoji:"🐡", points:4,  type:"good",  label:"+4",  w:0.18 },
+  { emoji:"🐬", points:5,  type:"good",  label:"+5",  w:0.10 },
+  { emoji:"🐙", points:3,  type:"good",  label:"+3",  w:0.10 },
+  { emoji:"🐳", points:8,  type:"good",  label:"+8",  w:0.03 },
+  { emoji:"🦑", points:4,  type:"good",  label:"+4",  w:0.07 },
+  // Danger
+  { emoji:"🦈", points:-4, type:"bad",   label:"-4",  w:0.00 }, // weight added by level
+  { emoji:"🪼", points:-2, type:"bad",   label:"-2",  w:0.00 },
+];
+
+let state = {
+  currentLevel: 1,
+  unlockedLevel: parseInt(localStorage.getItem("unlockedLevel") || "1"),
+  coins: parseInt(localStorage.getItem("coins") || "0"),
+  levelStars: JSON.parse(localStorage.getItem("levelStars") || "{}"),
+  score: 0,
+  target: 0,
+  combo: 0,
+  levelCoinsEarned: 0,
+  timerId: null,
+  spawnId: null,
+  timerTotalMs: 0,
+  timerElapsed: 0,
+  timerRafId: null,
+  running: false,
+  pendingBackToMap: false,
+};
+
+// ─────────────────────── SAVE ───────────────────────
+function save() {
+  localStorage.setItem("unlockedLevel", state.unlockedLevel);
+  localStorage.setItem("coins", state.coins);
+  localStorage.setItem("levelStars", JSON.stringify(state.levelStars));
+}
+
+// ─────────────────────── SCREENS ───────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function showTitle() {
+  document.getElementById('titleCoins').textContent = state.coins;
+  showScreen('titleScreen');
+}
+
+function showMap() {
+  buildMap();
+  document.getElementById('mapCoins').textContent = state.coins;
+  showScreen('mapScreen');
+}
+
+// ─────────────────────── MAP ───────────────────────
+const LEVEL_ICONS = ['🌊','🐚','🌿','🪸','🐚','🌊','🐠','🦀','🐙','🏆'];
+
+function buildMap() {
+  const grid = document.getElementById('mapGrid');
+  grid.innerHTML = '';
+  for (let i = 1; i <= TOTAL_LEVELS; i++) {
+    const card = document.createElement('div');
+    card.className = 'level-card';
+    const stars = state.levelStars[i] || 0;
+    if (i <= state.unlockedLevel) {
+      card.classList.add('unlocked');
+      if (i === state.unlockedLevel) card.classList.add('current-unlock');
+    } else {
+      card.classList.add('locked');
+    }
+
+    // Center group: icon + number + zone label
+    const centerGroup = document.createElement('div');
+    centerGroup.style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:3px;';
+
+    if (i <= state.unlockedLevel) {
+      const icon = document.createElement('div');
+      icon.className = 'level-icon';
+      icon.textContent = LEVEL_ICONS[i-1];
+      centerGroup.appendChild(icon);
+    }
+
+    const num = document.createElement('div');
+    num.className = 'level-number';
+    num.textContent = i > state.unlockedLevel ? '🔒' : i;
+
+    const lbl = document.createElement('div');
+    lbl.className = 'level-label';
+    lbl.textContent = i > state.unlockedLevel ? 'Locked' : 'Zone '+i;
+
+    centerGroup.appendChild(num);
+    centerGroup.appendChild(lbl);
+    card.appendChild(centerGroup);
+
+    // Stars pinned at bottom with clear separation
+    const starsRow = document.createElement('div');
+    starsRow.className = 'stars-row';
+    for (let s = 1; s <= 3; s++) {
+      const star = document.createElement('span');
+      star.className = 'star' + (s <= stars ? ' lit' : '');
+      star.textContent = '★';
+      starsRow.appendChild(star);
+    }
+    card.appendChild(starsRow);
+
+    if (i <= state.unlockedLevel) {
+      card.onclick = () => startLevel(i);
+    }
+    grid.appendChild(card);
+  }
+}
+
+// ─────────────────────── LEVEL CONFIG ───────────────────────
+function levelConfig(level) {
+  return {
+    target:    10 + level * 8,
+    spawnMs:   Math.max(250, 900 - level * 55),
+    fishLife:  Math.max(1800, 4500 - level * 230),
+    speed:     1.2 + level * 0.35,
+    timerSec:  Math.max(25, 70 - level * 3),
+    badWeight: Math.min(0.35, 0.04 + level * 0.03),
+  };
+}
+
+// ─────────────────────── START LEVEL ───────────────────────
+function startLevel(level) {
+  clearGame();
+  state.currentLevel = level;
+  state.score = 0;
+  state.combo = 0;
+  state.levelCoinsEarned = 0;
+  state.running = false;
+
+  const cfg = levelConfig(level);
+  state.target = cfg.target;
+
+  document.getElementById('hudLevel').textContent  = level;
+  document.getElementById('hudScore').textContent  = 0;
+  document.getElementById('hudTarget').textContent = cfg.target;
+  document.getElementById('hudCoins').textContent  = state.coins;
+  document.getElementById('progressFill').style.width = '0%';
+  document.getElementById('timerFill').style.width = '100%';
+  document.getElementById('introNum').textContent  = level;
+  document.getElementById('introTip').textContent  = LEVEL_TIPS[level-1] || LEVEL_TIPS[0];
+
+  showScreen('gameScreen');
+
+  const intro = document.getElementById('levelIntro');
+  intro.classList.add('show');
+  setTimeout(() => {
+    intro.classList.remove('show');
+    beginGame(cfg);
+  }, 1800);
+}
+
+// ─────────────────────── BEGIN ───────────────────────
+function beginGame(cfg) {
+  state.running = true;
+  state.timerTotalMs = cfg.timerSec * 1000;
+  state.timerElapsed = 0;
+
+  // Spawn loop
+  state.spawnId = setInterval(() => spawnCreature(cfg), cfg.spawnMs);
+
+  // Timer RAF
+  let last = null;
+  function tick(ts) {
+    if (!state.running) return;
+    if (last === null) last = ts;
+    const dt = ts - last; last = ts;
+    state.timerElapsed += dt;
+    const pct = Math.max(0, 100 - (state.timerElapsed / state.timerTotalMs) * 100);
+    document.getElementById('timerFill').style.width = pct + '%';
+    if (state.timerElapsed >= state.timerTotalMs) {
+      endGame(false);
+      return;
+    }
+    state.timerRafId = requestAnimationFrame(tick);
+  }
+  state.timerRafId = requestAnimationFrame(tick);
+
+  spawnBubbles();
+}
+
+// ─────────────────────── SPAWN CREATURE ───────────────────────
+function weightedPick(level) {
+  const cfg = levelConfig(level);
+  const bw = cfg.badWeight;
+
+  // Build weighted pool
+  const pool = CREATURES.map((c, i) => {
+    let w = c.w;
+    if (c.emoji === '🦈') w = bw * 0.6;
+    if (c.emoji === '🪼') w = (level >= 3) ? bw * 0.4 : 0;
+    return { ...c, eff_w: w };
+  });
+
+  const total = pool.reduce((a, b) => a + b.eff_w, 0);
+  let r = Math.random() * total;
+  for (const c of pool) {
+    r -= c.eff_w;
+    if (r <= 0) return c;
+  }
+  return pool[0];
+}
+
+function spawnCreature(cfg) {
+  if (!state.running) return;
+  const gameArea = document.getElementById('gameArea');
+  const ga = gameArea.getBoundingClientRect();
+
+  const creatureData = weightedPick(state.currentLevel);
+
+  const el = document.createElement('div');
+  el.className = 'creature';
+  el.textContent = creatureData.emoji;
+
+  const labelEl = document.createElement('span');
+  labelEl.className = 'creature-label ' + (creatureData.type === 'good' ? 'label-good' : 'label-bad');
+  labelEl.textContent = creatureData.label;
+  el.appendChild(labelEl);
+
+  const margin = 50;
+  let x = margin + Math.random() * (ga.width  - margin * 2);
+  let y = margin + Math.random() * (ga.height - margin * 2 - 80);
+  el.style.left = x + 'px';
+  el.style.top  = y + 'px';
+
+  const angle = Math.random() * Math.PI * 2;
+  let dx = Math.cos(angle) * cfg.speed;
+  let dy = Math.sin(angle) * cfg.speed;
+
+  const moveId = setInterval(() => {
+    x += dx; y += dy;
+    if (x < 0 || x > ga.width  - 50) { dx *= -1; el.style.transform = `scaleX(${dx > 0 ? 1 : -1})`; }
+    if (y < 0 || y > ga.height - 80) dy *= -1;
+    el.style.left = x + 'px';
+    el.style.top  = y + 'px';
+  }, 20);
+
+  gameArea.appendChild(el);
+
+  // Click/tap handler
+  el.addEventListener('pointerdown', (e) => {
+    e.stopPropagation();
+    if (!state.running) return;
+    clearInterval(moveId);
+    el.remove();
+
+    const pts = creatureData.points;
+
+    if (creatureData.type === 'bad') {
+      state.combo = 0;
+      state.score = Math.max(0, state.score + pts);
+      showSplash(x, y, pts, false);
+      shakeHUD();
+    } else {
+      state.combo++;
+      const bonus = state.combo >= 3 ? Math.floor(state.combo / 3) : 0;
+      const total = pts + bonus;
+      state.score += total;
+      state.coins += 1;
+      state.levelCoinsEarned += 1;
+      showSplash(x, y, bonus > 0 ? `+${total} 🔥` : `+${total}`, true);
+    }
+
+    updateHUD();
+    checkWin();
+  });
+
+  // Auto-remove
+  const removeId = setTimeout(() => {
+    clearInterval(moveId);
+    if (el.parentNode) el.remove();
+  }, cfg.fishLife);
+}
+
+// ─────────────────────── SPLASH FX ───────────────────────
+function showSplash(x, y, text, good) {
+  const gameArea = document.getElementById('gameArea');
+  const s = document.createElement('div');
+  s.className = 'splash';
+  s.textContent = text;
+  s.style.left  = x + 'px';
+  s.style.top   = y + 'px';
+  s.style.color = good ? '#2ed573' : '#ff4757';
+  gameArea.appendChild(s);
+  setTimeout(() => s.remove(), 800);
+}
+
+function shakeHUD() {
+  const hud = document.getElementById('hud');
+  hud.style.animation = 'none';
+  hud.offsetHeight;
+  hud.style.animation = 'shake 0.4s ease';
+}
+
+// ─────────────────────── HUD ───────────────────────
+function updateHUD() {
+  document.getElementById('hudScore').textContent = state.score;
+  document.getElementById('hudCoins').textContent = state.coins;
+  const pct = Math.min(100, (state.score / state.target) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+
+// ─────────────────────── WIN CHECK ───────────────────────
+function checkWin() {
+  if (state.score >= state.target) {
+    endGame(true);
+  }
+}
+
+// ─────────────────────── END GAME ───────────────────────
+function endGame(win) {
+  if (!state.running) return;
+  state.running = false;
+  clearInterval(state.spawnId);
+  cancelAnimationFrame(state.timerRafId);
+
+  // Remove all creatures
+  document.querySelectorAll('.creature').forEach(c => c.remove());
+
+  let stars = 0;
+  if (win) {
+    stars = state.score >= state.target * 1.5 ? 3 : state.score >= state.target * 1.1 ? 2 : 1;
+    if (!state.levelStars[state.currentLevel] || state.levelStars[state.currentLevel] < stars) {
+      state.levelStars[state.currentLevel] = stars;
+    }
+    if (state.currentLevel === state.unlockedLevel && state.unlockedLevel < TOTAL_LEVELS) {
+      state.unlockedLevel++;
+    }
+    save();
+  }
+
+  const starStr = win ? '⭐'.repeat(stars) + '☆'.repeat(3 - stars) : '';
+  document.getElementById('overlayTitle').textContent = win ? '🎣 Level Complete!' : '⏱ Time\'s Up!';
+  document.getElementById('overlaySub').textContent   = win ? getWinMsg(stars) : 'Better luck next time!';
+  document.getElementById('overlayStars').textContent = starStr;
+  document.getElementById('overlayCoins').textContent = state.levelCoinsEarned;
+  document.getElementById('nextBtn').style.display    = (win && state.currentLevel < TOTAL_LEVELS) ? '' : 'none';
+
+  document.getElementById('overlay').classList.add('show');
+}
+
+function getWinMsg(s) {
+  return ['Nice catch!', 'Excellent fishing! 🎣', '🏆 LEGENDARY HAUL!'][s - 1] || 'Good job!';
+}
+
+// ─────────────────────── BUTTONS ───────────────────────
+function confirmBack() {
+  if (state.running) {
+    state.running = false;
+    clearInterval(state.spawnId);
+    cancelAnimationFrame(state.timerRafId);
+  }
+  backToMap();
+}
+
+function backToMap() {
+  document.getElementById('overlay').classList.remove('show');
+  clearGame();
+  showMap();
+}
+
+function retryLevel() {
+  document.getElementById('overlay').classList.remove('show');
+  startLevel(state.currentLevel);
+}
+
+function nextLevel() {
+  document.getElementById('overlay').classList.remove('show');
+  startLevel(state.currentLevel + 1);
+}
+
+function clearGame() {
+  clearInterval(state.spawnId);
+  cancelAnimationFrame(state.timerRafId);
+  state.running = false;
+  document.querySelectorAll('.creature,.splash,.bubble').forEach(e => e.remove());
+}
+
+// ─────────────────────── BUBBLES ───────────────────────
+function spawnBubbles() {
+  const gameArea = document.getElementById('gameArea');
+  for (let i = 0; i < 12; i++) {
+    const b = document.createElement('div');
+    b.className = 'bubble';
+    const size = 6 + Math.random() * 16;
+    b.style.width = size + 'px';
+    b.style.height = size + 'px';
+    b.style.left = Math.random() * 100 + '%';
+    b.style.bottom = -30 + 'px';
+    b.style.animationDuration = (5 + Math.random() * 8) + 's';
+    b.style.animationDelay = (Math.random() * 6) + 's';
+    gameArea.appendChild(b);
+  }
+}
+
+// ─────────────────────── TITLE DECO FISH ───────────────────────
+function spawnTitleFish() {
+  const bg = document.getElementById('titleFishBg');
+  const emojis = ['🐟','🐠','🐡','🐬','🐙','🐳','🦑'];
+  for (let i = 0; i < 10; i++) {
+    const f = document.createElement('div');
+    f.className = 'deco-fish';
+    f.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    f.style.top = (5 + Math.random() * 85) + '%';
+    f.style.animationDuration = (9 + Math.random() * 10) + 's';
+    f.style.animationDelay = (-Math.random() * 12) + 's';
+    f.style.fontSize = clamp(24, 28, 48) + 'px';
+    bg.appendChild(f);
+  }
+}
+
+function clamp(min, val, max) { return Math.min(max, Math.max(min, val)); }
+
+// HUD shake keyframe injection
+const styleEl = document.createElement('style');
+styleEl.textContent = `
+  @keyframes shake {
+    0%,100%{transform:translateX(0)}
+    20%{transform:translateX(-6px)}
+    40%{transform:translateX(6px)}
+    60%{transform:translateX(-4px)}
+    80%{transform:translateX(4px)}
+  }
+`;
+document.head.appendChild(styleEl);
+
+// ─────────────────────── INIT ───────────────────────
+spawnTitleFish();
+showTitle();
+</script>
+</body>
+</html>

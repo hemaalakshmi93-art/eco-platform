@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>ROOT NETWORK</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #03080d;
+    --grid: rgba(0,200,100,0.04);
+    --alive: #00e87a;
+    --alive-glow: rgba(0,232,122,0.4);
+    --fire: #ff4e00;
+    --fire2: #ffad00;
+    --fire-glow: rgba(255,78,0,0.6);
+    --safe: #00c3ff;
+    --safe-glow: rgba(0,195,255,0.5);
+    --dead: #1a1a2e;
+    --link: rgba(0,200,100,0.18);
+    --link-fire: rgba(255,100,0,0.35);
+    --hud-bg: rgba(5,20,12,0.82);
+    --accent: #00e87a;
+    --warn: #ff4e00;
+  }
+
+  body {
+    background: var(--bg);
+    font-family: 'Share Tech Mono', monospace;
+    color: var(--alive);
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+    touch-action: none;
+  }
+
+  /* Scanline overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.07) 2px,
+      rgba(0,0,0,0.07) 4px
+    );
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  canvas {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+  }
+
+  /* ── HUD ── */
+  #hud {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    z-index: 20;
+    background: var(--hud-bg);
+    border: 1px solid rgba(0,232,122,0.2);
+    border-radius: 10px;
+    padding: 10px 16px;
+    backdrop-filter: blur(10px);
+    min-width: 170px;
+  }
+
+  #hud .label {
+    font-size: 9px;
+    letter-spacing: 3px;
+    color: rgba(0,232,122,0.5);
+    text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+
+  #hud .value {
+    font-family: 'Orbitron', monospace;
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--alive);
+    text-shadow: 0 0 12px var(--alive-glow);
+  }
+
+  #hud .row {
+    display: flex;
+    gap: 20px;
+    margin-top: 8px;
+  }
+
+  #hud .col { display: flex; flex-direction: column; }
+
+  #fire-val { color: var(--fire); text-shadow: 0 0 12px var(--fire-glow) !important; }
+  #safe-val { color: var(--safe); text-shadow: 0 0 12px var(--safe-glow) !important; }
+
+  /* ── DANGER BAR ── */
+  #danger-bar-wrap {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+  }
+
+  #danger-label {
+    font-size: 9px;
+    letter-spacing: 3px;
+    color: rgba(255,78,0,0.6);
+    text-transform: uppercase;
+  }
+
+  #danger-bar {
+    width: 130px;
+    height: 10px;
+    background: rgba(255,78,0,0.1);
+    border: 1px solid rgba(255,78,0,0.3);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  #danger-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ff4e00, #ffad00);
+    width: 0%;
+    transition: width 0.4s ease;
+    box-shadow: 0 0 8px var(--fire-glow);
+  }
+
+  /* ── BACK BUTTON ── */
+  #back-btn {
+    position: absolute;
+    bottom: 20px;
+    left: 14px;
+    z-index: 20;
+    background: rgba(5,20,12,0.85);
+    border: 1px solid rgba(0,232,122,0.25);
+    border-radius: 10px;
+    padding: 10px 18px;
+    color: var(--alive);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+    text-decoration: none;
+    backdrop-filter: blur(8px);
+  }
+  #back-btn:hover, #back-btn:active {
+    background: rgba(0,232,122,0.12);
+    border-color: rgba(0,232,122,0.6);
+    box-shadow: 0 0 16px rgba(0,232,122,0.2);
+    transform: translateY(-1px);
+  }
+  #back-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+  /* ── INSTRUCTION PILL ── */
+  #tip {
+    position: absolute;
+    bottom: 20px;
+    right: 14px;
+    z-index: 20;
+    background: rgba(5,20,12,0.8);
+    border: 1px solid rgba(0,232,122,0.12);
+    border-radius: 20px;
+    padding: 8px 14px;
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: rgba(0,232,122,0.5);
+    text-transform: uppercase;
+    backdrop-filter: blur(6px);
+  }
+
+  /* ── NODES ── */
+  .node {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+    z-index: 10;
+    transition: transform 0.15s ease;
+  }
+
+  .node:active { transform: translate(-50%, -50%) scale(0.85); }
+
+  .node svg { display: block; }
+
+  /* ── OVERLAY ── */
+  #overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 50;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    background: rgba(3,8,13,0.92);
+    backdrop-filter: blur(12px);
+  }
+
+  #overlay.show { display: flex; animation: fadeIn 0.4s ease; }
+
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  #overlay-icon { font-size: 56px; margin-bottom: 12px; }
+
+  #overlay-title {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(24px, 6vw, 40px);
+    font-weight: 900;
+    letter-spacing: 4px;
+    margin-bottom: 8px;
+  }
+
+  #overlay-sub {
+    font-size: 12px;
+    letter-spacing: 3px;
+    color: rgba(0,232,122,0.5);
+    margin-bottom: 32px;
+    text-transform: uppercase;
+  }
+
+  .ov-btn {
+    padding: 13px 28px;
+    border: 1px solid currentColor;
+    border-radius: 8px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 14px;
+    letter-spacing: 3px;
+    cursor: pointer;
+    background: transparent;
+    text-transform: uppercase;
+    transition: all 0.2s;
+    margin: 5px;
+  }
+
+  .ov-btn.primary {
+    color: var(--alive);
+    border-color: var(--alive);
+  }
+  .ov-btn.primary:hover {
+    background: rgba(0,232,122,0.12);
+    box-shadow: 0 0 20px rgba(0,232,122,0.2);
+  }
+
+  .ov-btn.secondary {
+    color: rgba(0,232,122,0.45);
+    border-color: rgba(0,232,122,0.2);
+  }
+  .ov-btn.secondary:hover {
+    color: var(--alive);
+    border-color: var(--alive);
+    background: rgba(0,232,122,0.06);
+  }
+
+  #overlay-row { display: flex; flex-wrap: wrap; justify-content: center; }
+
+  /* stat bar in overlay */
+  #stats-row {
+    display: flex;
+    gap: 28px;
+    margin-bottom: 28px;
+    text-align: center;
+  }
+  .stat-box { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .stat-num {
+    font-family: 'Orbitron', monospace;
+    font-size: 26px;
+    font-weight: 700;
+  }
+  .stat-label { font-size: 9px; letter-spacing: 3px; color: rgba(0,232,122,0.4); text-transform: uppercase; }
+
+  /* LEVEL COMPLETE colors */
+  .win .stat-num { color: var(--alive); text-shadow: 0 0 12px var(--alive-glow); }
+  .loss .stat-num { color: var(--fire); text-shadow: 0 0 12px var(--fire-glow); }
+
+  /* win title */
+  .win #overlay-title { color: var(--alive); text-shadow: 0 0 24px var(--alive-glow); }
+  .loss #overlay-title { color: var(--fire); text-shadow: 0 0 24px var(--fire-glow); }
+
+  /* PULSE anim for fire nodes */
+  @keyframes firePulse {
+    0%, 100% { filter: drop-shadow(0 0 6px #ff4e00) drop-shadow(0 0 2px #ffad00); }
+    50% { filter: drop-shadow(0 0 14px #ff4e00) drop-shadow(0 0 6px #ffad00); }
+  }
+  .node.fire svg { animation: firePulse 0.7s ease infinite; }
+
+  @keyframes safePulse {
+    0%, 100% { filter: drop-shadow(0 0 5px #00c3ff); }
+    50% { filter: drop-shadow(0 0 12px #00c3ff); }
+  }
+  .node.safe svg { animation: safePulse 1.4s ease infinite; }
+
+  @keyframes alivePulse {
+    0%, 100% { filter: drop-shadow(0 0 3px #00e87a); }
+    50% { filter: drop-shadow(0 0 8px #00e87a); }
+  }
+  .node.alive svg { animation: alivePulse 2s ease infinite; }
+</style>
+</head>
+<body>
+
+<!-- HUD -->
+<div id="hud">
+  <div class="label">LEVEL</div>
+  <div class="value" id="level-val">01</div>
+  <div class="row">
+    <div class="col">
+      <div class="label">FIRE</div>
+      <div class="value" id="fire-val">0</div>
+    </div>
+    <div class="col">
+      <div class="label">SAVED</div>
+      <div class="value" id="safe-val">0</div>
+    </div>
+    <div class="col">
+      <div class="label">ALIVE</div>
+      <div class="value" id="alive-val">0</div>
+    </div>
+  </div>
+</div>
+
+<!-- DANGER BAR -->
+<div id="danger-bar-wrap">
+  <div id="danger-label">⚠ DANGER</div>
+  <div id="danger-bar"><div id="danger-fill"></div></div>
+</div>
+
+<!-- BACK BUTTON -->
+<a id="back-btn" href="map.html">
+  <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="9,2 4,7 9,12"/>
+  </svg>
+  BACK TO MAP
+</a>
+
+<!-- TIP -->
+<div id="tip">TAP 🔥 NODES TO EXTINGUISH</div>
+
+<!-- CANVAS -->
+<canvas id="c"></canvas>
+
+<!-- OVERLAY -->
+<div id="overlay">
+  <div id="overlay-icon">🌳</div>
+  <div id="overlay-title">ROOT NETWORK</div>
+  <div id="overlay-sub">NETWORK BREACH DETECTED</div>
+  <div id="stats-row">
+    <div class="stat-box"><div class="stat-num" id="ov-saved">0</div><div class="stat-label">Saved</div></div>
+    <div class="stat-box"><div class="stat-num" id="ov-burned">0</div><div class="stat-label">Burned</div></div>
+    <div class="stat-box"><div class="stat-num" id="ov-level">1</div><div class="stat-label">Level</div></div>
+  </div>
+  <div id="overlay-row">
+    <button class="ov-btn primary" id="ov-main-btn" onclick="handleMainBtn()">RESTART</button>
+    <button class="ov-btn secondary" onclick="goBack()">← MAP</button>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+
+let W = canvas.width  = innerWidth;
+let H = canvas.height = innerHeight;
+
+window.addEventListener('resize', () => {
+  W = canvas.width  = innerWidth;
+  H = canvas.height = innerHeight;
+  // Rebuild nodes on resize for mobile rotation
+  if (!gameOver && !levelComplete) buildLevel();
+});
+
+// ── CONFIG ──────────────────────────────────────────────
+const CFG = {
+  nodeCount:      22,
+  padding:        90,
+  fireLimit:       5,   // game over if fire >= this
+  tickMs:        950,   // spread tick interval (ms) — higher = slower
+  spreadChance:  0.38,  // chance per link per tick
+  maxIgnitions:    2,   // random ignitions per tick max (was 1)
+  winDelay:     1600,   // ms after all fire gone → next level
+};
+// ────────────────────────────────────────────────────────
+
+let level = 0;
+let nodes = [], links = [];
+let gameOver = false, levelComplete = false;
+let fireTimer = null, winTimer = null;
+let safeCount = 0, burnedCount = 0;
+
+/* ─── LEVEL BUILD ─── */
+function buildLevel() {
+  clearWorld();
+  safeCount = 0;
+  burnedCount = 0;
+
+  const count = CFG.nodeCount + Math.floor(level * 1.5);
+  const pad   = CFG.padding;
+
+  for (let i = 0; i < count; i++) {
+    nodes.push({
+      x: pad + Math.random() * (W - 2 * pad),
+      y: pad + Math.random() * (H - 2 * pad),
+      state: 'alive'
+    });
+  }
+
+  // Links: chain + random long links
+  for (let i = 0; i < count; i++) {
+    if (i + 1 < count) links.push([i, i + 1]);
+    if (i + 2 < count && Math.random() < 0.25) links.push([i, i + 2]);
+    if (i + 4 < count && Math.random() < 0.18) links.push([i, i + 4]);
+  }
+
+  renderNodes();
+  ignite(Math.floor(Math.random() * count));
+  startEngine();
+  updateHUD();
+}
+
+function clearWorld() {
+  if (fireTimer) clearTimeout(fireTimer);
+  if (winTimer)  clearTimeout(winTimer);
+  document.querySelectorAll('.node').forEach(n => n.remove());
+  nodes = []; links = [];
+  levelComplete = false;
+}
+
+/* ─── NODE RENDERING ─── */
+function renderNodes() {
+  nodes.forEach((n, i) => {
+    const el = document.createElement('div');
+    el.className = 'node alive';
+
+    const size = isMobile() ? 36 : 30;
+    el.innerHTML = makeSVG(size, '#00e87a');
+    el.style.left = n.x + 'px';
+    el.style.top  = n.y + 'px';
+    el.style.width  = size + 'px';
+    el.style.height = size + 'px';
+
+    // Touch + click
+    const handler = (e) => {
+      e.preventDefault();
+      if (gameOver || levelComplete) return;
+      if (n.state === 'fire') extinguish(n, el);
+    };
+    el.addEventListener('click', handler);
+    el.addEventListener('touchend', handler, { passive: false });
+
+    document.body.appendChild(el);
+    n.el = el;
+  });
+}
+
+function makeSVG(size, color) {
+  return `<svg viewBox="0 0 30 30" width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="15" cy="15" r="11" fill="${color}" fill-opacity="0.15"/>
+    <circle cx="15" cy="15" r="7"  fill="${color}" fill-opacity="0.9"/>
+    <circle cx="15" cy="15" r="3"  fill="#fff" fill-opacity="0.6"/>
+  </svg>`;
+}
+
+function setNodeVisual(n, el, state) {
+  el.className = 'node ' + state;
+  const colors = { alive: '#00e87a', fire: '#ff5500', safe: '#00c3ff', dead: '#222' };
+  el.innerHTML = makeSVG(isMobile() ? 36 : 30, colors[state] || colors.alive);
+}
+
+function isMobile() { return W < 700; }
+
+/* ─── IGNITE / EXTINGUISH ─── */
+function ignite(i) {
+  if (!nodes[i] || nodes[i].state !== 'alive') return;
+  nodes[i].state = 'fire';
+  setNodeVisual(nodes[i], nodes[i].el, 'fire');
+}
+
+function extinguish(n, el) {
+  n.state = 'safe';
+  safeCount++;
+  setNodeVisual(n, el, 'safe');
+}
+
+/* ─── FIRE ENGINE ─── */
+function startEngine() {
+  function tick() {
+    if (gameOver || levelComplete) return;
+
+    let fireCount  = 0;
+    let aliveCount = 0;
+    const toIgnite = [];
+
+    nodes.forEach((n, i) => {
+      if (n.state === 'fire') {
+        fireCount++;
+        links.forEach(l => {
+          const t = l[0] === i ? l[1] : l[1] === i ? l[0] : -1;
+          if (t >= 0 && nodes[t].state === 'alive' && Math.random() < CFG.spreadChance) {
+            toIgnite.push(t);
+          }
+        });
+      }
+      if (n.state === 'alive') aliveCount++;
+    });
+
+    // Apply spread (limit per tick so it's not instant wipe)
+    const maxSpread = 2;
+    const shuffled  = toIgnite.sort(() => Math.random() - 0.5).slice(0, maxSpread);
+    shuffled.forEach(i => ignite(i));
+    if (shuffled.length > 0) burnedCount += shuffled.length;
+
+    updateHUD();
+
+    // GAME OVER check
+    const newFire = nodes.filter(n => n.state === 'fire').length;
+    if (newFire >= CFG.fireLimit) {
+      triggerGameOver();
+      return;
+    }
+
+    // WIN check — all fires extinguished
+    if (newFire === 0) {
+      if (!levelComplete) {
+        levelComplete = true;
+        winTimer = setTimeout(nextLevel, CFG.winDelay);
+      }
+      return;
+    }
+
+    fireTimer = setTimeout(tick, CFG.tickMs);
+  }
+
+  fireTimer = setTimeout(tick, CFG.tickMs);
+}
+
+/* ─── HUD ─── */
+function updateHUD() {
+  const fire  = nodes.filter(n => n.state === 'fire').length;
+  const safe  = nodes.filter(n => n.state === 'safe').length;
+  const alive = nodes.filter(n => n.state === 'alive').length;
+
+  document.getElementById('fire-val').textContent  = fire;
+  document.getElementById('safe-val').textContent  = safe;
+  document.getElementById('alive-val').textContent = alive;
+  document.getElementById('level-val').textContent = String(level + 1).padStart(2, '0');
+
+  // danger bar: fire / limit
+  const pct = Math.min(100, (fire / CFG.fireLimit) * 100);
+  document.getElementById('danger-fill').style.width = pct + '%';
+}
+
+/* ─── NEXT LEVEL ─── */
+function nextLevel() {
+  if (gameOver) return;
+  level++;
+  buildLevel();
+}
+
+/* ─── GAME OVER ─── */
+function triggerGameOver() {
+  if (gameOver) return;
+  gameOver = true;
+  if (fireTimer) clearTimeout(fireTimer);
+
+  document.getElementById('ov-saved').textContent  = safeCount;
+  document.getElementById('ov-burned').textContent = burnedCount;
+  document.getElementById('ov-level').textContent  = level + 1;
+  document.getElementById('overlay-icon').textContent  = '💀';
+  document.getElementById('overlay-title').textContent = 'NETWORK LOST';
+  document.getElementById('overlay-sub').textContent   = 'FIRE CONSUMED THE ROOT';
+  document.getElementById('ov-main-btn').textContent   = 'RETRY';
+
+  const ov = document.getElementById('overlay');
+  ov.className = 'loss';
+  ov.classList.add('show');
+}
+
+/* ─── OVERLAY BUTTONS ─── */
+function handleMainBtn() {
+  document.getElementById('overlay').className = '';
+  document.getElementById('overlay').classList.remove('show');
+  gameOver = false;
+  levelComplete = false;
+  buildLevel();
+}
+
+function goBack() {
+  window.location.href = 'map.html';
+}
+
+/* ─── DRAW ─── */
+function draw() {
+  ctx.clearRect(0, 0, W, H);
+
+  // Grid
+  ctx.strokeStyle = 'rgba(0,180,80,0.035)';
+  ctx.lineWidth   = 1;
+  const step = 50;
+  for (let x = 0; x < W; x += step) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+  for (let y = 0; y < H; y += step) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+
+  // Links
+  links.forEach(l => {
+    const a = nodes[l[0]], b = nodes[l[1]];
+    if (!a || !b) return;
+
+    const hasFire = a.state === 'fire' || b.state === 'fire';
+    ctx.strokeStyle = hasFire ? 'rgba(255,80,0,0.3)' : 'rgba(0,220,100,0.13)';
+    ctx.lineWidth   = hasFire ? 1.5 : 1;
+
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+    ctx.stroke();
+  });
+}
+
+function loop() {
+  draw();
+  requestAnimationFrame(loop);
+}
+
+/* ─── START ─── */
+buildLevel();
+loop();
+</script>
+</body>
+</html>

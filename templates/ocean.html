@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>Ocean Cleanup Adventure</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ocean-deep:#003566;
+  --ocean-mid:#0077b6;
+  --ocean-light:#00b4d8;
+  --sky-day:#67c8ff;
+  --sky-night:#0a1630;
+  --foam:#caf0f8;
+  --accent:#ffd166;
+  --danger:#ef233c;
+  --good:#06d6a0;
+  --ui-bg:rgba(0,21,50,.72);
+  --ui-border:rgba(0,180,216,.45);
+  --glass:rgba(255,255,255,.07);
+}
+
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+
+body{
+  overflow:hidden;
+  font-family:'Nunito',sans-serif;
+  background:#000;
+  user-select:none;
+}
+
+/* ── GAME CANVAS ── */
+#game{
+  position:relative;width:100vw;height:100vh;overflow:hidden;
+  background:linear-gradient(180deg,#67c8ff 0%,#90dff5 32%,#0077b6 33%,#003566 100%);
+  transition:background 2s;
+}
+#game.night{
+  background:linear-gradient(180deg,#0a1630 0%,#1d2f5c 32%,#01243f 33%,#00121f 100%);
+}
+
+/* ── CELESTIAL ── */
+#sun{
+  position:absolute;top:44px;right:80px;width:72px;height:72px;
+  border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff176,#ffd54a,#ffab00);
+  box-shadow:0 0 40px 12px rgba(255,213,79,.5),0 0 80px 20px rgba(255,213,79,.2);
+  z-index:2;transition:opacity 2s;
+}
+#moon{
+  position:absolute;top:44px;right:80px;width:70px;height:70px;
+  border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#dde);
+  box-shadow:0 0 30px 8px rgba(220,220,255,.4);
+  display:none;z-index:2;
+}
+#game.night #sun{opacity:0;pointer-events:none}
+#game.night #moon{display:block}
+
+/* Stars */
+.star{
+  position:absolute;border-radius:50%;background:#fff;
+  opacity:0;animation:twinkle 2s infinite alternate;
+}
+@keyframes twinkle{
+  0%{opacity:0;transform:scale(.7)}
+  100%{opacity:.9;transform:scale(1.1)}
+}
+
+/* ── CLOUDS ── */
+.cloud{
+  position:absolute;font-size:64px;opacity:.82;
+  filter:drop-shadow(0 4px 8px rgba(0,0,0,.15));
+  animation:cloudMove linear infinite;
+}
+.cloud.small{font-size:40px;opacity:.6}
+@keyframes cloudMove{
+  from{transform:translateX(110vw)}
+  to{transform:translateX(-200px)}
+}
+
+/* ── WATER & FOAM ── */
+#waterLayer{
+  position:absolute;bottom:0;left:0;right:0;
+  height:200px;overflow:hidden;
+  pointer-events:none;z-index:3;
+}
+.wave-svg{
+  position:absolute;bottom:0;width:200%;
+  animation:waveShift linear infinite;
+}
+.wave1{animation-duration:5s;opacity:.85}
+.wave2{animation-duration:7s;opacity:.55;bottom:10px}
+.wave3{animation-duration:9s;opacity:.3;bottom:20px}
+@keyframes waveShift{
+  from{transform:translateX(0)}
+  to{transform:translateX(-50%)}
+}
+
+/* ── DEPTH LAYERS ── */
+#depthFog{
+  position:absolute;bottom:0;left:0;right:0;height:200px;
+  background:linear-gradient(to top,rgba(0,30,60,.7) 0%,transparent 100%);
+  pointer-events:none;z-index:2;
+}
+
+/* ── BOAT ── */
+#boat{
+  position:absolute;left:110px;bottom:142px;
+  font-size:72px;z-index:10;
+  filter:drop-shadow(0 8px 12px rgba(0,0,0,.4));
+  transform:scaleX(-1);
+  transition:filter .15s;
+}
+#boat.hit{filter:drop-shadow(0 0 20px rgba(239,35,60,1)) brightness(1.6)}
+#boat.shield-on{filter:drop-shadow(0 0 18px rgba(6,214,160,.9))}
+
+/* ── ITEMS / DECORATIONS ── */
+.item,.deco{
+  position:absolute;z-index:8;
+  filter:drop-shadow(0 4px 6px rgba(0,0,0,.3));
+}
+.item{font-size:44px}
+.deco{font-size:36px;pointer-events:none;opacity:.5}
+
+/* ── HUD ── */
+#hud{
+  position:absolute;top:12px;left:50%;transform:translateX(-50%);
+  display:flex;gap:8px;z-index:30;
+  background:var(--ui-bg);
+  border:1.5px solid var(--ui-border);
+  backdrop-filter:blur(10px);
+  padding:8px 14px;border-radius:22px;
+  box-shadow:0 4px 24px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.08);
+}
+.hud-box{
+  min-width:90px;text-align:center;
+  color:#fff;font-size:13px;font-weight:700;
+  letter-spacing:.5px;
+}
+.hud-val{
+  font-family:'Fredoka One',cursive;
+  font-size:22px;line-height:1.1;
+  color:var(--accent);
+  text-shadow:0 0 10px rgba(255,209,102,.5);
+}
+.hud-sep{width:1.5px;background:var(--ui-border);border-radius:2px;margin:2px 0}
+
+/* ── BACK BUTTON ── */
+#backBtn{
+  position:absolute;top:12px;left:14px;z-index:31;
+  width:46px;height:46px;border-radius:50%;
+  background:var(--ui-bg);
+  border:1.5px solid var(--ui-border);
+  backdrop-filter:blur(10px);
+  color:#fff;font-size:22px;font-weight:800;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+  box-shadow:0 4px 16px rgba(0,0,0,.35);
+  transition:background .2s,transform .15s;
+}
+#backBtn:active{transform:scale(.9);background:rgba(0,60,100,.9)}
+
+/* ── MUSIC BUTTON ── */
+#musicBtn{
+  position:absolute;top:12px;right:14px;z-index:31;
+  width:46px;height:46px;border-radius:50%;
+  background:var(--ui-bg);
+  border:1.5px solid var(--ui-border);
+  backdrop-filter:blur(10px);
+  color:#fff;font-size:20px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+  box-shadow:0 4px 16px rgba(0,0,0,.35);
+  transition:background .2s,transform .15s;
+}
+#musicBtn:active{transform:scale(.9)}
+
+/* ── TOAST MESSAGES ── */
+#msg{
+  position:absolute;top:76px;left:50%;transform:translateX(-50%);
+  font-family:'Fredoka One',cursive;
+  font-size:26px;color:#fff;z-index:25;
+  text-shadow:0 2px 6px rgba(0,0,0,.6),0 0 20px rgba(0,180,216,.5);
+  pointer-events:none;
+  opacity:0;transition:opacity .3s;
+  white-space:nowrap;
+}
+#msg.show{opacity:1}
+
+/* ── SCREENS (Menu / Game Over) ── */
+.screen{
+  position:absolute;inset:0;z-index:40;
+  display:flex;flex-direction:column;
+  justify-content:center;align-items:center;
+  padding:24px;
+  background:radial-gradient(ellipse at 50% 30%,rgba(0,60,120,.85) 0%,rgba(0,10,30,.96) 100%);
+  backdrop-filter:blur(6px);
+}
+.hidden{display:none!important}
+
+/* ── SCREEN CARD ── */
+.card{
+  background:rgba(0,30,70,.7);
+  border:1.5px solid rgba(0,180,216,.35);
+  border-radius:28px;
+  padding:28px 32px;
+  max-width:400px;width:100%;
+  box-shadow:0 24px 80px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.07);
+  text-align:center;
+}
+
+.screen-title{
+  font-family:'Fredoka One',cursive;
+  font-size:clamp(28px,7vw,52px);
+  color:#fff;
+  text-shadow:0 0 30px rgba(0,212,255,.7);
+  margin-bottom:8px;
+  line-height:1.1;
+}
+.subtitle{
+  font-size:15px;color:rgba(255,255,255,.65);
+  margin-bottom:16px;line-height:1.6;
+}
+
+/* how-to grid */
+.how-grid{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:8px;margin:14px 0;
+}
+.how-item{
+  background:rgba(0,180,216,.12);
+  border:1px solid rgba(0,180,216,.2);
+  border-radius:14px;padding:10px 8px;
+  font-size:13px;color:rgba(255,255,255,.85);line-height:1.5;
+}
+.how-item .ei{font-size:22px;display:block;margin-bottom:4px}
+
+.score-row{
+  font-size:14px;color:rgba(255,255,255,.55);margin:4px 0;
+}
+.score-row span{color:var(--accent);font-weight:800;font-size:16px}
+
+/* buttons */
+.btn{
+  display:inline-block;
+  margin-top:18px;padding:14px 36px;
+  border:none;border-radius:50px;
+  font-family:'Fredoka One',cursive;font-size:20px;
+  cursor:pointer;letter-spacing:.5px;
+  transition:transform .15s,box-shadow .15s;
+  position:relative;overflow:hidden;
+}
+.btn-primary{
+  background:linear-gradient(135deg,#00e5ff,#0077b6);
+  color:#fff;
+  box-shadow:0 6px 30px rgba(0,229,255,.4);
+}
+.btn-secondary{
+  background:linear-gradient(135deg,#ffd166,#f4a261);
+  color:#1a0a00;
+  box-shadow:0 6px 30px rgba(255,209,102,.4);
+}
+.btn:active{transform:scale(.93)}
+.btn::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(to bottom,rgba(255,255,255,.15),transparent);
+  pointer-events:none;
+}
+
+/* stat boxes in game-over */
+.stat-grid{
+  display:grid;grid-template-columns:1fr 1fr 1fr;
+  gap:8px;margin:16px 0;
+}
+.stat-box{
+  background:rgba(0,180,216,.1);
+  border:1px solid rgba(0,180,216,.2);
+  border-radius:14px;padding:10px 4px;
+  color:#fff;
+}
+.stat-box .sv{
+  font-family:'Fredoka One',cursive;
+  font-size:28px;color:var(--accent);
+  text-shadow:0 0 12px rgba(255,209,102,.4);
+}
+.stat-box .sl{font-size:11px;color:rgba(255,255,255,.5);margin-top:2px}
+
+/* ── MOBILE CONTROLS ── */
+#mobileCtrl{
+  position:absolute;bottom:16px;left:0;right:0;
+  display:none;
+  justify-content:center;
+  gap:20px;z-index:29;
+}
+@media(pointer:coarse){
+  #mobileCtrl{display:flex}
+}
+.ctrl-btn{
+  width:72px;height:72px;border-radius:50%;
+  border:2.5px solid rgba(255,255,255,.25);
+  background:rgba(0,30,70,.6);
+  backdrop-filter:blur(8px);
+  color:#fff;font-size:28px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+  box-shadow:0 4px 20px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.1);
+  transition:transform .1s,background .1s;
+}
+.ctrl-btn:active{transform:scale(.88);background:rgba(0,100,180,.7)}
+
+/* ── RAIN ── */
+.rain{
+  position:absolute;width:2px;height:20px;
+  background:linear-gradient(to bottom,transparent,rgba(200,240,255,.9));
+  animation:rain .55s linear forwards;z-index:24;pointer-events:none;
+}
+@keyframes rain{
+  from{transform:translateY(-20px) skewX(-10deg)}
+  to{transform:translateY(110vh) skewX(-10deg)}
+}
+
+/* ── FLASH ── */
+#flash{
+  position:absolute;inset:0;
+  background:radial-gradient(circle,rgba(255,255,255,.95),rgba(200,240,255,.4));
+  opacity:0;pointer-events:none;z-index:26;transition:opacity .08s;
+}
+
+/* ── BUBBLE ── */
+.bubble{
+  position:absolute;bottom:140px;
+  width:10px;height:10px;border-radius:50%;
+  border:1.5px solid rgba(200,240,255,.6);
+  animation:rise 3.5s ease-out forwards;z-index:5;pointer-events:none;
+}
+@keyframes rise{
+  from{transform:translateY(0) scale(1);opacity:.7}
+  to{transform:translateY(-260px) scale(.3);opacity:0}
+}
+
+/* ── SHIELD RING ── */
+#shieldRing{
+  position:absolute;left:90px;bottom:125px;
+  width:120px;height:80px;border-radius:50%;
+  border:3px solid rgba(6,214,160,.7);
+  box-shadow:0 0 20px rgba(6,214,160,.5),inset 0 0 20px rgba(6,214,160,.15);
+  z-index:9;opacity:0;pointer-events:none;
+  transition:opacity .3s;
+  animation:pulseShield 1.2s ease-in-out infinite;
+}
+#shieldRing.active{opacity:1}
+@keyframes pulseShield{
+  0%,100%{transform:scale(1)}
+  50%{transform:scale(1.06)}
+}
+
+/* ── PARTICLE CANVAS ── */
+#particles{
+  position:absolute;inset:0;z-index:6;pointer-events:none;
+}
+
+/* ── PROGRESS BAR ── */
+#xpBar{
+  position:absolute;bottom:0;left:0;right:0;height:4px;
+  background:rgba(0,0,0,.3);z-index:30;
+}
+#xpFill{
+  height:100%;width:0%;
+  background:linear-gradient(90deg,#00b4d8,#06d6a0);
+  transition:width .4s;
+  box-shadow:0 0 8px rgba(6,214,160,.7);
+}
+
+/* ── SCORE POPUP ── */
+.score-pop{
+  position:absolute;z-index:22;pointer-events:none;
+  font-family:'Fredoka One',cursive;font-size:24px;
+  color:var(--accent);text-shadow:0 0 10px rgba(255,209,102,.6);
+  animation:popUp .9s ease-out forwards;
+}
+@keyframes popUp{
+  0%{transform:translateY(0);opacity:1}
+  100%{transform:translateY(-70px);opacity:0}
+}
+
+/* ── NIGHT STARS ── */
+#stars{position:absolute;inset:0;z-index:1;pointer-events:none}
+</style>
+</head>
+<body>
+<div id="game">
+
+  <!-- Celestial -->
+  <div id="sun"></div>
+  <div id="moon"></div>
+  <div id="stars"></div>
+
+  <!-- Clouds -->
+  <div class="cloud" style="top:38px;animation-duration:19s;animation-delay:-4s">☁️</div>
+  <div class="cloud small" style="top:110px;animation-duration:27s;animation-delay:-12s">☁️</div>
+  <div class="cloud small" style="top:60px;animation-duration:22s;animation-delay:-18s">☁️</div>
+
+  <!-- HUD -->
+  <div id="hud">
+    <div class="hud-box">
+      <div>⭐ SCORE</div>
+      <div class="hud-val" id="score">0</div>
+    </div>
+    <div class="hud-sep"></div>
+    <div class="hud-box">
+      <div>🏆 BEST</div>
+      <div class="hud-val" id="high">0</div>
+    </div>
+    <div class="hud-sep"></div>
+    <div class="hud-box">
+      <div>❤️ LIFE</div>
+      <div class="hud-val" id="life">3</div>
+    </div>
+    <div class="hud-sep"></div>
+    <div class="hud-box">
+      <div>🌊 LEVEL</div>
+      <div class="hud-val" id="level">1</div>
+    </div>
+  </div>
+
+  <!-- Back Button -->
+  <div id="backBtn" onclick="goBack()" title="Back to Menu">‹</div>
+
+  <!-- Music Toggle -->
+  <div id="musicBtn" onclick="toggleMusic()" title="Toggle Music">🎵</div>
+
+  <!-- Toast -->
+  <div id="msg"></div>
+
+  <!-- Boat -->
+  <div id="boat">🚤</div>
+
+  <!-- Shield Ring -->
+  <div id="shieldRing"></div>
+
+  <!-- Water -->
+  <div id="depthFog"></div>
+  <div id="waterLayer">
+    <svg class="wave-svg wave1" viewBox="0 0 1440 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0,60 C240,100 480,20 720,60 C960,100 1200,20 1440,60 L1440,120 L0,120 Z" fill="rgba(0,119,182,.55)"/>
+      <path d="M0,80 C240,40 480,100 720,80 C960,60 1200,100 1440,80 L1440,120 L0,120 Z" fill="rgba(0,60,100,.4)"/>
+    </svg>
+    <svg class="wave-svg wave2" viewBox="0 0 1440 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0,50 C360,90 720,10 1080,50 C1260,70 1380,30 1440,50 L1440,120 L0,120 Z" fill="rgba(0,180,216,.25)"/>
+    </svg>
+    <svg class="wave-svg wave3" viewBox="0 0 1440 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0,70 C180,30 360,100 540,70 C720,40 900,90 1080,70 C1260,50 1380,80 1440,70 L1440,120 L0,120 Z" fill="rgba(202,240,248,.15)"/>
+    </svg>
+  </div>
+
+  <!-- Flash overlay -->
+  <div id="flash"></div>
+
+  <!-- Particle canvas -->
+  <canvas id="particles"></canvas>
+
+  <!-- XP bar -->
+  <div id="xpBar"><div id="xpFill"></div></div>
+
+  <!-- Mobile Controls -->
+  <div id="mobileCtrl">
+    <div class="ctrl-btn" id="jumpBtn">⬆️</div>
+  </div>
+
+  <!-- MENU SCREEN -->
+  <div id="menu" class="screen">
+    <div class="card">
+      <div class="screen-title">🌊 Ocean Cleanup<br>Adventure</div>
+      <div class="subtitle">Sail the seas, collect trash,<br>protect marine life!</div>
+      <div class="how-grid">
+        <div class="how-item"><span class="ei">♻️</span>Catch trash for points</div>
+        <div class="how-item"><span class="ei">⚠️</span>Jump over dangers</div>
+        <div class="how-item"><span class="ei">🐟🐬🐢</span>Sea life = bonuses</div>
+        <div class="how-item"><span class="ei">💎</span>Gems = big score!</div>
+      </div>
+      <div class="score-row">Last Score: <span id="lastMenu">0</span></div>
+      <div class="score-row">High Score: <span id="highMenu">0</span></div>
+      <button class="btn btn-primary" onclick="startGame()">▶ Play Now</button>
+    </div>
+  </div>
+
+  <!-- GAME OVER SCREEN -->
+  <div id="gameover" class="screen hidden">
+    <div class="card">
+      <div class="screen-title">🏁 Voyage Ended</div>
+      <div class="stat-grid">
+        <div class="stat-box"><div class="sv" id="goScore">0</div><div class="sl">Score</div></div>
+        <div class="stat-box"><div class="sv" id="goHigh">0</div><div class="sl">Best</div></div>
+        <div class="stat-box"><div class="sv" id="goLevel">1</div><div class="sl">Level</div></div>
+      </div>
+      <div id="goMsg" style="color:rgba(255,255,255,.6);font-size:14px;margin-bottom:8px"></div>
+      <button class="btn btn-primary" onclick="location.reload()">🔄 Play Again</button>
+      <br>
+      <button class="btn btn-secondary" style="margin-top:10px" onclick="goBack()">‹ Main Menu</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+//  AUDIO ENGINE  (Web Audio API procedural music)
+// ─────────────────────────────────────────────
+let audioCtx, masterGain, musicOn = true;
+let oscillators = [], lfoNode, lfoGain, padPlaying = false;
+
+function initAudio(){
+  if(audioCtx) return;
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  masterGain = audioCtx.createGain();
+  masterGain.gain.value = 0.22;
+  masterGain.connect(audioCtx.destination);
+  startAmbientMusic();
+}
+
+function startAmbientMusic(){
+  if(padPlaying) return;
+  padPlaying = true;
+  // Ocean-themed chord pad: Am7 → Fmaj7 → C → G
+  const chords = [
+    [220,261.63,329.63,392],  // Am7
+    [174.61,220,261.63,349.23],// Fmaj7
+    [261.63,329.63,392,523.25],// C
+    [196,246.94,293.66,392]    // G
+  ];
+  let ci = 0;
+  function playChord(){
+    if(!musicOn || !audioCtx) return;
+    const chord = chords[ci % chords.length];
+    chord.forEach(freq=>{
+      const osc = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.value = 800 + Math.random()*400;
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      g.gain.setValueAtTime(0, audioCtx.currentTime);
+      g.gain.linearRampToValueAtTime(.12, audioCtx.currentTime + .4);
+      g.gain.setValueAtTime(.12, audioCtx.currentTime + 3.2);
+      g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 4);
+      osc.connect(filter); filter.connect(g); g.connect(masterGain);
+      osc.start(); osc.stop(audioCtx.currentTime + 4.2);
+      oscillators.push(osc);
+    });
+    ci++;
+    setTimeout(playChord, 3800);
+  }
+  playChord();
+
+  // Bass pulse
+  function bassPulse(){
+    if(!musicOn || !audioCtx) return;
+    const b = audioCtx.createOscillator();
+    const bg = audioCtx.createGain();
+    b.type = 'sine';
+    b.frequency.value = [55,43.65,65.41,49][Math.floor(ci/1)%4];
+    bg.gain.setValueAtTime(0, audioCtx.currentTime);
+    bg.gain.linearRampToValueAtTime(.18, audioCtx.currentTime + .05);
+    bg.gain.linearRampToValueAtTime(0, audioCtx.currentTime + .8);
+    b.connect(bg); bg.connect(masterGain);
+    b.start(); b.stop(audioCtx.currentTime + 1);
+    setTimeout(bassPulse, 900);
+  }
+  setTimeout(bassPulse, 200);
+
+  // Sparkle arp
+  function arpNote(){
+    if(!musicOn || !audioCtx) return;
+    const arpFreqs = [523.25,659.25,783.99,1046.5,659.25,783.99];
+    const af = arpFreqs[Math.floor(Math.random()*arpFreqs.length)];
+    const ao = audioCtx.createOscillator();
+    const ag = audioCtx.createGain();
+    ao.type = 'triangle';
+    ao.frequency.value = af;
+    ag.gain.setValueAtTime(0.07, audioCtx.currentTime);
+    ag.gain.linearRampToValueAtTime(0, audioCtx.currentTime + .25);
+    ao.connect(ag); ag.connect(masterGain);
+    ao.start(); ao.stop(audioCtx.currentTime + .3);
+    setTimeout(arpNote, 350 + Math.random()*300);
+  }
+  setTimeout(arpNote, 600);
+}
+
+function toggleMusic(){
+  initAudio();
+  musicOn = !musicOn;
+  document.getElementById('musicBtn').textContent = musicOn ? '🎵' : '🔇';
+  masterGain.gain.value = musicOn ? 0.22 : 0;
+}
+
+function playSFX(type){
+  if(!audioCtx || !musicOn) return;
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  if(type==='good'){
+    o.type='sine';o.frequency.setValueAtTime(660,audioCtx.currentTime);
+    o.frequency.linearRampToValueAtTime(880,audioCtx.currentTime+.08);
+    g.gain.setValueAtTime(.15,audioCtx.currentTime);
+    g.gain.linearRampToValueAtTime(0,audioCtx.currentTime+.15);
+  }else if(type==='bad'){
+    o.type='sawtooth';o.frequency.setValueAtTime(200,audioCtx.currentTime);
+    o.frequency.linearRampToValueAtTime(80,audioCtx.currentTime+.18);
+    g.gain.setValueAtTime(.15,audioCtx.currentTime);
+    g.gain.linearRampToValueAtTime(0,audioCtx.currentTime+.2);
+  }else if(type==='bonus'){
+    o.type='sine';o.frequency.setValueAtTime(523,audioCtx.currentTime);
+    o.frequency.linearRampToValueAtTime(1047,audioCtx.currentTime+.15);
+    g.gain.setValueAtTime(.18,audioCtx.currentTime);
+    g.gain.linearRampToValueAtTime(0,audioCtx.currentTime+.2);
+  }else if(type==='jump'){
+    o.type='sine';o.frequency.setValueAtTime(440,audioCtx.currentTime);
+    o.frequency.linearRampToValueAtTime(600,audioCtx.currentTime+.1);
+    g.gain.setValueAtTime(.1,audioCtx.currentTime);
+    g.gain.linearRampToValueAtTime(0,audioCtx.currentTime+.12);
+  }
+  o.connect(g);g.connect(masterGain);
+  o.start();o.stop(audioCtx.currentTime+.3);
+}
+
+// ─────────────────────────────────────────────
+//  PARTICLES
+// ─────────────────────────────────────────────
+const pCanvas = document.getElementById('particles');
+const pCtx = pCanvas.getContext('2d');
+let pList = [];
+
+function resizeCanvas(){
+  pCanvas.width = window.innerWidth;
+  pCanvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+function spawnParticles(x, y, color, count=6){
+  for(let i=0;i<count;i++){
+    pList.push({
+      x, y,
+      vx:(Math.random()-.5)*4,
+      vy:(Math.random()*-4 - 1),
+      alpha:1, size:Math.random()*8+4,
+      color, life:40+Math.random()*20
+    });
+  }
+}
+
+function updateParticles(){
+  pCtx.clearRect(0,0,pCanvas.width,pCanvas.height);
+  for(let i=pList.length-1;i>=0;i--){
+    const p=pList[i];
+    p.x+=p.vx;p.y+=p.vy;p.vy+=.12;
+    p.alpha-=1/p.life;p.life--;
+    if(p.life<=0){pList.splice(i,1);continue}
+    pCtx.save();
+    pCtx.globalAlpha=Math.max(0,p.alpha);
+    pCtx.fillStyle=p.color;
+    pCtx.beginPath();
+    pCtx.arc(p.x,p.y,p.size/2,0,Math.PI*2);
+    pCtx.fill();
+    pCtx.restore();
+  }
+}
+
+// ─────────────────────────────────────────────
+//  STARS
+// ─────────────────────────────────────────────
+function makeStars(){
+  const c=document.getElementById('stars');
+  for(let i=0;i<60;i++){
+    const s=document.createElement('div');
+    s.className='star';
+    s.style.cssText=`
+      left:${Math.random()*100}%;
+      top:${Math.random()*35}%;
+      width:${Math.random()*3+1}px;
+      height:${Math.random()*3+1}px;
+      animation-delay:${Math.random()*3}s;
+      animation-duration:${1.5+Math.random()*2.5}s;
+    `;
+    c.appendChild(s);
+  }
+}
+makeStars();
+
+// ─────────────────────────────────────────────
+//  GAME VARS
+// ─────────────────────────────────────────────
+const gameEl=document.getElementById("game");
+const boat=document.getElementById("boat");
+const scoreEl=document.getElementById("score");
+const highEl=document.getElementById("high");
+const lifeEl=document.getElementById("life");
+const levelEl=document.getElementById("level");
+const msg=document.getElementById("msg");
+const flash=document.getElementById("flash");
+const xpFill=document.getElementById("xpFill");
+const shieldRing=document.getElementById("shieldRing");
+
+let score=0,life=3,level=1,speed=4,playing=false;
+let boatY=142,velocity=0,jumping=false;
+const ground=142,gravity=.65,jumpPower=14;
+let items=[],loop,spawnLoop,stormLoop,bubbleLoop,decoLoop,renderLoop;
+let fishCount=0,shield=false,doublePoints=false;
+let msgTimer=null;
+
+let highScore=+localStorage.getItem("oceanHigh")||0;
+let lastScore=+localStorage.getItem("oceanLast")||0;
+highEl.textContent=highScore;
+document.getElementById("highMenu").textContent=highScore;
+document.getElementById("lastMenu").textContent=lastScore;
+
+// ─────────────────────────────────────────────
+//  NAVIGATION
+// ─────────────────────────────────────────────
+function goBack(){
+  window.location.href='game_menu';
+}
+
+// ─────────────────────────────────────────────
+//  START
+// ─────────────────────────────────────────────
+function startGame(){
+  initAudio();
+  document.getElementById("menu").classList.add("hidden");
+  playing=true;
+  loop=setInterval(updateGame,16);
+  spawnLoop=setInterval(spawnItem,1700);
+  stormLoop=setInterval(randomStorm,9000);
+  bubbleLoop=setInterval(makeBubble,600);
+  decoLoop=setInterval(spawnDecor,2000);
+  renderLoop=requestAnimationFrame(function raf(){
+    updateParticles();
+    if(playing)renderLoop=requestAnimationFrame(raf);
+  });
+}
+
+// ─────────────────────────────────────────────
+//  SPAWN ITEMS
+// ─────────────────────────────────────────────
+function spawnItem(){
+  if(!playing)return;
+  const div=document.createElement("div");
+  div.className="item";
+
+  let r=Math.random(),type,icon,y=142;
+  if(r<0.38){type="good";icon=rnd(["🧴","🥤","📦","🛍️"])}
+  else if(r<0.62){type="sea";icon=rnd(["🐟","🐬","🐢"]);y=260}
+  else if(r<0.88){type="bad";icon=rnd(["🪨","🛢️","💣"])}
+  else{type="bonus";icon="💎";y=170}
+
+  div.textContent=icon;
+  div.dataset.type=type;
+  let x=window.innerWidth+50;
+  div.style.left=x+"px";
+  div.style.bottom=y+"px";
+  div.style.fontSize=type==="bad"?"48px":"44px";
+  gameEl.appendChild(div);
+  items.push({el:div,x,y,type});
+}
+
+function spawnDecor(){
+  if(!playing)return;
+  const div=document.createElement("div");
+  div.className="deco";
+  div.textContent=rnd(["🐠","⭐","🐋","🦈","🐙","🪸"]);
+  div.style.left=(window.innerWidth+50)+"px";
+  div.style.bottom=(230+Math.random()*160)+"px";
+  div.style.opacity=.35;
+  gameEl.appendChild(div);
+  items.push({el:div,x:window.innerWidth+50,y:250,type:"deco",speed:2.5});
+  setTimeout(()=>{if(div.parentNode)div.remove()},10000);
+}
+
+// ─────────────────────────────────────────────
+//  MAIN LOOP
+// ─────────────────────────────────────────────
+function updateGame(){
+  // Physics
+  if(jumping){
+    velocity-=gravity;
+    boatY+=velocity;
+    if(boatY<=ground){boatY=ground;jumping=false;velocity=0;}
+    boat.style.transform=`scaleX(-1) rotate(${velocity*1.2}deg)`;
+  }else{
+    boat.style.transform=`scaleX(-1) translateY(${Math.sin(Date.now()/200)*3}px)`;
+  }
+  boat.style.bottom=boatY+"px";
+
+  // Shield ring follows boat
+  shieldRing.style.bottom=(boatY-12)+"px";
+
+  // Move items
+  for(let i=items.length-1;i>=0;i--){
+    let it=items[i];
+    it.x-=(it.speed||speed);
+    it.el.style.left=it.x+"px";
+
+    if(it.x<-80){removeItem(i);continue}
+    if(it.type!=="deco"&&collide(it)){
+      handleHit(it.type,it.el.textContent,it.x,it.y);
+      removeItem(i);
+    }
+  }
+
+  // Night mode
+  if(score>=300) gameEl.classList.add("night");
+  if(life<=0) endGame();
+}
+
+// ─────────────────────────────────────────────
+//  HIT HANDLER
+// ─────────────────────────────────────────────
+function handleHit(type,icon,x,y){
+  const hitX = 155, hitY = window.innerHeight - boatY - 60;
+
+  if(type==="good"){
+    let pts=10;
+    if(icon==="🥤")pts=15;
+    if(icon==="📦")pts=20;
+    if(icon==="🛍️")pts=25;
+    if(doublePoints){pts*=2;doublePoints=false;show("✨ Double Score!");}
+    score+=pts;
+    show("♻️ +"+pts);
+    spawnParticles(hitX, hitY, '#06d6a0');
+    playSFX('good');
+    scorePop("+"+pts, hitX, hitY);
+  }
+
+  if(type==="sea"){
+    if(icon==="🐟"){doublePoints=true;show("🐟 Next Trash ×2");}
+    if(icon==="🐬"){score+=30;show("🐬 Bonus +30");scorePop("+30",hitX,hitY);spawnParticles(hitX,hitY,'#00b4d8',8);}
+    if(icon==="🐢"){
+      shield=true;shieldRing.classList.add('active');
+      boat.className='boat shield-on';show("🐢 Shield ON!");
+    }
+    fishCount++;
+    if(fishCount>=3){life++;fishCount=0;show("💚 Extra Life!");}
+    playSFX('good');
+    spawnParticles(hitX,hitY,'#00e5ff',5);
+  }
+
+  if(type==="bonus"){
+    score+=50;show("💎 Treasure +50!");
+    spawnParticles(hitX,hitY,'#ffd166',12);
+    playSFX('bonus');
+    scorePop("+50",hitX,hitY);
+  }
+
+  if(type==="bad"){
+    if(shield){
+      shield=false;shieldRing.classList.remove('active');
+      boat.className='';
+      show("🛡️ Shield Saved You!");
+      spawnParticles(hitX,hitY,'#ffd166',8);
+      playSFX('bonus');
+    }else{
+      if(icon==="🪨"){life-=1;show("🪨 Hit!");}
+      if(icon==="🛢️"){
+        life-=1;speed=Math.max(4,speed-1);
+        show("🛢️ Slowed!");setTimeout(()=>speed+=1,3000);
+      }
+      if(icon==="💣"){life-=2;show("💣 Big Damage!");}
+      boat.classList.add('hit');
+      setTimeout(()=>boat.classList.remove('hit'),400);
+      spawnParticles(hitX,hitY,'#ef233c',10);
+      playSFX('bad');
+      flash.style.opacity=.4;setTimeout(()=>flash.style.opacity=0,100);
+    }
+  }
+
+  checkLevel();
+  updateUI();
+}
+
+function checkLevel(){
+  const target=level*100;
+  xpFill.style.width=((score%target)/target*100)+"%";
+  if(score>=level*100){
+    level++;speed+=.7;
+    clearInterval(spawnLoop);
+    spawnLoop=setInterval(spawnItem,Math.max(500,1100-level*55));
+    show("🌊 Level "+level+"!");
+    xpFill.style.width="0%";
+  }
+}
+
+function updateUI(){
+  scoreEl.textContent=score;
+  lifeEl.textContent=life;
+  levelEl.textContent=level;
+  if(score>highScore){highScore=score;highEl.textContent=highScore;}
+}
+
+// ─────────────────────────────────────────────
+//  JUMP
+// ─────────────────────────────────────────────
+function jump(){
+  if(!playing)return;
+  initAudio();
+  if(!jumping){jumping=true;velocity=jumpPower;playSFX('jump');}
+}
+
+document.addEventListener("keydown",e=>{
+  if(e.code==="Space"||e.key==="ArrowUp"){e.preventDefault();jump();}
+});
+document.getElementById("jumpBtn").addEventListener("touchstart",e=>{e.preventDefault();jump();},{passive:false});
+document.getElementById("jumpBtn").addEventListener("click",jump);
+
+// Touch anywhere on game to jump (except buttons/screens)
+gameEl.addEventListener("touchstart",e=>{
+  if(e.target.closest('.ctrl-btn,.screen,.hud,#backBtn,#musicBtn'))return;
+  e.preventDefault();jump();
+},{passive:false});
+gameEl.addEventListener("click",e=>{
+  if(e.target.closest('.ctrl-btn,.screen,.hud,#backBtn,#musicBtn'))return;
+  jump();
+});
+
+// ─────────────────────────────────────────────
+//  COLLISION
+// ─────────────────────────────────────────────
+function collide(it){
+  const bL=110,bR=185;
+  const bB=boatY,bT=boatY+55;
+  const iL=it.x,iR=it.x+40;
+  const iB=it.y,iT=it.y+40;
+  return bR>iL&&bL<iR&&bT>iB&&bB<iT;
+}
+
+// ─────────────────────────────────────────────
+//  STORM
+// ─────────────────────────────────────────────
+function randomStorm(){
+  if(!playing||score<200)return;
+  if(Math.random()<.55){
+    for(let i=0;i<60;i++)setTimeout(makeRain,i*40);
+    flash.style.opacity=.7;setTimeout(()=>flash.style.opacity=0,120);
+    show("⛈️ Storm!");
+  }
+}
+function makeRain(){
+  const d=document.createElement("div");
+  d.className="rain";
+  d.style.left=Math.random()*window.innerWidth+"px";
+  d.style.top="-20px";
+  gameEl.appendChild(d);
+  setTimeout(()=>d.remove(),650);
+}
+
+// ─────────────────────────────────────────────
+//  BUBBLES
+// ─────────────────────────────────────────────
+function makeBubble(){
+  if(!playing)return;
+  const b=document.createElement("div");
+  b.className="bubble";
+  const sz=4+Math.random()*8;
+  b.style.cssText=`left:${60+Math.random()*window.innerWidth*.8}px;bottom:140px;width:${sz}px;height:${sz}px;animation-duration:${2.5+Math.random()*2}s`;
+  gameEl.appendChild(b);
+  setTimeout(()=>b.remove(),4000);
+}
+
+// ─────────────────────────────────────────────
+//  SCORE POP
+// ─────────────────────────────────────────────
+function scorePop(text,x,y){
+  const d=document.createElement("div");
+  d.className="score-pop";
+  d.textContent=text;
+  d.style.left=x+"px";
+  d.style.top=(y-40)+"px";
+  gameEl.appendChild(d);
+  setTimeout(()=>d.remove(),950);
+}
+
+// ─────────────────────────────────────────────
+//  UTILITY
+// ─────────────────────────────────────────────
+function removeItem(i){
+  if(items[i]&&items[i].el.parentNode)items[i].el.remove();
+  items.splice(i,1);
+}
+
+function show(t){
+  msg.textContent=t;
+  msg.classList.add('show');
+  if(msgTimer)clearTimeout(msgTimer);
+  msgTimer=setTimeout(()=>{msg.classList.remove('show');},1800);
+}
+
+function rnd(arr){return arr[Math.floor(Math.random()*arr.length)];}
+
+// ─────────────────────────────────────────────
+//  GAME OVER
+// ─────────────────────────────────────────────
+function endGame(){
+  playing=false;
+  clearInterval(loop);clearInterval(spawnLoop);clearInterval(stormLoop);
+  clearInterval(bubbleLoop);clearInterval(decoLoop);
+
+  localStorage.setItem("oceanHigh",highScore);
+  localStorage.setItem("oceanLast",score);
+
+  document.getElementById("goScore").textContent=score;
+  document.getElementById("goHigh").textContent=highScore;
+  document.getElementById("goLevel").textContent=level;
+
+  const msgs=["Great effort, Captain!","The ocean thanks you!","Keep the seas clean!","Hero of the tides!"];
+  document.getElementById("goMsg").textContent=rnd(msgs);
+
+  document.getElementById("gameover").classList.remove("hidden");
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eco Catch</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #f0f7ec;
+    font-family: 'Nunito', system-ui, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px 16px 32px;
+    color: #2C2C2A;
+  }
+
+  .game-title {
+    font-size: 28px;
+    font-weight: 800;
+    color: #27500A;
+    letter-spacing: -0.5px;
+    margin-bottom: 2px;
+  }
+
+  .game-subtitle {
+    font-size: 13px;
+    color: #639922;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    margin-bottom: 14px;
+  }
+
+  #game-wrap {
+    width: 100%;
+    max-width: 640px;
+  }
+
+  #hud {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .stat-card {
+    background: #fff;
+    border: 0.5px solid #C0DD97;
+    border-radius: 10px;
+    padding: 8px 10px;
+    text-align: center;
+  }
+
+  .stat-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: #639922;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .stat-val {
+    font-size: 22px;
+    font-weight: 800;
+    color: #27500A;
+    line-height: 1.2;
+  }
+
+  .stat-val.lives { color: #D85A30; }
+
+  #progress-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  #progress-track {
+    flex: 1;
+    height: 8px;
+    background: #C0DD97;
+    border-radius: 99px;
+    overflow: hidden;
+  }
+
+  #progress-fill {
+    height: 100%;
+    background: #3B6D11;
+    border-radius: 99px;
+    transition: width 0.25s ease;
+    width: 0%;
+  }
+
+  #level-badge {
+    font-size: 11px;
+    font-weight: 700;
+    color: #27500A;
+    background: #C0DD97;
+    padding: 2px 10px;
+    border-radius: 99px;
+    white-space: nowrap;
+  }
+
+  #speed-badge {
+    font-size: 11px;
+    font-weight: 700;
+    color: #fff;
+    background: #639922;
+    padding: 2px 10px;
+    border-radius: 99px;
+    white-space: nowrap;
+    transition: background 0.4s;
+  }
+
+  #canvas-wrap {
+    position: relative;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1.5px solid #97C459;
+    box-shadow: 0 2px 0 #639922;
+  }
+
+  canvas {
+    display: block;
+    width: 100%;
+    cursor: pointer;
+  }
+
+  #overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(10, 30, 5, 0.6);
+    backdrop-filter: blur(2px);
+  }
+
+  .ov-icon {
+    font-size: 48px;
+    margin-bottom: 10px;
+    animation: bounce 1.2s ease-in-out infinite;
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+
+  #ov-title {
+    font-size: 26px;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 6px;
+    letter-spacing: -0.3px;
+  }
+
+  #ov-sub {
+    font-size: 13px;
+    color: rgba(255,255,255,0.75);
+    margin-bottom: 22px;
+    text-align: center;
+    line-height: 1.6;
+    padding: 0 28px;
+    max-width: 360px;
+  }
+
+  #ov-btn {
+    padding: 12px 36px;
+    border-radius: 99px;
+    border: none;
+    background: #3B6D11;
+    color: #fff;
+    font-size: 15px;
+    font-family: 'Nunito', system-ui, sans-serif;
+    font-weight: 800;
+    cursor: pointer;
+    letter-spacing: 0.02em;
+    transition: background 0.15s, transform 0.1s;
+    box-shadow: 0 3px 0 #27500A;
+  }
+
+  #ov-btn:hover { background: #27500A; }
+  #ov-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #27500A; }
+
+  #controls-hint {
+    font-size: 11px;
+    color: #888780;
+    text-align: center;
+    margin-top: 7px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  #fact {
+    margin-top: 10px;
+    font-size: 12.5px;
+    color: #444441;
+    padding: 10px 14px;
+    background: #fff;
+    border-radius: 10px;
+    border-left: 3px solid #3B6D11;
+    line-height: 1.6;
+    min-height: 40px;
+    font-weight: 600;
+  }
+
+  #fact strong { color: #27500A; }
+
+  .legend {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 10px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #5F5E5A;
+  }
+
+  .legend-dot {
+    width: 10px; height: 10px;
+    border-radius: 3px;
+  }
+</style>
+</head>
+<body>
+
+<div id="game-wrap">
+  <div style="text-align:center">
+    <div class="game-title">Eco Catch</div>
+    <div class="game-subtitle">catch nature · dodge plastic</div>
+  </div>
+
+  <div id="hud">
+    <div class="stat-card"><div class="stat-label">Score</div><div class="stat-val" id="s-score">0</div></div>
+    <div class="stat-card"><div class="stat-label">Lives</div><div class="stat-val lives" id="s-lives">♥♥♥</div></div>
+    <div class="stat-card"><div class="stat-label">Level</div><div class="stat-val" id="s-level">1</div></div>
+  </div>
+
+  <div id="progress-row">
+    <div id="progress-track"><div id="progress-fill"></div></div>
+    <div id="speed-badge" id="speed-badge">Slow</div>
+    <div id="level-badge"><span id="pts-left">50</span> pts to next</div>
+  </div>
+
+  <div id="canvas-wrap">
+    <canvas id="gc" width="640" height="420"></canvas>
+    <div id="overlay">
+      <div class="ov-icon">🌿</div>
+      <div id="ov-title">Eco Catch</div>
+      <div id="ov-sub">Catch leaves, flowers & raindrops. Dodge plastic bags, bottles & straws. Speed ramps up as you level!</div>
+      <button id="ov-btn">Start playing</button>
+    </div>
+  </div>
+
+  <div id="controls-hint">Arrow keys to move &nbsp;·&nbsp; Tap left / right of canvas on mobile</div>
+
+  <div id="fact"><strong>Tip:</strong> Start slow — get comfortable with the basket before speed picks up!</div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#3B6D11"></div> leaf +10</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#D4537E"></div> flower +10</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#378ADD"></div> raindrop +10</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#BA7517"></div> seed +10</div>
+    <div class="legend-item"><div class="legend-dot" style="background:rgba(100,160,220,0.8)"></div> bag -1 life</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#E24B4A"></div> plastic -1 life</div>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('gc');
+const ctx = canvas.getContext('2d');
+const W = 640, H = 420;
+canvas.width = W; canvas.height = H;
+
+const ovEl    = document.getElementById('overlay');
+const ovTitle = document.getElementById('ov-title');
+const ovSub   = document.getElementById('ov-sub');
+const ovBtn   = document.getElementById('ov-btn');
+const factEl  = document.getElementById('fact');
+const speedBadge = document.getElementById('speed-badge');
+
+const facts = [
+  "<strong>Plastic bags</strong> look like jellyfish to sea turtles. Every bag you dodge in the game represents a real threat in our oceans.",
+  "<strong>8 million tonnes</strong> of plastic enter the ocean every year — the equivalent of one garbage truck per minute.",
+  "<strong>A single reusable bag</strong> can replace 700 single-use plastic bags over its lifetime. Small swaps, big impact.",
+  "<strong>Leaves & seeds</strong> decompose naturally, returning nutrients to the soil and supporting entire ecosystems.",
+  "<strong>Rainwater</strong> replenishes groundwater and cleans the air — it's nature's own recycling system.",
+  "<strong>Plastic straws</strong> are one of the top 10 ocean pollutants. Paper, bamboo, or metal alternatives are easy swaps.",
+  "<strong>Flowers</strong> support pollinators like bees and butterflies, which are essential for 75% of the world's food crops.",
+  "<strong>Ghost nets</strong> — abandoned fishing nets — trap and drown sea turtles, dolphins, and whales every year.",
+];
+let factIdx = 0;
+
+function showFact(idx) {
+  factEl.innerHTML = facts[idx % facts.length];
+}
+
+const GOOD = [
+  { id: 'leaf' }, { id: 'flower' }, { id: 'drop' }, { id: 'seed' }
+];
+const BAD = [
+  { id: 'bag' }, { id: 'bottle' }, { id: 'straw' }
+];
+
+/* ── SPEED CONFIG (the key change) ──────────────────────
+   Level 1: very slow, player can read the situation
+   Each level adds a meaningful but not brutal step up.
+   Speed = BASE + (level-1) * STEP, capped at MAX          */
+const SPEED_BASE = 1.4;
+const SPEED_STEP = 0.55;
+const SPEED_MAX  = 6.5;
+const SPAWN_BASE = 80;
+const SPAWN_MIN  = 30;
+
+function levelSpeed(lvl) {
+  return Math.min(SPEED_BASE + (lvl - 1) * SPEED_STEP, SPEED_MAX);
+}
+function spawnInterval(lvl) {
+  return Math.max(SPAWN_BASE - (lvl - 1) * 6, SPAWN_MIN);
+}
+function speedLabel(lvl) {
+  if (lvl === 1) return 'Slow';
+  if (lvl === 2) return 'Easy';
+  if (lvl === 3) return 'Medium';
+  if (lvl === 4) return 'Fast';
+  if (lvl === 5) return 'Faster';
+  return 'Max speed';
+}
+function speedColor(lvl) {
+  const colors = ['#639922','#3B6D11','#BA7517','#D85A30','#993C1D','#A32D2D'];
+  return colors[Math.min(lvl - 1, colors.length - 1)];
+}
+
+let basket, items, particles, popups;
+let score, lives, level, gameOver, started;
+let spawnTimer, wobbleT, frameId;
+
+function reset() {
+  basket = { x: W/2 - 52, y: H - 56, w: 104, h: 38 };
+  items = []; particles = []; popups = [];
+  score = 0; lives = 3; level = 1;
+  gameOver = false; spawnTimer = 0; wobbleT = 0;
+  updateHUD();
+}
+
+function updateHUD() {
+  document.getElementById('s-score').textContent = score;
+  document.getElementById('s-lives').textContent = '♥'.repeat(Math.max(0, lives));
+  document.getElementById('s-level').textContent = level;
+  const inLevel = score % 50;
+  document.getElementById('progress-fill').style.width = (inLevel * 2) + '%';
+  document.getElementById('pts-left').textContent = 50 - inLevel;
+  speedBadge.textContent = speedLabel(level);
+  speedBadge.style.background = speedColor(level);
+}
+
+function spawnItem() {
+  const isGood = Math.random() > 0.36;
+  const pool = isGood ? GOOD : BAD;
+  const type = pool[Math.floor(Math.random() * pool.length)];
+  const spd = levelSpeed(level);
+  items.push({
+    x: 22 + Math.random() * (W - 44),
+    y: -24,
+    id: type.id,
+    good: isGood,
+    wobble: Math.random() * Math.PI * 2,
+    speed: spd * (0.88 + Math.random() * 0.24),
+  });
+}
+
+function addParticles(x, y, good) {
+  const color = good ? '#3B6D11' : '#E24B4A';
+  for (let i = 0; i < 12; i++) {
+    const a = Math.random() * Math.PI * 2, s = 1.5 + Math.random() * 3;
+    particles.push({ x, y, vx: Math.cos(a)*s, vy: Math.sin(a)*s - 2.5, r: 2.5 + Math.random()*3, color, life: 26, maxLife: 26 });
+  }
+}
+
+/* ── DRAW FUNCTIONS ──────────────────────────────────── */
+
+function drawSky() {
+  ctx.fillStyle = '#dff0d2';
+  ctx.fillRect(0, 0, W, H);
+
+  // sun
+  ctx.fillStyle = '#FAC775';
+  ctx.beginPath(); ctx.arc(W - 60, 48, 30, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#EF9F27';
+  ctx.beginPath(); ctx.arc(W - 60, 48, 22, 0, Math.PI*2); ctx.fill();
+
+  // clouds
+  const cloudColor = '#C0DD97';
+  [[60,32,38],[180,50,28],[350,28,44],[490,44,32],[580,55,24]].forEach(([cx,cy,r]) => {
+    ctx.fillStyle = cloudColor;
+    ctx.beginPath(); ctx.ellipse(cx, cy, r*1.7, r*0.75, 0, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(cx + r*0.7, cy - r*0.45, r, r*0.65, 0, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(cx - r*0.55, cy - r*0.3, r*0.85, r*0.55, 0, 0, Math.PI*2); ctx.fill();
+  });
+
+  // ground strip
+  ctx.fillStyle = '#97C459';
+  ctx.fillRect(0, H - 30, W, 30);
+  ctx.fillStyle = '#639922';
+  ctx.fillRect(0, H - 30, W, 5);
+
+  // grass tufts
+  ctx.fillStyle = '#3B6D11';
+  for (let i = 0; i < 18; i++) {
+    const gx = i * 38 + 8, gy = H - 30;
+    ctx.beginPath(); ctx.moveTo(gx, gy); ctx.quadraticCurveTo(gx+5, gy-13, gx+10, gy); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(gx+8, gy); ctx.quadraticCurveTo(gx+13, gy-10, gx+18, gy); ctx.fill();
+  }
+
+  // tiny flowers in grass
+  [[80,H-22],[200,H-20],[320,H-23],[440,H-21],[560,H-22]].forEach(([fx,fy]) => {
+    ctx.fillStyle = '#D4537E';
+    for (let p = 0; p < 5; p++) {
+      const a = (Math.PI*2/5)*p;
+      ctx.beginPath(); ctx.ellipse(fx+Math.cos(a)*5, fy+Math.sin(a)*5, 3, 3, 0, 0, Math.PI*2); ctx.fill();
+    }
+    ctx.fillStyle = '#FAC775';
+    ctx.beginPath(); ctx.arc(fx, fy, 3.5, 0, Math.PI*2); ctx.fill();
+  });
+}
+
+function drawBasket(bx, by, bw, bh) {
+  const mx = bx + bw/2;
+
+  // shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.12)';
+  ctx.beginPath(); ctx.ellipse(mx, by + bh + 6, bw*0.46, 6, 0, 0, Math.PI*2); ctx.fill();
+
+  // body
+  ctx.fillStyle = '#C8814A';
+  ctx.beginPath();
+  ctx.moveTo(bx + 8, by);
+  ctx.lineTo(bx + bw - 8, by);
+  ctx.quadraticCurveTo(bx + bw + 2, by + 2, bx + bw - 4, by + bh);
+  ctx.lineTo(bx + 4, by + bh);
+  ctx.quadraticCurveTo(bx - 2, by + 2, bx + 8, by);
+  ctx.closePath(); ctx.fill();
+
+  // weave vertical
+  ctx.strokeStyle = '#8B5A2B'; ctx.lineWidth = 1.2;
+  for (let i = 0; i <= 5; i++) {
+    const lx = bx + (bw / 5) * i;
+    ctx.beginPath(); ctx.moveTo(lx, by); ctx.lineTo(lx + 2, by + bh); ctx.stroke();
+  }
+  // weave horizontal
+  for (let j = 1; j <= 3; j++) {
+    const ly = by + (bh / 4) * j;
+    ctx.beginPath(); ctx.moveTo(bx, ly); ctx.lineTo(bx + bw, ly); ctx.stroke();
+  }
+
+  // rim
+  ctx.fillStyle = '#E0A96D';
+  ctx.beginPath();
+  ctx.moveTo(bx - 2, by + 3);
+  ctx.quadraticCurveTo(mx, by - 12, bx + bw + 2, by + 3);
+  ctx.quadraticCurveTo(mx, by + 9, bx - 2, by + 3);
+  ctx.fill();
+  ctx.strokeStyle = '#8B5A2B'; ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(bx - 2, by + 3);
+  ctx.quadraticCurveTo(mx, by - 12, bx + bw + 2, by + 3);
+  ctx.stroke();
+
+  // knots on rim
+  [mx - 18, mx, mx + 18].forEach(kx => {
+    ctx.fillStyle = '#F5C88A';
+    ctx.beginPath(); ctx.arc(kx, by - 2, 3.5, 0, Math.PI*2); ctx.fill();
+  });
+
+  // inner shine
+  ctx.fillStyle = 'rgba(255,255,255,0.14)';
+  ctx.beginPath(); ctx.ellipse(mx - 12, by + bh*0.38, 14, 6, -0.3, 0, Math.PI*2); ctx.fill();
+}
+
+function drawItem(item) {
+  const { x, y, id } = item;
+  ctx.save();
+  ctx.translate(x, y);
+
+  if (id === 'leaf') {
+    ctx.fillStyle = '#3B6D11';
+    ctx.beginPath();
+    ctx.moveTo(0,-15); ctx.bezierCurveTo(13,-8,13,8,0,15);
+    ctx.bezierCurveTo(-13,8,-13,-8,0,-15);
+    ctx.fill();
+    ctx.strokeStyle = '#173404'; ctx.lineWidth = 0.9;
+    ctx.beginPath(); ctx.moveTo(0,-15); ctx.lineTo(0,15); ctx.stroke();
+    [[-2,1],[2,-5],[-2,-9],[2,5]].forEach(([ox,oy]) => {
+      ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(ox < 0 ? -11 : 11, oy + 4); ctx.stroke();
+    });
+
+  } else if (id === 'flower') {
+    for (let i = 0; i < 6; i++) {
+      ctx.save(); ctx.rotate((Math.PI*2/6)*i);
+      ctx.fillStyle = '#D4537E';
+      ctx.beginPath(); ctx.ellipse(0, -11, 5.5, 8.5, 0, 0, Math.PI*2); ctx.fill();
+      ctx.restore();
+    }
+    ctx.fillStyle = '#FAC775';
+    ctx.beginPath(); ctx.arc(0, 0, 7, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#BA7517';
+    ctx.beginPath(); ctx.arc(0, 0, 3.5, 0, Math.PI*2); ctx.fill();
+
+  } else if (id === 'drop') {
+    ctx.fillStyle = '#378ADD';
+    ctx.beginPath();
+    ctx.moveTo(0, 15);
+    ctx.bezierCurveTo(11, 5, 11, -4, 0, -11);
+    ctx.bezierCurveTo(-11, -4, -11, 5, 0, 15);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.45)';
+    ctx.beginPath(); ctx.ellipse(-3.5, -2, 3, 6, -0.4, 0, Math.PI*2); ctx.fill();
+
+  } else if (id === 'seed') {
+    ctx.fillStyle = '#BA7517';
+    ctx.beginPath(); ctx.ellipse(0, 2, 5.5, 13, 0.2, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = '#633806'; ctx.lineWidth = 0.9;
+    ctx.beginPath(); ctx.moveTo(0, -10); ctx.lineTo(0, -16); ctx.stroke();
+    [[-1,-13],[-1,-10]].forEach(([ox,oy]) => {
+      ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(-8, oy - 5); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(8, oy - 5); ctx.stroke();
+    });
+
+  } else if (id === 'bag') {
+    ctx.fillStyle = 'rgba(180,220,255,0.85)';
+    ctx.strokeStyle = 'rgba(100,160,220,0.9)'; ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(11, 2); ctx.bezierCurveTo(22, 3, 22, 20, 11, 24);
+    ctx.bezierCurveTo(0, 20, 0, 3, 11, 2); ctx.closePath();
+    ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(6, 2); ctx.lineTo(4, -8); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(16, 2); ctx.lineTo(18, -8); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(4, -8); ctx.lineTo(18, -8); ctx.stroke();
+    ctx.font = '600 7px Nunito, sans-serif';
+    ctx.fillStyle = 'rgba(60,120,200,0.65)';
+    ctx.textAlign = 'center'; ctx.fillText('plastic', 11, 14); ctx.textAlign = 'left';
+    ctx.translate(-11, 0);
+
+  } else if (id === 'bottle') {
+    ctx.fillStyle = 'rgba(150,215,255,0.82)';
+    ctx.strokeStyle = 'rgba(80,160,220,0.9)'; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.roundRect(-6, 2, 12, 20, 3); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = 'rgba(80,160,220,0.9)';
+    ctx.fillRect(-4, -4, 8, 7);
+    ctx.fillStyle = '#ccc';
+    ctx.beginPath(); ctx.roundRect(-4, -9, 8, 6, 2); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.55)'; ctx.lineWidth = 0.9;
+    [5, 10, 15].forEach(yi => {
+      ctx.beginPath(); ctx.moveTo(-5, yi); ctx.lineTo(5, yi); ctx.stroke();
+    });
+
+  } else if (id === 'straw') {
+    ctx.save(); ctx.rotate(0.22);
+    ctx.fillStyle = '#F09595';
+    ctx.beginPath(); ctx.roundRect(-4.5, -17, 9, 34, 3); ctx.fill();
+    ctx.fillStyle = '#E24B4A';
+    [-17, -9, -1, 7, 15].forEach(yi => {
+      ctx.fillRect(-4.5, yi, 9, 4);
+    });
+    ctx.restore();
+  }
+
+  ctx.restore();
+}
+
+function drawParticles() {
+  particles = particles.filter(p => p.life > 0);
+  for (const p of particles) {
+    ctx.globalAlpha = p.life / p.maxLife;
+    ctx.fillStyle = p.color;
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.r * (p.life/p.maxLife), 0, Math.PI*2); ctx.fill();
+    p.x += p.vx; p.y += p.vy; p.vy += 0.14; p.life--;
+  }
+  ctx.globalAlpha = 1;
+}
+
+function drawPopups() {
+  popups = popups.filter(p => {
+    p.life--;
+    ctx.globalAlpha = Math.min(1, p.life / 15);
+    ctx.font = '700 15px Nunito, sans-serif';
+    ctx.fillStyle = p.good ? '#27500A' : '#A32D2D';
+    ctx.textAlign = 'center';
+    ctx.fillText(p.text, p.x, p.y - (p.maxLife - p.life) * 0.6);
+    ctx.textAlign = 'left';
+    ctx.globalAlpha = 1;
+    return p.life > 0;
+  });
+}
+
+/* ── MAIN GAME LOOP ─────────────────────────────────── */
+
+let lastLevel = 1;
+
+function tick() {
+  wobbleT += 0.035;
+  ctx.clearRect(0, 0, W, H);
+  drawSky();
+
+  const bWobble = Math.sin(wobbleT * 1.1) * 1.4;
+  drawBasket(basket.x, basket.y + bWobble, basket.w, basket.h);
+
+  spawnTimer--;
+  if (spawnTimer <= 0) {
+    spawnItem();
+    spawnTimer = spawnInterval(level);
+  }
+
+  const bx = basket.x, by = basket.y, bw = basket.w, bh = basket.h;
+
+  items = items.filter(item => {
+    item.y += item.speed;
+    item.wobble += 0.045;
+    const wx = item.x + Math.sin(item.wobble) * (item.good ? 1.8 : 0.9);
+    if (item.y > H + 30) return false;
+
+    drawItem({ ...item, x: wx });
+
+    const cx = wx, cy = item.y;
+    if (cy >= by - 4 && cy <= by + bh + 8 && cx >= bx + 8 && cx <= bx + bw - 8) {
+      if (item.good) {
+        score += 10;
+        popups.push({ x: cx, y: by - 8, text: '+10', good: true, life: 32, maxLife: 32 });
+      } else {
+        lives--;
+        popups.push({ x: cx, y: by - 8, text: '-1 life', good: false, life: 32, maxLife: 32 });
+        if (lives <= 0) gameOver = true;
+      }
+      addParticles(cx, cy, item.good);
+      factIdx++;
+      showFact(factIdx);
+      return false;
+    }
+    return true;
+  });
+
+  drawParticles();
+  drawPopups();
+
+  const newLevel = Math.floor(score / 50) + 1;
+  if (newLevel !== lastLevel) {
+    lastLevel = newLevel;
+    items.forEach(item => { item.speed = levelSpeed(newLevel) * (0.88 + Math.random() * 0.24); });
+  }
+  level = newLevel;
+  updateHUD();
+
+  if (gameOver) {
+    ovTitle.textContent = 'Game over';
+    ovSub.textContent = 'You scored ' + score + ' pts at Level ' + level + '. Every piece of plastic you avoided helps protect our oceans!';
+    ovBtn.textContent = 'Try again';
+    ovEl.style.display = 'flex';
+    return;
+  }
+
+  frameId = requestAnimationFrame(tick);
+}
+
+function startGame() {
+  if (frameId) cancelAnimationFrame(frameId);
+  reset();
+  lastLevel = 1;
+  ovEl.style.display = 'none';
+  started = true;
+  showFact(0);
+  frameId = requestAnimationFrame(tick);
+}
+
+ovBtn.addEventListener('click', startGame);
+
+document.addEventListener('keydown', e => {
+  if (!started || gameOver) return;
+  const step = 30;
+  if (e.key === 'ArrowLeft')  { basket.x = Math.max(0, basket.x - step); e.preventDefault(); }
+  if (e.key === 'ArrowRight') { basket.x = Math.min(W - basket.w, basket.x + step); e.preventDefault(); }
+});
+
+canvas.addEventListener('click', e => {
+  if (!started || gameOver) return;
+  const rect = canvas.getBoundingClientRect();
+  const cx = (e.clientX - rect.left) / rect.width * W;
+  const step = 50;
+  if (cx < W/2) basket.x = Math.max(0, basket.x - step);
+  else basket.x = Math.min(W - basket.w, basket.x + step);
+});
+
+canvas.addEventListener('touchstart', e => {
+  if (!started || gameOver) return;
+  e.preventDefault();
+  const rect = canvas.getBoundingClientRect();
+  const cx = (e.touches[0].clientX - rect.left) / rect.width * W;
+  const step = 54;
+  if (cx < W/2) basket.x = Math.max(0, basket.x - step);
+  else basket.x = Math.min(W - basket.w, basket.x + step);
+}, { passive: false });
+
+reset();
+</script>
+</body>
+</html>

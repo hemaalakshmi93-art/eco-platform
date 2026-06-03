@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Result</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial;
+    background:linear-gradient(to right,#0f2027,#203a43,#2c5364);
+    color:white;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+}
+
+.box{
+    padding:40px;
+    border-radius:15px;
+    text-align:center;
+    box-shadow:0 0 20px rgba(0,0,0,0.5);
+}
+
+.success{
+    background:rgba(0,255,100,0.2);
+    border:2px solid #00ff88;
+}
+
+.fail{
+    background:rgba(255,0,0,0.2);
+    border:2px solid #ff4d4d;
+}
+
+h1{
+    font-size:28px;
+}
+
+button{
+    padding: 12px 24px;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+button:hover{
+    transform: scale(1.05);
+}
+
+.btn-dashboard{
+    background: linear-gradient(135deg, #00c896, #007a5e);
+    box-shadow: 0 4px 15px rgba(0,200,150,0.3);
+}
+
+.btn-retry{
+    background: linear-gradient(135deg, #4facfe, #00c2ff);
+    box-shadow: 0 4px 15px rgba(79,172,254,0.3);
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="box {{ status }}">
+    <h1>{{ message }}</h1>
+    {% if image %}
+    <img src="/static/uploads/{{ image }}" width="200" 
+         style="margin-top:15px;border-radius:10px;display:block;margin-left:auto;margin-right:auto;">
+    {% endif %}
+
+    <div style="margin-top:25px; display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+        <button class="btn-dashboard" onclick="goBack()">🏠 Dashboard</button>
+        <button class="btn-retry" onclick="retry()">🔁 Try Again</button>
+    </div>
+</div>
+
+<script>
+function goBack(){
+    window.location.href = "/dashboard/{{ name }}/{{ role }}";
+}
+function retry(){
+    window.location.href = "/challenges/{{ name }}/{{ role }}";
+}
+</script>
+
+</body>
+</html>

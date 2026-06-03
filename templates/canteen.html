@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Green Canteen</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a1628;
+  --card:rgba(255,255,255,0.07);
+  --border:rgba(255,255,255,0.12);
+  --green:#4ade80;
+  --green2:#22c55e;
+  --yellow:#fbbf24;
+  --red:#f87171;
+  --blue:#60a5fa;
+  --text:#f1f5f9;
+  --muted:#94a3b8;
+}
+html,body{height:100%;overflow:hidden}
+body{
+  font-family:'Nunito',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  min-height:100vh;
+  overflow:hidden;
+}
+
+/* BG BLOBS */
+.blob{position:fixed;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:0}
+.blob1{width:400px;height:400px;background:rgba(74,222,128,0.12);top:-100px;left:-100px;animation:drift 12s ease-in-out infinite alternate}
+.blob2{width:350px;height:350px;background:rgba(96,165,250,0.10);bottom:-80px;right:-80px;animation:drift 10s ease-in-out infinite alternate-reverse}
+.blob3{width:250px;height:250px;background:rgba(251,191,36,0.08);top:50%;left:50%;animation:drift 14s ease-in-out infinite alternate}
+@keyframes drift{from{transform:translate(0,0)}to{transform:translate(30px,20px)}}
+
+/* STARS */
+body::before{
+  content:"";position:fixed;inset:0;
+  background-image:radial-gradient(rgba(255,255,255,0.05) 1px,transparent 1px);
+  background-size:32px 32px;z-index:0;pointer-events:none;
+}
+
+.wrap{
+  position:relative;z-index:1;
+  width:min(680px,100vw);
+  padding:12px 16px;
+  display:flex;flex-direction:column;gap:10px;
+}
+
+/* BACK */
+.back{
+  display:inline-flex;align-items:center;gap:6px;
+  color:var(--muted);font-size:13px;font-weight:700;
+  text-decoration:none;width:fit-content;
+  padding:6px 12px;border-radius:10px;
+  border:1px solid rgba(255,255,255,0.08);
+  background:rgba(255,255,255,0.04);
+  transition:all 0.2s;
+}
+.back:hover{color:var(--text);border-color:rgba(255,255,255,0.2);background:rgba(255,255,255,0.08)}
+
+/* HEADER */
+.header{
+  background:var(--card);backdrop-filter:blur(16px);
+  border:1px solid var(--border);border-radius:20px;
+  padding:14px 20px;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  flex-wrap:wrap;
+}
+.game-title{
+  font-family:'Fredoka One',cursive;
+  font-size:clamp(18px,4vw,26px);
+  color:var(--green);
+  text-shadow:0 0 20px rgba(74,222,128,0.4);
+}
+.stats{display:flex;gap:10px;flex-wrap:wrap}
+.stat{
+  display:flex;align-items:center;gap:5px;
+  background:rgba(0,0,0,0.25);
+  border-radius:10px;padding:5px 12px;
+  font-size:13px;font-weight:800;
+  border:1px solid rgba(255,255,255,0.08);
+}
+.stat.timer{color:var(--yellow)}
+.stat.score-s{color:var(--green)}
+.stat.served-s{color:var(--blue)}
+#timeVal{font-size:15px}
+#timeVal.urgent{color:var(--red);animation:pulse 0.5s ease-in-out infinite alternate}
+@keyframes pulse{from{opacity:1}to{opacity:0.4}}
+
+/* CUSTOMER */
+.customer-card{
+  background:var(--card);backdrop-filter:blur(16px);
+  border:1px solid var(--border);border-radius:20px;
+  padding:14px 20px;
+  display:flex;align-items:center;gap:16px;
+}
+.customer-emoji{
+  font-size:clamp(40px,8vw,56px);
+  animation:bob 2s ease-in-out infinite;
+  flex-shrink:0;
+}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+.customer-info{flex:1}
+.customer-label{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px}
+.customer-order{font-size:clamp(13px,2.5vw,16px);font-weight:700;color:var(--yellow);line-height:1.4}
+
+/* TRAY */
+.tray-section{
+  background:rgba(0,0,0,0.3);border:2px dashed rgba(255,255,255,0.12);
+  border-radius:16px;padding:12px 16px;
+  min-height:56px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+}
+.tray-label{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px}
+.tray-item{
+  background:rgba(74,222,128,0.15);border:1px solid rgba(74,222,128,0.35);
+  border-radius:10px;padding:5px 12px;font-size:13px;font-weight:700;
+  display:flex;align-items:center;gap:6px;cursor:pointer;transition:all 0.15s;
+}
+.tray-item:hover{background:rgba(248,113,113,0.15);border-color:rgba(248,113,113,0.35)}
+.tray-empty{color:var(--muted);font-size:13px;font-style:italic}
+.tray-count{
+  margin-left:auto;font-size:12px;font-weight:800;
+  color:var(--muted);white-space:nowrap;
+}
+
+/* ITEMS GRID */
+.items-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:8px;
+}
+@media(max-width:480px){.items-grid{grid-template-columns:repeat(3,1fr)}}
+.item{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:14px;padding:10px 6px;
+  text-align:center;cursor:pointer;
+  transition:all 0.18s;user-select:none;
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+}
+.item:hover{transform:translateY(-2px);border-color:rgba(255,255,255,0.25)}
+.item.picked{
+  background:rgba(74,222,128,0.12);
+  border-color:rgba(74,222,128,0.5);
+  box-shadow:0 0 12px rgba(74,222,128,0.2);
+}
+.item.bad-item{
+  background:rgba(239,68,68,0.06);
+  border-color:rgba(239,68,68,0.2);
+}
+.item-emoji{font-size:clamp(22px,4vw,28px)}
+.item-name{font-size:10px;font-weight:700;color:var(--muted);line-height:1.2;text-align:center}
+.item.picked .item-name{color:var(--green)}
+
+/* SERVE BTN */
+.serve-btn{
+  width:100%;padding:14px;border:none;border-radius:16px;
+  font-family:'Fredoka One',cursive;font-size:20px;
+  cursor:pointer;transition:all 0.25s;
+  background:linear-gradient(135deg,var(--green),var(--green2));
+  color:#fff;box-shadow:0 8px 24px rgba(34,197,94,0.3);
+  letter-spacing:0.02em;
+}
+.serve-btn:hover{transform:translateY(-2px);box-shadow:0 14px 32px rgba(34,197,94,0.4)}
+.serve-btn:active{transform:scale(0.98)}
+.serve-btn:disabled{opacity:0.4;cursor:not-allowed;transform:none}
+
+/* FLOAT */
+.float-txt{
+  position:fixed;font-family:'Fredoka One',cursive;font-size:22px;
+  pointer-events:none;z-index:100;animation:rise 1s forwards;
+}
+@keyframes rise{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-60px) scale(1.3)}}
+
+/* POPUP */
+.popup{
+  position:fixed;inset:0;background:rgba(0,0,0,0.75);
+  display:none;align-items:center;justify-content:center;z-index:50;
+  backdrop-filter:blur(8px);
+}
+.popup.show{display:flex}
+.popup-card{
+  background:linear-gradient(135deg,#0f2027,#1a2a3a);
+  border:1px solid var(--border);border-radius:24px;
+  padding:36px 32px;text-align:center;
+  width:min(420px,90vw);
+  animation:pop 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes pop{from{transform:scale(0.7);opacity:0}to{transform:scale(1);opacity:1}}
+.popup-icon{font-size:64px;margin-bottom:12px}
+.popup-title{font-family:'Fredoka One',cursive;font-size:32px;margin-bottom:10px}
+.popup-title.win{color:var(--green)}
+.popup-title.lose{color:var(--red)}
+.popup-msg{color:var(--muted);font-size:16px;line-height:1.6;margin-bottom:24px}
+.popup-score{
+  font-family:'Fredoka One',cursive;font-size:48px;
+  color:var(--yellow);margin:12px 0;
+}
+.popup-btn{
+  padding:12px 32px;border:none;border-radius:14px;
+  font-family:'Fredoka One',cursive;font-size:18px;cursor:pointer;
+  background:linear-gradient(135deg,var(--green),var(--green2));
+  color:#fff;transition:all 0.2s;box-shadow:0 8px 20px rgba(34,197,94,0.3);
+}
+.popup-btn:hover{transform:translateY(-2px)}
+
+/* FEEDBACK BAR */
+.feedback{
+  height:36px;display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:700;border-radius:12px;
+  transition:all 0.3s;opacity:0;
+}
+.feedback.show{opacity:1}
+.feedback.ok{background:rgba(74,222,128,0.15);color:var(--green)}
+.feedback.bad{background:rgba(248,113,113,0.15);color:var(--red)}
+</style>
+</head>
+<body>
+
+<div class="blob blob1"></div>
+<div class="blob blob2"></div>
+<div class="blob blob3"></div>
+
+<div class="wrap">
+
+  <!-- BACK -->
+  <a class="back" href="/map/{{ name }}">‹ Back</a>
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="game-title">🥗 Green Canteen</div>
+    <div class="stats">
+      <div class="stat timer">⏱ <span id="timeVal">45</span>s</div>
+      <div class="stat score-s">⭐ <span id="scoreVal">0</span></div>
+      <div class="stat served-s">👥 <span id="servedVal">0</span>/5</div>
+    </div>
+  </div>
+
+  <!-- CUSTOMER -->
+  <div class="customer-card">
+    <div class="customer-emoji" id="customerEmoji">🧑</div>
+    <div class="customer-info">
+      <div class="customer-label">Customer Order</div>
+      <div class="customer-order" id="orderText">Loading...</div>
+    </div>
+  </div>
+
+  <!-- TRAY -->
+  <div>
+    <div class="tray-label">🍽️ Your Tray</div>
+    <div class="tray-section" id="tray">
+      <span class="tray-empty">Select 3 items below...</span>
+      <span class="tray-count" id="trayCount">0 / 3</span>
+    </div>
+  </div>
+
+  <!-- FEEDBACK -->
+  <div class="feedback" id="feedback"></div>
+
+  <!-- ITEMS -->
+  <div class="items-grid" id="itemsGrid"></div>
+
+  <!-- SERVE -->
+  <button class="serve-btn" id="serveBtn" onclick="serveTray()" disabled>
+    Serve Tray 🚀
+  </button>
+
+</div>
+
+<!-- POPUP -->
+<div class="popup" id="popup">
+  <div class="popup-card">
+    <div class="popup-icon" id="popupIcon"></div>
+    <div class="popup-title" id="popupTitle"></div>
+    <div class="popup-score" id="popupScore"></div>
+    <div class="popup-msg" id="popupMsg"></div>
+    <button class="popup-btn" onclick="restartGame()">Play Again 🔄</button>
+  </div>
+</div>
+
+<script>
+const CUSTOMERS = ["🧑","👩","🧒","👨‍🎓","👩‍🎓","🧔","👧","🧓","👱‍♀️","🙋‍♂️"];
+
+const ALL_ITEMS = [
+  {e:"🍌",n:"Banana",    good:true,  fruit:true,  food:true,  drink:false},
+  {e:"🥪",n:"Sandwich",  good:true,  fruit:false, food:true,  drink:false},
+  {e:"🍎",n:"Fruit Bowl",good:true,  fruit:true,  food:true,  drink:false},
+  {e:"🥤",n:"Steel Bottle",good:true,fruit:false, food:false, drink:true},
+  {e:"🍱",n:"Reusable Box",good:true,fruit:false, food:true,  drink:false},
+  {e:"🥗",n:"Salad",     good:true,  fruit:false, food:true,  drink:false},
+  {e:"🍊",n:"Orange",    good:true,  fruit:true,  food:true,  drink:false},
+  {e:"🥛",n:"Milk Carton",good:true, fruit:false, food:false, drink:true},
+  {e:"🥤",n:"Plastic Cup",good:false,fruit:false, food:false, drink:true},
+  {e:"🍟",n:"Chips Pack", good:false,fruit:false, food:true,  drink:false},
+  {e:"🥄",n:"Plastic Spoon",good:false,fruit:false,food:false,drink:false},
+  {e:"☕",n:"Foam Cup",   good:false,fruit:false, food:false, drink:true},
+  {e:"🍬",n:"Candy Wrap", good:false,fruit:false, food:true,  drink:false},
+  {e:"📦",n:"Foam Box",   good:false,fruit:false, food:true,  drink:false},
+];
+
+const ORDERS = [
+  {txt:"Any 3 eco-friendly items 🌿",         rule:["good","good","good"]},
+  {txt:"2 healthy foods + 1 drink 🥤",        rule:["food","food","drink"]},
+  {txt:"Plastic-free tray only! ♻️",          rule:["good","good","good"]},
+  {txt:"2 fruits + anything 🍎",              rule:["fruit","fruit","any"]},
+  {txt:"1 drink + 2 foods 🍱",               rule:["drink","food","food"]},
+  {txt:"3 plant-based items 🌱",             rule:["good","good","good"]},
+  {txt:"No plastic! Pick 3 green items 💚",  rule:["good","good","good"]},
+];
+
+let selected = [];
+let score = 0, time = 45, served = 0;
+let timer, currentOrder, currentItems;
+
+function shuffle(a){return [...a].sort(()=>Math.random()-0.5)}
+
+function loadRound(){
+  selected = [];
+  renderTray();
+  hideFeedback();
+  document.getElementById("serveBtn").disabled = true;
+
+  document.getElementById("customerEmoji").textContent =
+    CUSTOMERS[Math.floor(Math.random()*CUSTOMERS.length)];
+  currentOrder = ORDERS[Math.floor(Math.random()*ORDERS.length)];
+  document.getElementById("orderText").textContent = currentOrder.txt;
+
+  // ensure at least 4 good items visible
+  const good = shuffle(ALL_ITEMS.filter(i=>i.good)).slice(0,4);
+  const bad  = shuffle(ALL_ITEMS.filter(i=>!i.good)).slice(0,4);
+  currentItems = shuffle([...good,...bad]);
+
+  const grid = document.getElementById("itemsGrid");
+  grid.innerHTML = "";
+  currentItems.forEach(item=>{
+    const d = document.createElement("div");
+    d.className = "item" + (item.good ? "" : " bad-item");
+    d.innerHTML = `<span class="item-emoji">${item.e}</span><span class="item-name">${item.n}</span>`;
+    d.onclick = ()=>toggleItem(item, d);
+    d.dataset.name = item.n;
+    grid.appendChild(d);
+  });
+}
+
+function toggleItem(item, el){
+  const idx = selected.findIndex(s=>s.n===item.n);
+  if(idx>=0){
+    selected.splice(idx,1);
+    el.classList.remove("picked");
+  } else {
+    if(selected.length>=3) return;
+    selected.push(item);
+    el.classList.add("picked");
+  }
+  renderTray();
+  document.getElementById("serveBtn").disabled = selected.length!==3;
+}
+
+function renderTray(){
+  const tray = document.getElementById("tray");
+  const count = document.getElementById("trayCount");
+  count.textContent = selected.length + " / 3";
+  if(!selected.length){
+    tray.innerHTML = `<span class="tray-empty">Select 3 items below...</span>`;
+    tray.appendChild(count);
+    return;
+  }
+  tray.innerHTML = "";
+  selected.forEach(item=>{
+    const d = document.createElement("div");
+    d.className = "tray-item";
+    d.innerHTML = `${item.e} ${item.n} <span style="opacity:0.5;font-size:11px">✕</span>`;
+    d.onclick = ()=>{
+      const el = document.querySelector(`.item[data-name="${item.n}"]`);
+      if(el) el.classList.remove("picked");
+      selected = selected.filter(s=>s.n!==item.n);
+      renderTray();
+      document.getElementById("serveBtn").disabled = selected.length!==3;
+    };
+    tray.appendChild(d);
+  });
+  tray.appendChild(count);
+}
+
+function matchRule(item, type){
+  if(type==="any")    return true;
+  if(type==="good")   return item.good;
+  if(type==="healthy")return item.good;
+  if(type==="drink")  return item.drink;
+  if(type==="fruit")  return item.fruit;
+  if(type==="food")   return item.food;
+  return false;
+}
+
+function serveTray(){
+  if(selected.length!==3) return;
+  let temp = [...selected];
+  let ok = true;
+  for(let rule of currentOrder.rule){
+    const found = temp.findIndex(x=>matchRule(x,rule));
+    if(found>=0) temp.splice(found,1);
+    else{ ok=false; break; }
+  }
+  if(ok){
+    score+=3; served++;
+    showFeedback("✅ Perfect order! +3 points","ok");
+    floatText("+3 🌿", "#4ade80");
+  } else {
+    score=Math.max(0,score-2);
+    showFeedback("❌ Wrong items! -2 points","bad");
+    floatText("-2 🗑️","#f87171");
+  }
+  document.getElementById("scoreVal").textContent = score;
+  document.getElementById("servedVal").textContent = served;
+  if(served>=5){ setTimeout(()=>endGame(true),600); return; }
+  setTimeout(loadRound, 700);
+}
+
+function floatText(txt, color){
+  const d = document.createElement("div");
+  d.className = "float-txt";
+  d.textContent = txt;
+  d.style.color = color;
+  d.style.left = "50%";
+  d.style.top = "40%";
+  d.style.transform = "translateX(-50%)";
+  document.body.appendChild(d);
+  setTimeout(()=>d.remove(),1000);
+}
+
+function showFeedback(msg, type){
+  const f = document.getElementById("feedback");
+  f.textContent = msg;
+  f.className = "feedback show " + type;
+}
+function hideFeedback(){
+  document.getElementById("feedback").className = "feedback";
+}
+
+function startTimer(){
+  clearInterval(timer);
+  timer = setInterval(()=>{
+    time--;
+    const el = document.getElementById("timeVal");
+    el.textContent = time;
+    if(time<=10) el.classList.add("urgent");
+    else el.classList.remove("urgent");
+    if(time<=0) endGame(served>=5);
+  },1000);
+}
+
+function endGame(win){
+  clearInterval(timer);
+  const popup = document.getElementById("popup");
+  document.getElementById("popupIcon").textContent   = win ? "🏆" : "⏰";
+  document.getElementById("popupTitle").textContent  = win ? "Canteen Saved!" : "Time's Up!";
+  document.getElementById("popupTitle").className    = "popup-title " + (win?"win":"lose");
+  document.getElementById("popupScore").textContent  = score + " pts";
+  document.getElementById("popupMsg").textContent    = win
+    ? `Amazing! You served all 5 customers and kept the canteen green! 🌿`
+    : `You served ${served}/5 customers. Better luck next time! 💪`;
+  popup.classList.add("show");
+}
+
+function restartGame(){
+  score=0; time=45; served=0;
+  document.getElementById("scoreVal").textContent="0";
+  document.getElementById("servedVal").textContent="0";
+  document.getElementById("timeVal").textContent="45";
+  document.getElementById("timeVal").classList.remove("urgent");
+  document.getElementById("popup").classList.remove("show");
+  loadRound();
+  startTimer();
+}
+
+loadRound();
+startTimer();
+</script>
+</body>
+</html>

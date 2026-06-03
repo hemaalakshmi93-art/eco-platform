@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EcoQuest – Progress Report</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Space Grotesk', sans-serif; background: #e8f5e9; display: flex; align-items: center; justify-content: center; padding: 32px 16px; min-height: 100vh; }
+    .email-wrapper { width: 100%; max-width: 600px; background: #fff; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 60px rgba(27,94,32,0.18); }
+    .email-header { background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 40%, #43a047 100%); padding: 40px 40px 32px; text-align: center; position: relative; overflow: hidden; }
+    .email-header::before { content:''; position:absolute; top:-60px; right:-60px; width:200px; height:200px; background:rgba(255,255,255,0.05); border-radius:50%; }
+    .logo-area { display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:20px; }
+    .logo-icon { width:48px; height:48px; }
+    .logo-text { font-family:'Nunito',sans-serif; font-size:28px; font-weight:900; color:#fff; }
+    .logo-text span { color:#a5d6a7; }
+    .header-tagline { font-size:13px; color:#c8e6c9; letter-spacing:2px; text-transform:uppercase; margin-bottom:24px; }
+    .student-greeting { background:rgba(255,255,255,0.12); border-radius:12px; padding:16px 24px; display:inline-block; }
+    .student-greeting p { color:#e8f5e9; font-size:14px; margin-bottom:4px; }
+    .student-greeting h2 { font-family:'Nunito',sans-serif; color:#fff; font-size:22px; font-weight:800; }
+    .email-body { padding:36px 40px; }
+    .section-label { font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#66bb6a; margin-bottom:10px; }
+    .section-title { font-family:'Nunito',sans-serif; font-size:22px; font-weight:800; color:#1b5e20; margin-bottom:20px; line-height:1.25; }
+    .stats-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:32px; }
+    .stat-card { background:#f1f8e9; border-radius:14px; padding:18px 12px; text-align:center; border:1.5px solid #c5e1a5; }
+    .stat-number { font-family:'Nunito',sans-serif; font-size:30px; font-weight:900; color:#2e7d32; line-height:1; margin-bottom:4px; }
+    .stat-label { font-size:11px; font-weight:600; color:#558b2f; text-transform:uppercase; }
+    .xp-block { background:#f9fbe7; border-radius:14px; padding:20px 24px; margin-bottom:32px; border:1.5px solid #dce775; }
+    .xp-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+    .xp-title { font-size:14px; font-weight:700; color:#33691e; }
+    .xp-value { font-family:'Nunito',sans-serif; font-size:15px; font-weight:800; color:#558b2f; }
+    .progress-track { background:#e6ee9c; border-radius:999px; height:14px; overflow:hidden; margin-bottom:8px; }
+    .progress-fill { height:100%; border-radius:999px; background:linear-gradient(90deg,#66bb6a,#43a047); position:relative; }
+    .progress-fill::after { content:''; position:absolute; top:3px; left:8px; right:8px; height:4px; background:rgba(255,255,255,0.35); border-radius:999px; }
+    .xp-caption { font-size:12px; color:#8bc34a; text-align:right; }
+    .divider { height:1px; background:#e8f5e9; margin:0 0 28px; }
+    .badges-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin-bottom:32px; }
+    .badge-card { border-radius:16px; padding:20px 16px; display:flex; align-items:center; gap:14px; border:1.5px solid; }
+    .badge-card.earned { background:#e8f5e9; border-color:#a5d6a7; }
+    .badge-card.locked { background:#f5f5f5; border-color:#e0e0e0; opacity:0.7; }
+    .badge-icon-wrap { width:52px; height:52px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:26px; flex-shrink:0; }
+    .badge-card.earned .badge-icon-wrap { background:#c8e6c9; }
+    .badge-card.locked .badge-icon-wrap { background:#eee; filter:grayscale(1); }
+    .badge-name { font-family:'Nunito',sans-serif; font-size:15px; font-weight:800; color:#2e7d32; margin-bottom:3px; }
+    .badge-card.locked .badge-name { color:#9e9e9e; }
+    .badge-desc { font-size:12px; color:#558b2f; line-height:1.4; }
+    .badge-card.locked .badge-desc { color:#bdbdbd; }
+    .badge-status { margin-top:6px; display:inline-flex; align-items:center; font-size:11px; font-weight:700; padding:2px 10px; border-radius:999px; }
+    .earned-tag { background:#a5d6a7; color:#1b5e20; }
+    .locked-tag { background:#e0e0e0; color:#9e9e9e; }
+    .leaderboard-block { background:linear-gradient(135deg,#fff8e1,#fff3e0); border-radius:16px; padding:24px; margin-bottom:32px; border:1.5px solid #ffe082; }
+    .leaderboard-title { font-family:'Nunito',sans-serif; font-size:17px; font-weight:800; color:#e65100; margin-bottom:16px; }
+    .leaderboard-row { display:flex; align-items:center; justify-content:space-between; padding:10px 14px; border-radius:10px; margin-bottom:8px; font-size:14px; font-weight:600; }
+    .leaderboard-row.you { background:#ffe0b2; color:#bf360c; font-weight:800; border:1.5px solid #ffcc80; }
+    .leaderboard-row.other { background:rgba(255,255,255,0.6); color:#6d4c41; }
+    .rank-badge { font-size:18px; width:28px; text-align:center; }
+    .player-name { flex:1; padding:0 12px; }
+    .player-xp { font-family:'Nunito',sans-serif; font-size:14px; font-weight:800; }
+    .cta-block { background:linear-gradient(135deg,#1b5e20,#388e3c); border-radius:16px; padding:28px; text-align:center; margin-bottom:32px; }
+    .cta-block h3 { font-family:'Nunito',sans-serif; font-size:20px; font-weight:900; color:#fff; margin-bottom:8px; }
+    .cta-block p { font-size:13px; color:#c8e6c9; margin-bottom:20px; }
+    .cta-btn { display:inline-block; background:#fff; color:#2e7d32; font-family:'Nunito',sans-serif; font-size:15px; font-weight:800; padding:12px 32px; border-radius:999px; text-decoration:none; }
+    .email-footer { background:#f1f8e9; padding:24px 40px; border-top:1px solid #c8e6c9; }
+    .footer-links { display:flex; justify-content:center; gap:24px; margin-bottom:14px; }
+    .footer-links a { font-size:12px; color:#558b2f; text-decoration:none; font-weight:600; }
+    .footer-note { font-size:11px; color:#9e9e9e; text-align:center; line-height:1.6; }
+    @media(max-width:480px){ .email-body{padding:24px 20px;} .badges-grid{grid-template-columns:1fr;} }
+  </style>
+</head>
+<body>
+<div class="email-wrapper">
+
+  <div class="email-header">
+    <div class="logo-area">
+      <svg class="logo-icon" viewBox="0 0 48 48" fill="none" aria-label="EcoQuest logo">
+        <circle cx="24" cy="24" r="22" fill="rgba(255,255,255,0.15)"/>
+        <path d="M24 8 C16 10,10 18,12 28 C14 36,22 40,30 36 C38 32,40 22,36 14 C30 8,24 8,24 8Z" fill="#a5d6a7"/>
+        <path d="M24 8 C24 8,28 16,26 26 C24 34,18 38,12 28" stroke="#2e7d32" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <circle cx="32" cy="30" r="8" fill="#1b5e20" opacity="0.8"/>
+        <text x="32" y="34" text-anchor="middle" font-size="9" font-weight="900" fill="#fff" font-family="sans-serif">EQ</text>
+      </svg>
+      <span class="logo-text">Eco<span>Quest</span></span>
+    </div>
+    <p class="header-tagline">Gamified Environmental Education</p>
+    <div class="student-greeting">
+      <p>Hello, Explorer! 🌿</p>
+      <h2>{{ name }} &middot; {{ class_name }}</h2>
+    </div>
+  </div>
+
+  <div class="email-body">
+    <p class="section-label">Weekly Progress Report</p>
+    <h2 class="section-title">You're making the planet greener, one quest at a time! 🌍</h2>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-number">{{ total_xp }}</div>
+        <div class="stat-label">Total XP</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">{{ quests_done }}</div>
+        <div class="stat-label">Quests Done</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">#{{ rank }}</div>
+        <div class="stat-label">Class Rank</div>
+      </div>
+    </div>
+
+    <div class="xp-block">
+      <div class="xp-header">
+        <span class="xp-title">🌱 Level {{ current_level }} → Level {{ next_level }} Progress</span>
+        <span class="xp-value">{{ total_xp }} / {{ xp_needed }} XP</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" style="width: {{ xp_percent }}%;"></div>
+      </div>
+      <p class="xp-caption">{{ xp_remaining }} XP needed to reach Level {{ next_level }} — "{{ next_level_title }}"</p>
+    </div>
+
+    <div class="divider"></div>
+
+    <p class="section-label">Your Badges</p>
+    <h2 class="section-title" style="font-size:18px;margin-bottom:16px;">Earned & Next to Unlock 🏅</h2>
+    <div class="badges-grid">
+      {% for badge in badges %}
+      <div class="badge-card {{ 'earned' if badge.earned else 'locked' }}">
+        <div class="badge-icon-wrap">{{ badge.icon }}</div>
+        <div class="badge-info">
+          <div class="badge-name">{{ badge.name }}</div>
+          <div class="badge-desc">{{ badge.desc }}</div>
+          {% if badge.earned %}
+            <span class="badge-status earned-tag">✓ Earned</span>
+          {% else %}
+            <span class="badge-status locked-tag">🔒 {{ badge.progress }}</span>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="leaderboard-block">
+      <div class="leaderboard-title">🏆 Class Leaderboard — This Week</div>
+      {% for entry in leaderboard %}
+      <div class="leaderboard-row {{ 'you' if entry.is_user else 'other' }}">
+        <span class="rank-badge">{{ entry.rank_icon }}</span>
+        <span class="player-name">{{ 'You — ' if entry.is_user else '' }}{{ entry.name }}</span>
+        <span class="player-xp">{{ entry.xp }} XP</span>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="cta-block">
+      <h3>Ready for your next quest? 🚀</h3>
+      <p>New challenges in Biodiversity & Climate Action are waiting. Complete them this week to unlock your next badge!</p>
+      <a href="{{ platform_url }}" class="cta-btn">▶ Continue on EcoQuest</a>
+    </div>
+  </div>
+
+  <div class="email-footer">
+    <div class="footer-links">
+      <a href="{{ platform_url }}/dashboard">My Dashboard</a>
+      <a href="{{ platform_url }}/badges">All Badges</a>
+      <a href="{{ platform_url }}/leaderboard">Leaderboard</a>
+      <a href="{{ unsubscribe_url }}">Unsubscribe</a>
+    </div>
+    <p class="footer-note">
+      You received this because you are enrolled in EcoQuest at your institution.<br>
+      EcoQuest · Gamified Environmental Education Platform · India<br>
+      © 2026 EcoQuest. All rights reserved.
+    </p>
+  </div>
+
+</div>
+</body>
+</html>

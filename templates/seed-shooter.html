@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Eco Game Pack Deluxe</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:Arial,sans-serif}
+body{
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:linear-gradient(135deg,#09130b,#184c26,#4f9f4a);
+  padding:20px;
+  color:#fff;
+}
+.game{
+  width:680px;
+  max-width:100%;
+  background:rgba(255,255,255,.08);
+  border-radius:26px;
+  padding:22px;
+  box-shadow:0 0 35px rgba(0,0,0,.35);
+  position:relative;
+}
+h1{
+  text-align:center;
+  font-size:32px;
+  margin-bottom:14px;
+  color:#ecffb3;
+  text-shadow:0 0 10px rgba(255,255,255,.2);
+}
+.top{
+  display:grid;
+  grid-template-columns:repeat(6,1fr);
+  gap:8px;
+  margin-bottom:12px;
+}
+.stat{
+  background:rgba(255,255,255,.1);
+  padding:10px 4px;
+  border-radius:12px;
+  text-align:center;
+  font-weight:bold;
+  font-size:14px;
+}
+.board{
+  display:grid;
+  grid-template-columns:repeat(6,1fr);
+  gap:8px;
+}
+.tile{
+  height:80px;
+  border-radius:14px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  font-size:30px;
+  cursor:pointer;
+  transition:.15s;
+  border:2px solid rgba(255,255,255,.08);
+  user-select:none;
+  position:relative;
+  overflow:hidden;
+}
+.tile:hover{transform:scale(1.04)}
+.empty{background:rgba(88,56,28,.55)}
+.seed{background:rgba(65,140,60,.55)}
+.tree{background:rgba(38,120,50,.78)}
+.weed{background:rgba(110,25,90,.7)}
+.boss{background:rgba(160,40,40,.8);animation:pulse 1s infinite}
+.gold{box-shadow:0 0 16px rgba(255,215,0,.5)}
+.spark{
+  position:absolute;inset:0;
+  background:radial-gradient(circle,rgba(255,255,255,.7),transparent 60%);
+  animation:pop .4s forwards;
+  pointer-events:none;
+}
+.weather{
+  text-align:center;
+  margin:10px 0;
+  font-size:15px;
+  padding:9px;
+  background:rgba(255,255,255,.09);
+  border-radius:12px;
+}
+.msg{
+  text-align:center;
+  margin-top:10px;
+  font-size:13px;
+  opacity:.8;
+}
+.overlay{
+  display:none;
+  position:absolute;
+  inset:0;
+  border-radius:26px;
+  background:rgba(0,0,0,.75);
+  justify-content:center;
+  align-items:center;
+  z-index:10;
+}
+.card{
+  background:#fff;
+  color:#111;
+  padding:28px;
+  border-radius:20px;
+  width:340px;
+  max-width:92%;
+  text-align:center;
+  animation:pop .25s ease;
+}
+.card h2{font-size:22px;margin-bottom:10px}
+.card p{font-size:15px;color:#444;margin-bottom:4px}
+.play-btn{
+  margin-top:16px;
+  padding:11px 24px;
+  border:none;
+  border-radius:12px;
+  font-size:17px;
+  font-weight:bold;
+  cursor:pointer;
+  background:#5cb844;
+  color:#fff;
+}
+.play-btn:hover{background:#4da838}
+.rain-drop{
+  position:absolute;
+  top:-20px;
+  font-size:16px;
+  animation:rain 2s linear forwards;
+  opacity:.7;
+  pointer-events:none;
+}
+@keyframes pop{
+  from{transform:scale(.8);opacity:0}
+  to{transform:scale(1);opacity:1}
+}
+@keyframes pulse{
+  0%,100%{transform:scale(1)}
+  50%{transform:scale(1.08)}
+}
+@keyframes rain{
+  to{transform:translateY(700px)}
+}
+</style>
+</head>
+<body>
+
+<div class="game" id="gameEl">
+  <h1>🌍 Eco Game Pack Deluxe</h1>
+
+  <div class="top">
+    <div class="stat">⭐ <span id="score">0</span></div>
+    <div class="stat">🌳 <span id="trees">0</span></div>
+    <div class="stat">🌿 <span id="weeds">0</span></div>
+    <div class="stat">👑 HP: <span id="bosshp">–</span></div>
+    <div class="stat">📈 Lv <span id="level">1</span></div>
+    <div class="stat">⏱ <span id="time">90</span>s</div>
+  </div>
+
+  <div class="weather" id="weather">☀️ Sunny Day: Trees grow faster</div>
+
+  <div class="board" id="board"></div>
+
+  <div class="msg">Click empty soil to plant · Click weeds to remove · Defeat the boss weed 👑</div>
+
+  <div class="overlay" id="overlay">
+    <div class="card">
+      <h2 id="cardTitle"></h2>
+      <p id="cardText"></p>
+      <button class="play-btn" onclick="restartGame()">Play Again</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const boardEl   = document.getElementById("board");
+const scoreEl   = document.getElementById("score");
+const treesEl   = document.getElementById("trees");
+const weedsEl   = document.getElementById("weeds");
+const bossEl    = document.getElementById("bosshp");
+const levelEl   = document.getElementById("level");
+const timeEl    = document.getElementById("time");
+const weatherEl = document.getElementById("weather");
+const overlay   = document.getElementById("overlay");
+const cardTitle = document.getElementById("cardTitle");
+const cardText  = document.getElementById("cardText");
+const gameEl    = document.getElementById("gameEl");
+
+const ROWS = 4, COLS = 6, TOTAL = 24;
+let cells = [], score = 0, level = 1, timeLeft = 90, playing = true;
+let spreadInt, timerInt, weatherInt;
+let bossHP = 0, weather = "sun";
+
+/* ── Audio ── */
+function beep(freq, dur) {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.frequency.value = freq; o.type = "square";
+    o.connect(g); g.connect(ctx.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + dur / 1000);
+    o.stop(ctx.currentTime + dur / 1000);
+  } catch(e) {}
+}
+
+/* ── Build board ── */
+function build() {
+  boardEl.innerHTML = ""; cells = [];
+  for (let i = 0; i < TOTAL; i++) {
+    const d = document.createElement("div");
+    d.className = "tile empty";
+    d.dataset.state = "empty";
+    d.addEventListener("click", () => tap(i));
+    boardEl.appendChild(d);
+    cells.push(d);
+  }
+  spawnWeeds(2 + level);
+  spawnGold();
+  hud();
+}
+
+/* ── Tile interactions ── */
+function tap(i) {
+  if (!playing) return;
+  const c = cells[i];
+  if      (c.dataset.state === "empty") plant(c);
+  else if (c.dataset.state === "weed")  clearWeed(c);
+  else if (c.dataset.state === "boss")  hitBoss(c);
+}
+
+function plant(c) {
+  c.dataset.state = "seed";
+  c.className = "tile seed";
+  c.textContent = "🌱";
+  beep(650, 70);
+  const growTime = weather === "sun" ? 700 : 1100;
+  setTimeout(() => {
+    if (c.dataset.state === "seed") {
+      c.dataset.state = "tree";
+      c.className = "tile tree";
+      c.textContent = "🌳";
+      score += 4;
+      flash(c);
+      beep(420, 100);
+      hud();
+      checkWin();
+    }
+  }, growTime);
+}
+
+function clearWeed(c) {
+  c.dataset.state = "empty";
+  c.className = "tile empty";
+  c.textContent = "";
+  score += 2;
+  flash(c);
+  beep(260, 80);
+  hud();
+}
+
+function hitBoss(c) {
+  bossHP--;
+  flash(c);
+  beep(180, 120);
+  if (bossHP <= 0) {
+    c.dataset.state = "tree";
+    c.className = "tile tree";
+    c.textContent = "🌳";
+    score += 20;
+    checkWin();
+  }
+  hud();
+}
+
+/* ── Weed mechanics ── */
+function spawnWeeds(n) {
+  const arr = indexes("empty");
+  for (let k = 0; k < n && arr.length; k++) setWeed(cells[take(arr)]);
+}
+
+function setWeed(c) {
+  c.dataset.state = "weed";
+  c.className = "tile weed";
+  c.textContent = "🌿";
+}
+
+function spread() {
+  const add = [];
+  cells.forEach((c, i) => {
+    if (c.dataset.state === "weed") {
+      neighbors(i).forEach(n => {
+        if (cells[n].dataset.state === "empty" && Math.random() < 0.28)
+          add.push(n);
+      });
+    }
+  });
+  [...new Set(add)].forEach(i => setWeed(cells[i]));
+  hud();
+  checkLose();
+}
+
+/* ── Boss ── */
+function spawnBoss() {
+  const arr = indexes("empty");
+  if (!arr.length) return;
+  const c = cells[take(arr)];
+  c.dataset.state = "boss";
+  c.className = "tile boss";
+  c.textContent = "👑";
+  bossHP = 8;
+  weatherEl.textContent = "⚠️ Boss Weed appeared! Click it to fight!";
+  beep(120, 400);
+  hud();
+}
+
+/* ── Weather ── */
+function randomWeather() {
+  const list = ["sun", "rain", "storm"];
+  weather = list[Math.floor(Math.random() * list.length)];
+  if (weather === "sun")   weatherEl.textContent = "☀️ Sunny Day: Trees grow faster";
+  if (weather === "rain")  { weatherEl.textContent = "🌧 Rain: Bonus score!"; rainFX(); score += 2; }
+  if (weather === "storm") { weatherEl.textContent = "⛈ Storm: Weeds spreading!"; spawnWeeds(2); }
+  hud();
+}
+
+function rainFX() {
+  for (let i = 0; i < 12; i++) {
+    const d = document.createElement("div");
+    d.className = "rain-drop";
+    d.textContent = "💧";
+    d.style.left = Math.random() * 90 + "%";
+    gameEl.appendChild(d);
+    setTimeout(() => d.remove(), 2200);
+  }
+}
+
+/* ── FX ── */
+function flash(c) {
+  const s = document.createElement("div");
+  s.className = "spark";
+  c.appendChild(s);
+  setTimeout(() => s.remove(), 400);
+}
+
+/* ── Helpers ── */
+function neighbors(i) {
+  const r = Math.floor(i / COLS), cc = i % COLS, out = [];
+  [[r-1,cc],[r+1,cc],[r,cc-1],[r,cc+1]].forEach(([nr,nc]) => {
+    if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) out.push(nr * COLS + nc);
+  });
+  return out;
+}
+
+function indexes(type) {
+  const a = [];
+  cells.forEach((c, i) => { if (c.dataset.state === type) a.push(i); });
+  return a;
+}
+
+function take(a) { return a.splice(Math.floor(Math.random() * a.length), 1)[0]; }
+function count(type) { return cells.filter(c => c.dataset.state === type).length; }
+
+function spawnGold() {
+  const arr = indexes("empty");
+  if (arr.length) cells[take(arr)].classList.add("gold");
+}
+
+/* ── HUD ── */
+function hud() {
+  scoreEl.textContent = score;
+  treesEl.textContent = count("tree");
+  weedsEl.textContent = count("weed");
+  bossEl.textContent  = bossHP > 0 ? bossHP : "–";
+  levelEl.textContent = level;
+  timeEl.textContent  = timeLeft;
+}
+
+/* ── Win / Lose ── */
+function checkWin() {
+  if (level < 3 && count("tree") >= 8 + level * 2) {
+    level++; timeLeft += 20;
+    spawnWeeds(2 + level);
+    spawnGold();
+    if (level === 3) spawnBoss();
+    hud();
+  } else if (level === 3 && bossHP <= 0) {
+    end(true);
+  }
+}
+
+function checkLose() {
+  if (count("weed") >= 12 || timeLeft <= 0) end(false);
+}
+
+function end(win) {
+  playing = false;
+  clearInterval(spreadInt); clearInterval(timerInt); clearInterval(weatherInt);
+  overlay.style.display = "flex";
+  if (win) {
+    cardTitle.textContent = "🏆 Eco Master!";
+    cardText.textContent  = "You defeated the boss weed and saved nature! Score: " + score;
+  } else {
+    cardTitle.textContent = "🌿 Nature Lost";
+    cardText.textContent  = "The weeds took over. Score: " + score;
+  }
+}
+
+/* ── Game loops ── */
+function loops() {
+  clearInterval(spreadInt); clearInterval(timerInt); clearInterval(weatherInt);
+  spreadInt  = setInterval(() => { if (playing) spread(); }, 1500);
+  timerInt   = setInterval(() => {
+    if (!playing) return;
+    timeLeft--;
+    hud();
+    if (timeLeft <= 0) end(false);
+  }, 1000);
+  weatherInt = setInterval(() => { if (playing) randomWeather(); }, 8000);
+}
+
+/* ── Restart ── */
+function restartGame() {
+  score = 0; level = 1; timeLeft = 90; playing = true; bossHP = 0;
+  overlay.style.display = "none";
+  weatherEl.textContent = "☀️ Sunny Day: Trees grow faster";
+  build();
+  loops();
+}
+
+build();
+loops();
+</script>
+</body>
+</html>

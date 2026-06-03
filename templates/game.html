@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Play Games</title>
+    <style>
+        body {
+            font-family: Arial;
+            text-align: center;
+            background: #e8f5e9;
+        }
+
+        h2 { color: green; }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 50px;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            width: 220px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        a {
+            display: inline-block;
+            margin-top: 10px;
+            text-decoration: none;
+            background: green;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+<h2>🎮 Play Eco Games</h2>
+
+<div class="container">
+
+    <div class="card">
+        <h3>🧺 Eco Catch</h3>
+        <a href="/eco-catch/{{ name }}/{{ role }}">Play</a>
+    </div>
+
+    <div class="card">
+        <h3>🌱 Seed Jumper</h3>
+        <a href="/seed-jumper/{{ name }}/{{ role }}">Play</a>
+    </div>
+
+</div>
+
+<button onclick="goDashboard()" class="back-btn">⬅ Back</button>
+
+<script>
+function goDashboard(){
+    window.location.href="/";
+}
+</script>
+
+</body>
+</html>

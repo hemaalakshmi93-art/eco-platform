@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Eco Mission Map</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:Arial,sans-serif;min-height:100vh;background:#0b1f2e;color:white;}
+
+.bg{position:fixed;inset:0;z-index:0;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 80%,rgba(0,90,60,0.38) 0%,transparent 60%),
+    radial-gradient(ellipse 70% 50% at 80% 20%,rgba(10,40,80,0.55) 0%,transparent 60%),
+    linear-gradient(160deg,#071522 0%,#0b2a1a 45%,#081d30 100%);}
+.grid{position:fixed;inset:0;z-index:0;
+  background-image:linear-gradient(rgba(0,200,120,0.04) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(0,200,120,0.04) 1px,transparent 1px);
+  background-size:60px 60px;}
+
+.page{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;padding:24px 16px 52px;}
+
+.back-btn{
+  position:fixed;top:16px;left:16px;z-index:200;
+  background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);
+  color:white;font-size:26px;font-weight:300;width:42px;height:42px;
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:0.2s;padding-right:2px;
+}
+.back-btn:hover{background:rgba(255,255,255,0.22);}
+
+.header{text-align:center;margin-bottom:10px;}
+h2{font-size:clamp(22px,5vw,34px);letter-spacing:1px;text-shadow:0 0 30px rgba(0,220,120,0.3);margin-bottom:6px;}
+.header-sub{font-size:13px;color:rgba(255,255,255,0.35);letter-spacing:0.3px;}
+
+/* Overall progress */
+.overall-wrap{width:100%;max-width:520px;margin:18px 0 26px;}
+.overall-label{display:flex;justify-content:space-between;font-size:12px;color:rgba(255,255,255,0.35);margin-bottom:7px;}
+.overall-bar{height:6px;background:rgba(255,255,255,0.1);border-radius:99px;overflow:hidden;}
+.overall-fill{height:100%;background:linear-gradient(90deg,#00c874,#00e8a0);border-radius:99px;transition:width 0.5s ease;}
+
+/* Zone cards */
+.zones{display:flex;flex-direction:column;gap:16px;width:100%;max-width:520px;}
+
+.zone-card{
+  background:rgba(255,255,255,0.055);
+  border:1px solid rgba(255,255,255,0.11);
+  border-radius:20px;overflow:hidden;cursor:pointer;position:relative;
+  transition:transform 0.2s,box-shadow 0.2s,border-color 0.2s,background 0.2s;
+}
+.zone-card:hover{
+  transform:translateY(-3px);
+  background:rgba(0,200,110,0.09);
+  border-color:rgba(0,220,130,0.45);
+  box-shadow:0 10px 32px rgba(0,0,0,0.45),0 0 22px rgba(0,220,130,0.12);
+}
+
+/* Accent strip */
+.zone-accent{height:3px;width:100%;}
+.zone-card.school .zone-accent{background:linear-gradient(90deg,rgba(255,180,50,0.7),transparent);}
+.zone-card.forest .zone-accent{background:linear-gradient(90deg,rgba(0,210,100,0.7),transparent);}
+.zone-card.ocean  .zone-accent{background:linear-gradient(90deg,rgba(30,140,255,0.7),transparent);}
+
+.zone-inner{display:flex;align-items:center;gap:16px;padding:18px 20px 18px 18px;}
+
+.zone-icon-wrap{
+  width:54px;height:54px;border-radius:14px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:28px;
+}
+.school .zone-icon-wrap{background:rgba(255,180,50,0.12);border:1px solid rgba(255,180,50,0.22);}
+.forest .zone-icon-wrap{background:rgba(0,210,100,0.12);border:1px solid rgba(0,210,100,0.22);}
+.ocean  .zone-icon-wrap{background:rgba(30,140,255,0.12);border:1px solid rgba(30,140,255,0.22);}
+
+.zone-info{flex:1;min-width:0;}
+.zone-label{font-size:clamp(16px,3.5vw,19px);font-weight:700;margin-bottom:2px;}
+.zone-sublabel{font-size:11px;color:rgba(255,255,255,0.34);margin-bottom:9px;}
+
+.stars{display:flex;gap:5px;align-items:center;margin-bottom:9px;}
+.star{
+  width:18px;height:18px;flex-shrink:0;
+  clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);
+  transition:background 0.35s,transform 0.25s;
+}
+.star.filled{background:#f5c842;transform:scale(1.1);}
+.star.empty{background:rgba(255,255,255,0.14);}
+
+.mini-bar-wrap{display:flex;align-items:center;gap:8px;}
+.mini-bar{flex:1;height:4px;background:rgba(255,255,255,0.1);border-radius:99px;overflow:hidden;}
+.mini-fill{height:100%;border-radius:99px;transition:width 0.5s ease;}
+.school .mini-fill{background:linear-gradient(90deg,#ffb432,#ffd280);}
+.forest .mini-fill{background:linear-gradient(90deg,#00c874,#00e8a0);}
+.ocean  .mini-fill{background:linear-gradient(90deg,#1e8cff,#6ab8ff);}
+.mini-count{font-size:11px;color:rgba(255,255,255,0.3);white-space:nowrap;}
+
+.zone-right{display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0;}
+.zone-arrow{font-size:20px;color:rgba(255,255,255,0.2);transition:color 0.2s,transform 0.2s;}
+.zone-card:hover .zone-arrow{color:rgba(0,220,130,0.7);transform:translateX(3px);}
+
+.zone-badge{
+  background:rgba(0,200,100,0.16);border:1px solid rgba(0,200,100,0.35);
+  color:rgba(0,230,120,0.9);font-size:10px;font-weight:700;letter-spacing:0.5px;
+  padding:3px 9px;border-radius:99px;display:none;
+}
+.zone-card.complete .zone-badge{display:block;}
+
+/* ── Popup ── */
+.popup-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.75);
+  display:none;justify-content:center;align-items:center;
+  z-index:1000;padding:16px;
+}
+.popup-box{
+  width:100%;max-width:500px;max-height:90vh;overflow-y:auto;
+  background:#0c2318;border-radius:22px;
+  border:1px solid rgba(0,200,110,0.22);
+  animation:zoomIn .2s ease;
+}
+@keyframes zoomIn{from{transform:scale(.88);opacity:0;}to{transform:scale(1);opacity:1;}}
+
+.popup-banner{
+  padding:20px 20px 16px;
+  border-bottom:1px solid rgba(255,255,255,0.07);
+  display:flex;align-items:center;gap:14px;
+}
+.popup-banner-icon{font-size:36px;line-height:1;flex-shrink:0;}
+.popup-banner-text{flex:1;}
+.popup-title{font-size:clamp(17px,4vw,20px);font-weight:700;margin-bottom:6px;}
+.popup-stars-row{display:flex;gap:5px;}
+.close-btn{
+  background:rgba(180,40,40,0.65);border:none;color:white;
+  padding:6px 13px;border-radius:9px;cursor:pointer;font-size:13px;align-self:flex-start;
+}
+.close-btn:hover{background:rgba(220,40,40,1);}
+
+.popup-body{padding:16px 20px 22px;}
+
+.progress-hint{
+  padding:11px 14px;background:rgba(255,255,255,0.04);border-radius:11px;
+  font-size:12px;color:rgba(255,255,255,0.38);line-height:1.7;
+  margin-bottom:14px;display:flex;align-items:flex-start;gap:9px;
+}
+.hint-icon{font-size:15px;flex-shrink:0;margin-top:1px;}
+
+.mission-list{display:flex;flex-direction:column;gap:8px;}
+.mission-item{
+  padding:13px 15px;border-radius:13px;
+  border:1px solid rgba(255,255,255,0.08);
+  background:rgba(255,255,255,0.05);
+  display:flex;align-items:center;gap:12px;
+  transition:background 0.18s,border-color 0.18s,transform 0.15s;
+  cursor:pointer;
+}
+.mission-item:hover{
+  background:rgba(0,200,110,0.13);
+  border-color:rgba(0,200,110,0.42);
+  transform:translateX(4px);
+}
+.mission-item.done{
+  border-color:rgba(0,200,110,0.28);
+  background:rgba(0,180,100,0.07);
+  cursor:default;
+}
+.mission-item.done:hover{transform:none;background:rgba(0,180,100,0.07);border-color:rgba(0,200,110,0.28);}
+
+.mission-icon{font-size:20px;flex-shrink:0;width:26px;text-align:center;}
+.mission-info{flex:1;min-width:0;}
+.mission-name{font-size:clamp(13px,2.5vw,15px);font-weight:600;margin-bottom:2px;}
+.mission-tag{font-size:11px;color:rgba(255,255,255,0.3);}
+
+.mission-play{
+  font-size:11px;color:rgba(0,220,130,0.75);font-weight:700;
+  padding:4px 10px;border:1px solid rgba(0,220,130,0.3);
+  border-radius:99px;flex-shrink:0;white-space:nowrap;
+  transition:color 0.15s,border-color 0.15s;
+}
+.mission-item:hover .mission-play{color:rgba(0,220,130,1);border-color:rgba(0,220,130,0.7);}
+
+.mission-check{
+  width:24px;height:24px;border-radius:50%;flex-shrink:0;
+  border:1.5px solid rgba(255,255,255,0.18);
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;color:transparent;
+  transition:background 0.25s,border-color 0.25s,color 0.25s;
+}
+.mission-item.done .mission-check{
+  background:rgba(0,210,120,0.85);border-color:rgba(0,210,120,0.85);color:white;
+}
+
+@media(max-width:400px){
+  .zone-inner{padding:14px 12px;gap:12px;}
+  .zone-icon-wrap{width:46px;height:46px;font-size:24px;}
+}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="grid"></div>
+
+<div class="page">
+  <button class="back-btn" id="backBtn" title="Back">&#8249;</button>
+
+  <div class="header">
+    <h2>🌍 Eco Mission Map</h2>
+    <div class="header-sub" id="headerSub">Choose a zone and start your eco missions</div>
+  </div>
+
+  <div class="overall-wrap">
+    <div class="overall-label">
+      <span>Overall progress</span>
+      <span id="overallCount">0 / 15 missions</span>
+    </div>
+    <div class="overall-bar"><div class="overall-fill" id="overallFill" style="width:0%"></div></div>
+  </div>
+
+  <div class="zones">
+    <div class="zone-card school" onclick="openZone('school')">
+      <div class="zone-accent"></div>
+      <div class="zone-inner">
+        <div class="zone-icon-wrap">🏫</div>
+        <div class="zone-info">
+          <div class="zone-label">School</div>
+          <div class="zone-sublabel">Eco missions in the classroom &amp; campus</div>
+          <div class="stars" id="stars-school">
+            <div class="star empty"></div><div class="star empty"></div><div class="star empty"></div>
+          </div>
+          <div class="mini-bar-wrap">
+            <div class="mini-bar"><div class="mini-fill" id="bar-school" style="width:0%"></div></div>
+            <div class="mini-count" id="prog-school">0 / 5</div>
+          </div>
+        </div>
+        <div class="zone-right">
+          <div class="zone-badge" id="badge-school">✓ DONE</div>
+          <div class="zone-arrow">›</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="zone-card forest" onclick="openZone('forest')">
+      <div class="zone-accent"></div>
+      <div class="zone-inner">
+        <div class="zone-icon-wrap">🌲</div>
+        <div class="zone-info">
+          <div class="zone-label">Forest</div>
+          <div class="zone-sublabel">Protect wildlife &amp; restore the woodland</div>
+          <div class="stars" id="stars-forest">
+            <div class="star empty"></div><div class="star empty"></div><div class="star empty"></div>
+          </div>
+          <div class="mini-bar-wrap">
+            <div class="mini-bar"><div class="mini-fill" id="bar-forest" style="width:0%"></div></div>
+            <div class="mini-count" id="prog-forest">0 / 5</div>
+          </div>
+        </div>
+        <div class="zone-right">
+          <div class="zone-badge" id="badge-forest">✓ DONE</div>
+          <div class="zone-arrow">›</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="zone-card ocean" onclick="openZone('ocean')">
+      <div class="zone-accent"></div>
+      <div class="zone-inner">
+        <div class="zone-icon-wrap">🌊</div>
+        <div class="zone-info">
+          <div class="zone-label">Ocean</div>
+          <div class="zone-sublabel">Clean the seas &amp; save marine life</div>
+          <div class="stars" id="stars-ocean">
+            <div class="star empty"></div><div class="star empty"></div><div class="star empty"></div>
+          </div>
+          <div class="mini-bar-wrap">
+            <div class="mini-bar"><div class="mini-fill" id="bar-ocean" style="width:0%"></div></div>
+            <div class="mini-count" id="prog-ocean">0 / 5</div>
+          </div>
+        </div>
+        <div class="zone-right">
+          <div class="zone-badge" id="badge-ocean">✓ DONE</div>
+          <div class="zone-arrow">›</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Popup -->
+<div class="popup-overlay" id="popup" onclick="handleOverlayClick(event)">
+  <div class="popup-box">
+    <div class="popup-banner">
+      <div class="popup-banner-icon" id="popupIcon"></div>
+      <div class="popup-banner-text">
+        <div class="popup-title" id="popupTitle"></div>
+        <div class="popup-stars-row" id="popupStars">
+          <div class="star empty"></div><div class="star empty"></div><div class="star empty"></div>
+        </div>
+      </div>
+      <button class="close-btn" onclick="closePopup()">✕ Close</button>
+    </div>
+    <div class="popup-body">
+      <div class="progress-hint">
+        <div class="hint-icon">💡</div>
+        <div id="progressHint"></div>
+      </div>
+      <div class="mission-list" id="missionList"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const ZONES = {
+  school:{
+    icon:'🏫', label:'School', title:'School Missions',
+    missions:[
+      {icon:'🃏', name:'Memory Match',   tag:'Recycling',  path:'/memory_match'},
+      {icon:'💡', name:'Lights Out Detective', tag:'Energy',     path:'/lights_out'},
+      {icon:'🚰', name:'Leak Hunter',          tag:'Water',      path:'/leak_hunter'},
+      {icon:'🥗', name:'Green Canteen',        tag:'Food',       path:'/canteen'},
+      {icon:'🚴', name:'Cycle Dash',           tag:'Transport',  path:'/cycle-dash'},
+    ]
+  },
+  forest:{
+    icon:'🌲', label:'Forest', title:'Forest Missions',
+    missions:[
+      {icon:'🌱', name:'Seed Shooter',         tag:'Planting',  path:'/seed-shooter'},
+      {icon:'🌳', name:'Tree Doctor',          tag:'Health',    path:'/tree-doctor'},
+      {icon:'🔥', name:'Fire Rescue Run',      tag:'Emergency', path:'/fire-rescue'},
+      {icon:'🦌', name:'Food Chain Puzzle',    tag:'Ecology',   path:'/food-chain'},
+      {icon:'🌧️', name:'Rain Puzzle',          tag:'Weather',   path:'/rain-puzzle'},
+    ]
+  },
+  ocean:{
+    icon:'🌊', label:'Ocean', title:'Ocean Missions',
+    missions:[
+      {icon:'♻️', name:'Plastic Catcher Dive', tag:'Cleanup',   path:'/plastic-catcher'},
+      {icon:'🪸', name:'Coral Builder',        tag:'Reef',      path:'/coral-builder'},
+      {icon:'🐢', name:'Turtle Rescue',        tag:'Wildlife',  path:'/turtle-rescue'},
+      {icon:'🛢️', name:'Oil Spill Rush',       tag:'Pollution', path:'/oil-spill'},
+      {icon:'🎣', name:'Smart Fishing',        tag:'Fishing',   path:'/smart-fishing'},
+    ]
+  }
+};
+
+/* ── Back button: reads name & role from URL path ──
+   URL pattern: /map/{name}/{role}
+   Back target:  /dashboard/{name}/{role}
+*/
+(function setupNav(){
+  const parts = window.location.pathname.split('/').filter(Boolean);
+  // parts = ['map', 'Hemaa Lakshmi AKA', 'teacher']  (already decoded by browser)
+  const name = parts[1] ? decodeURIComponent(parts[1]) : '';
+  const role = parts[2] ? decodeURIComponent(parts[2]) : '';
+
+  const encodedName = name ? encodeURIComponent(name) : '';
+  const encodedRole = role ? encodeURIComponent(role) : '';
+
+  const backUrl = (name && role)
+    ? '/dashboard/' + encodedName + '/' + encodedRole
+    : '/dashboard';
+
+  document.getElementById('backBtn').addEventListener('click', () => {
+    window.location.href = backUrl;
+  });
+
+  if(name){
+    document.getElementById('headerSub').textContent =
+      'Welcome, ' + name + ' — choose a zone to begin';
+  }
+})();
+
+/* ── Completion: only via ?completed=path when returning from a game ── */
+(function checkReturn(){
+  const params = new URLSearchParams(window.location.search);
+  const completed = params.get('completed');
+  if(!completed) return;
+  for(const [zone, z] of Object.entries(ZONES)){
+    const idx = z.missions.findIndex(m => m.path === completed);
+    if(idx !== -1){
+      const state = getState(zone);
+      state[idx] = true;
+      saveState(zone, state);
+      break;
+    }
+  }
+  window.history.replaceState({}, '', window.location.pathname);
+})();
+
+function getState(zone){
+  try{ return JSON.parse(localStorage.getItem('eco_'+zone)||'[]'); }
+  catch(e){ return []; }
+}
+function saveState(zone, arr){ localStorage.setItem('eco_'+zone, JSON.stringify(arr)); }
+
+/* Star rules:
+   0 done  → 0 stars
+   1–2 done → 1 star
+   3–4 done → 2 stars
+   5 done  → 3 stars
+*/
+function calcStars(done){
+  if(done >= 5) return 3;
+  if(done >= 3) return 2;
+  if(done >= 1) return 1;
+  return 0;
+}
+function renderStars(container, count){
+  container.querySelectorAll('.star').forEach((s,i)=>{
+    s.className = 'star '+(i < count ? 'filled' : 'empty');
+  });
+}
+
+function updateZoneCard(zone){
+  const done = getState(zone).filter(Boolean).length;
+  renderStars(document.getElementById('stars-'+zone), calcStars(done));
+  document.getElementById('prog-'+zone).textContent = done+' / 5';
+  document.getElementById('bar-'+zone).style.width = (done/5*100)+'%';
+  const card = document.querySelector('.zone-card.'+zone);
+  const badge = document.getElementById('badge-'+zone);
+  if(done === 5){ card.classList.add('complete'); badge.style.display='block'; }
+  else{ card.classList.remove('complete'); badge.style.display='none'; }
+}
+
+function updateOverall(){
+  let total = 0;
+  ['school','forest','ocean'].forEach(z => { total += getState(z).filter(Boolean).length; });
+  document.getElementById('overallCount').textContent = total+' / 15 missions';
+  document.getElementById('overallFill').style.width = (total/15*100)+'%';
+}
+
+/* ── Popup ── */
+function openZone(zone){
+  const z = ZONES[zone];
+  const state = getState(zone);
+  const done = state.filter(Boolean).length;
+
+  document.getElementById('popupIcon').textContent = z.icon;
+  document.getElementById('popupTitle').textContent = z.title;
+  renderStars(document.getElementById('popupStars'), calcStars(done));
+
+  const hints = [
+    'Play any 2 missions to earn your first star.',
+    '⭐ 1 star! Play 2 more missions to earn the second star.',
+    '⭐ 1 star! Play 2 more missions to earn the second star.',
+    '⭐⭐ 2 stars! Play the last mission to unlock all 3 stars.',
+    '⭐⭐ 2 stars! Play the last mission to unlock all 3 stars.',
+    '⭐⭐⭐ Zone complete — all missions done!',
+  ];
+  document.getElementById('progressHint').textContent = hints[Math.min(done,5)];
+
+  const list = document.getElementById('missionList');
+  list.innerHTML = '';
+
+  z.missions.forEach((m, i) => {
+    const isDone = !!state[i];
+    const item = document.createElement('div');
+    item.className = 'mission-item'+(isDone?' done':'');
+
+    /* Game receives ?return=<encoded map URL> so it can redirect back with ?completed=<path> */
+    const mapUrl = window.location.pathname;
+    const returnUrl = encodeURIComponent(mapUrl + '?completed=' + encodeURIComponent(m.path));
+    const gameUrl = m.path + '?return=' + returnUrl;
+
+    item.innerHTML =
+      '<div class="mission-icon">'+m.icon+'</div>'+
+      '<div class="mission-info">'+
+        '<div class="mission-name">'+m.name+'</div>'+
+        '<div class="mission-tag">'+m.tag+'</div>'+
+      '</div>'+
+      (isDone
+        ? '<div class="mission-check">✓</div>'
+        : '<div class="mission-play">▶ Play</div><div class="mission-check"></div>'
+      );
+
+    if(!isDone){
+      item.addEventListener('click', () => { window.location.href = gameUrl; });
+    }
+    list.appendChild(item);
+  });
+
+  document.getElementById('popup').style.display = 'flex';
+}
+
+function closePopup(){ document.getElementById('popup').style.display='none'; }
+function handleOverlayClick(e){ if(e.target===document.getElementById('popup')) closePopup(); }
+
+['school','forest','ocean'].forEach(updateZoneCard);
+updateOverall();
+</script>
+</body>
+</html>

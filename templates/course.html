@@ -1,0 +1,1795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EcoLearn - Environmental Stories</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #2d9e5f;
+    --green-light: #e6f7ee;
+    --green-dark: #1a6e3f;
+    --blue: #2176b8;
+    --blue-light: #e3f0fb;
+    --amber: #e8920a;
+    --amber-light: #fff4e0;
+    --coral: #e05c44;
+    --coral-light: #fdecea;
+    --teal: #1e9e8a;
+    --teal-light: #e2f5f3;
+    --bg: #f4faf7;
+    --white: #fff;
+    --text: #1a2a1f;
+    --text-muted: #5a7a65;
+    --radius: 18px;
+    --shadow: 0 4px 24px rgba(0,0,0,0.10);
+    --max-w: 1100px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ── SCREENS ── */
+  .screen { display: none; min-height: 100vh; }
+  .screen.active { display: block; }
+
+  /* ── DASHBOARD ── */
+  #dashboard {
+    background: linear-gradient(160deg, #e8f5ee 0%, #d4eef9 60%, #f0eaff 100%);
+  }
+
+  /* ── TOP NAV BAR ── */
+  .top-nav {
+    display: flex;
+    align-items: center;
+    padding: 16px 24px;
+    max-width: var(--max-w);
+    margin: 0 auto;
+  }
+
+  .back-to-dash {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--white);
+    border: 2px solid var(--green);
+    border-radius: 40px;
+    padding: 8px 18px 8px 12px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--green-dark);
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  }
+  .back-to-dash:hover {
+    background: var(--green-dark);
+    color: white;
+    border-color: var(--green-dark);
+    transform: translateX(-3px);
+  }
+  .back-to-dash svg {
+    width: 18px; height: 18px;
+    stroke: currentColor; fill: none;
+    stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round;
+  }
+
+  .dash-hero {
+    text-align: center;
+    padding: 24px 24px 32px;
+    max-width: var(--max-w);
+    margin: 0 auto;
+  }
+
+  .dash-hero h1 {
+    font-family: 'Baloo 2', cursive;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 800;
+    color: var(--green-dark);
+    line-height: 1.1;
+  }
+  .dash-hero h1 span { color: var(--blue); }
+
+  .dash-hero p {
+    margin-top: 10px;
+    font-size: clamp(0.95rem, 2.5vw, 1.1rem);
+    color: var(--text-muted);
+    max-width: 480px;
+    margin-inline: auto;
+  }
+
+  .mascot-row {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 18px 0 0;
+  }
+  .mascot { animation: mascotBob 2.4s ease-in-out infinite; }
+  .mascot:nth-child(2) { animation-delay: 0.4s; }
+  .mascot:nth-child(3) { animation-delay: 0.8s; }
+  @keyframes mascotBob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  /* ── SECTION TABS ── */
+  .section-tabs-wrap {
+    max-width: var(--max-w);
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+  .section-tabs {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding: 12px 0 4px;
+    scrollbar-width: none;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .section-tabs::-webkit-scrollbar { display: none; }
+
+  .tab-btn {
+    flex-shrink: 0;
+    border: none;
+    border-radius: 40px;
+    padding: 8px 22px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: var(--white);
+    color: var(--text-muted);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  }
+  .tab-btn.active, .tab-btn:hover {
+    background: var(--green-dark);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(29,110,63,0.28);
+  }
+
+  /* ── SECTIONS ── */
+  .sections-wrap {
+    max-width: var(--max-w);
+    margin: 0 auto;
+    padding: 0 24px 60px;
+  }
+
+  .section-label {
+    font-family: 'Baloo 2', cursive;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--green-dark);
+    padding: 20px 0 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .course-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 16px;
+    padding-bottom: 8px;
+  }
+
+  @media (min-width: 768px) {
+    .course-grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+  @media (min-width: 1024px) {
+    .course-grid {
+      grid-template-columns: repeat(5, 1fr);
+    }
+  }
+
+  .course-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 22px 14px 16px;
+    cursor: pointer;
+    transition: transform 0.22s, box-shadow 0.22s;
+    border: 2.5px solid transparent;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .course-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 5px;
+    border-radius: var(--radius) var(--radius) 0 0;
+  }
+  .course-card:hover {
+    transform: translateY(-6px) scale(1.03);
+    box-shadow: 0 10px 36px rgba(0,0,0,0.15);
+  }
+  .course-card:hover .card-icon { transform: scale(1.15) rotate(-5deg); }
+
+  .card-icon {
+    font-size: 2.8rem;
+    display: block;
+    margin-bottom: 10px;
+    transition: transform 0.3s;
+    line-height: 1;
+  }
+  .card-title {
+    font-family: 'Baloo 2', cursive;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.2;
+  }
+  .card-tag {
+    display: inline-block;
+    margin-top: 7px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+
+  .theme-green::before { background: var(--green); }
+  .theme-green .card-tag { background: var(--green-light); color: var(--green-dark); }
+  .theme-blue::before { background: var(--blue); }
+  .theme-blue .card-tag { background: var(--blue-light); color: var(--blue); }
+  .theme-amber::before { background: var(--amber); }
+  .theme-amber .card-tag { background: var(--amber-light); color: #a05c00; }
+  .theme-coral::before { background: var(--coral); }
+  .theme-coral .card-tag { background: var(--coral-light); color: #a03020; }
+  .theme-teal::before { background: var(--teal); }
+  .theme-teal .card-tag { background: var(--teal-light); color: var(--teal); }
+
+  .section-group { display: none; }
+  .section-group.visible { display: block; }
+
+  /* ── STORY SCREEN ── */
+  #story-screen { background: #f9feff; }
+
+  .story-topbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 24px;
+    background: var(--white);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+    position: sticky; top: 0; z-index: 10;
+  }
+
+  .back-btn {
+    background: none;
+    border: 2px solid var(--green);
+    border-radius: 50%;
+    width: 38px; height: 38px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    color: var(--green-dark);
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  .back-btn:hover { background: var(--green-dark); color: white; border-color: var(--green-dark); }
+
+  .story-title-bar {
+    font-family: 'Baloo 2', cursive;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .scene-area {
+    position: relative;
+    width: 100%;
+    height: 240px;
+    overflow: hidden;
+    border-bottom: 3px solid #e0f0ea;
+  }
+
+  .story-body {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 0 20px 80px;
+  }
+
+  .panel {
+    margin: 20px 0;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .panel.shown { opacity: 1; transform: translateY(0); }
+
+  .dialogue {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .dialogue.right { flex-direction: row-reverse; }
+
+  .char-avatar { flex-shrink: 0; width: 60px; height: 60px; }
+
+  .speech-bubble {
+    background: var(--white);
+    border-radius: 16px;
+    padding: 12px 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+    font-size: 0.93rem;
+    line-height: 1.55;
+    color: var(--text);
+    position: relative;
+    max-width: 300px;
+    border: 2px solid #e5f0ea;
+  }
+
+  .dialogue.left .speech-bubble::before {
+    content: ''; position: absolute;
+    bottom: 12px; left: -14px;
+    border: 7px solid transparent;
+    border-right-color: #e5f0ea;
+  }
+  .dialogue.left .speech-bubble::after {
+    content: ''; position: absolute;
+    bottom: 13px; left: -10px;
+    border: 6px solid transparent;
+    border-right-color: var(--white);
+  }
+  .dialogue.right .speech-bubble::before {
+    content: ''; position: absolute;
+    bottom: 12px; right: -14px;
+    border: 7px solid transparent;
+    border-left-color: #e5f0ea;
+  }
+  .dialogue.right .speech-bubble::after {
+    content: ''; position: absolute;
+    bottom: 13px; right: -10px;
+    border: 6px solid transparent;
+    border-left-color: var(--white);
+  }
+
+  .bubble-name {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--green-dark);
+    margin-bottom: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .info-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    box-shadow: var(--shadow);
+    border-left: 5px solid var(--green);
+    margin: 12px 0;
+  }
+  .info-card.pro { border-left-color: #2d9e5f; }
+  .info-card.con { border-left-color: #e05c44; }
+  .info-card h3 {
+    font-family: 'Baloo 2', cursive;
+    font-size: 1rem; font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .info-card ul { list-style: none; padding: 0; }
+  .info-card ul li {
+    font-size: 0.88rem; line-height: 1.6;
+    padding: 4px 0; display: flex; gap: 8px; align-items: flex-start;
+  }
+  .info-card ul li::before { flex-shrink: 0; }
+  .info-card.pro ul li::before { content: '✓'; color: var(--green); font-weight: 700; }
+  .info-card.con ul li::before { content: '!'; color: var(--coral); font-weight: 700; }
+
+  .fact-banner {
+    background: linear-gradient(135deg, #e8f5ee, #d4eef9);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    font-size: 0.9rem; line-height: 1.6;
+    color: var(--green-dark); font-weight: 600;
+    text-align: center;
+    border: 2px dashed var(--green);
+    margin: 12px 0;
+  }
+
+  .divider-label {
+    text-align: center;
+    font-family: 'Baloo 2', cursive;
+    font-size: 1rem; font-weight: 700;
+    color: var(--text-muted);
+    margin: 24px 0 8px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .divider-label::before, .divider-label::after {
+    content: ''; flex: 1; height: 2px;
+    background: linear-gradient(to right, transparent, #cde8d6, transparent);
+  }
+
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+  .anim-float { animation: float 3s ease-in-out infinite; }
+
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: #e8f5ee; }
+  ::-webkit-scrollbar-thumb { background: var(--green); border-radius: 10px; }
+</style>
+</head>
+<body>
+
+<!-- ══════════ DASHBOARD ══════════ -->
+<div id="dashboard" class="screen active">
+
+  <!-- Back to Dashboard button -->
+  <div class="top-nav">
+    <a href="/dashboard/{{ name }}/{{ role }}" class="back-to-dash">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      Back to Dashboard
+    </a>
+  </div>
+
+  <div class="dash-hero">
+    <h1>Eco<span>Learn</span> Adventures</h1>
+    <p>Explore our planet with fun stories & cute characters!</p>
+    <div class="mascot-row">
+      <svg class="mascot" width="60" height="72" viewBox="0 0 60 72">
+        <ellipse cx="30" cy="52" rx="18" ry="14" fill="#2d9e5f"/>
+        <circle cx="30" cy="28" r="18" fill="#44bb77"/>
+        <circle cx="24" cy="24" r="4.5" fill="white"/><circle cx="36" cy="24" r="4.5" fill="white"/>
+        <circle cx="24" cy="25" r="2.5" fill="#1a3a28"/><circle cx="36" cy="25" r="2.5" fill="#1a3a28"/>
+        <circle cx="25" cy="24" r="1" fill="white"/><circle cx="37" cy="24" r="1" fill="white"/>
+        <path d="M26 33 Q30 37 34 33" stroke="#1a3a28" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+        <ellipse cx="20" cy="28" rx="4" ry="3" fill="#66dd99" opacity="0.6"/>
+        <line x1="30" y1="46" x2="30" y2="66" stroke="#1a6e3f" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M30 58 Q22 52 18 56" stroke="#2d9e5f" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <path d="M30 62 Q38 56 42 60" stroke="#2d9e5f" stroke-width="2" fill="none" stroke-linecap="round"/>
+      </svg>
+      <svg class="mascot" width="60" height="72" viewBox="0 0 60 72">
+        <path d="M30 10 Q44 28 44 44 Q44 58 30 58 Q16 58 16 44 Q16 28 30 10Z" fill="#2176b8"/>
+        <circle cx="24" cy="38" r="5" fill="white"/><circle cx="36" cy="38" r="5" fill="white"/>
+        <circle cx="24" cy="39" r="2.8" fill="#0d3a6b"/><circle cx="36" cy="39" r="2.8" fill="#0d3a6b"/>
+        <circle cx="25" cy="38" r="1.2" fill="white"/><circle cx="37" cy="38" r="1.2" fill="white"/>
+        <path d="M26 47 Q30 51 34 47" stroke="#0d3a6b" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+        <ellipse cx="22" cy="30" rx="4" ry="3" fill="#66aaff" opacity="0.5"/>
+        <ellipse cx="20" cy="62" rx="12" ry="5" fill="#b8ddf9" opacity="0.7"/>
+      </svg>
+      <svg class="mascot" width="60" height="72" viewBox="0 0 60 72">
+        <g transform="translate(30,30)">
+          <line x1="0" y1="-22" x2="0" y2="-15" stroke="#e8920a" stroke-width="3" stroke-linecap="round"/>
+          <line x1="15.5" y1="-15.5" x2="10.6" y2="-10.6" stroke="#e8920a" stroke-width="3" stroke-linecap="round"/>
+          <line x1="22" y1="0" x2="15" y2="0" stroke="#e8920a" stroke-width="3" stroke-linecap="round"/>
+          <line x1="15.5" y1="15.5" x2="10.6" y2="10.6" stroke="#e8920a" stroke-width="3" stroke-linecap="round"/>
+          <line x1="0" y1="22" x2="0" y2="15" stroke="#e8920a" stroke-width="3" stroke-linecap="round"/>
+          <line x1="-15.5" y1="15.5" x2="-10.6" y2="10.6" stroke="#e8920a" stroke-width="3" stroke-linecap="round"/>
+          <line x1="-22" y1="0" x2="-15" y2="0" stroke="#e8920a" stroke-width="3" stroke-linecap="round"/>
+          <line x1="-15.5" y1="-15.5" x2="-10.6" y2="-10.6" stroke="#e8920a" stroke-width="3" stroke-linecap="round"/>
+        </g>
+        <circle cx="30" cy="30" r="13" fill="#ffd050"/>
+        <circle cx="25" cy="27" r="4" fill="white"/><circle cx="35" cy="27" r="4" fill="white"/>
+        <circle cx="25" cy="28" r="2.2" fill="#5a3500"/><circle cx="35" cy="28" r="2.2" fill="#5a3500"/>
+        <circle cx="26" cy="27" r="1" fill="white"/><circle cx="36" cy="27" r="1" fill="white"/>
+        <path d="M27 35 Q30 39 33 35" stroke="#5a3500" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      </svg>
+    </div>
+  </div>
+
+  <div class="section-tabs-wrap">
+    <div class="section-tabs">
+      <button class="tab-btn active" onclick="filterSection('all',this)">🌍 All Topics</button>
+      <button class="tab-btn" onclick="filterSection('environment',this)">🌿 Environment</button>
+      <button class="tab-btn" onclick="filterSection('ocean',this)">🌊 Ocean</button>
+      <button class="tab-btn" onclick="filterSection('atmosphere',this)">☁️ Atmosphere</button>
+      <button class="tab-btn" onclick="filterSection('wildlife',this)">🦁 Wildlife</button>
+      <button class="tab-btn" onclick="filterSection('energy',this)">⚡ Energy</button>
+    </div>
+  </div>
+
+  <div class="sections-wrap">
+
+    <!-- ENVIRONMENT -->
+    <div class="section-group visible" data-section="environment">
+      <div class="section-label">🌿 Environment</div>
+      <div class="course-grid">
+        <div class="course-card theme-green" onclick="openStory('carbon')"><span class="card-icon">🌫️</span><div class="card-title">Carbon Footprint</div><span class="card-tag">Climate</span></div>
+        <div class="course-card theme-green" onclick="openStory('deforestation')"><span class="card-icon">🌳</span><div class="card-title">Deforestation</div><span class="card-tag">Forests</span></div>
+        <div class="course-card theme-green" onclick="openStory('pollution')"><span class="card-icon">🏭</span><div class="card-title">Pollution</div><span class="card-tag">Air & Soil</span></div>
+        <div class="course-card theme-green" onclick="openStory('composting')"><span class="card-icon">♻️</span><div class="card-title">Composting</div><span class="card-tag">Recycling</span></div>
+        <div class="course-card theme-green" onclick="openStory('plastic')"><span class="card-icon">🛍️</span><div class="card-title">Plastic Waste</div><span class="card-tag">Pollution</span></div>
+      </div>
+    </div>
+
+    <!-- OCEAN -->
+    <div class="section-group visible" data-section="ocean">
+      <div class="section-label">🌊 Ocean</div>
+      <div class="course-grid">
+        <div class="course-card theme-blue" onclick="openStory('coral')"><span class="card-icon">🪸</span><div class="card-title">Coral Reefs</div><span class="card-tag">Marine</span></div>
+        <div class="course-card theme-blue" onclick="openStory('ocean_acidification')"><span class="card-icon">🧪</span><div class="card-title">Ocean Acidification</div><span class="card-tag">Chemistry</span></div>
+        <div class="course-card theme-blue" onclick="openStory('sea_level')"><span class="card-icon">🌊</span><div class="card-title">Sea Level Rise</div><span class="card-tag">Climate</span></div>
+        <div class="course-card theme-blue" onclick="openStory('marine_life')"><span class="card-icon">🐬</span><div class="card-title">Marine Life</div><span class="card-tag">Wildlife</span></div>
+      </div>
+    </div>
+
+    <!-- ATMOSPHERE -->
+    <div class="section-group visible" data-section="atmosphere">
+      <div class="section-label">☁️ Atmosphere</div>
+      <div class="course-grid">
+        <div class="course-card theme-amber" onclick="openStory('greenhouse')"><span class="card-icon">🌡️</span><div class="card-title">Greenhouse Effect</div><span class="card-tag">Climate</span></div>
+        <div class="course-card theme-amber" onclick="openStory('ozone')"><span class="card-icon">🛡️</span><div class="card-title">Ozone Layer</div><span class="card-tag">Protection</span></div>
+        <div class="course-card theme-amber" onclick="openStory('acid_rain')"><span class="card-icon">🌧️</span><div class="card-title">Acid Rain</div><span class="card-tag">Pollution</span></div>
+        <div class="course-card theme-amber" onclick="openStory('smog')"><span class="card-icon">🌁</span><div class="card-title">Smog & Haze</div><span class="card-tag">Air Quality</span></div>
+      </div>
+    </div>
+
+    <!-- WILDLIFE -->
+    <div class="section-group visible" data-section="wildlife">
+      <div class="section-label">🦁 Wildlife</div>
+      <div class="course-grid">
+        <div class="course-card theme-coral" onclick="openStory('biodiversity')"><span class="card-icon">🦋</span><div class="card-title">Biodiversity</div><span class="card-tag">Ecosystems</span></div>
+        <div class="course-card theme-coral" onclick="openStory('extinction')"><span class="card-icon">🦏</span><div class="card-title">Extinction Crisis</div><span class="card-tag">Endangered</span></div>
+        <div class="course-card theme-coral" onclick="openStory('wetlands')"><span class="card-icon">🌾</span><div class="card-title">Wetlands</div><span class="card-tag">Habitat</span></div>
+      </div>
+    </div>
+
+    <!-- ENERGY -->
+    <div class="section-group visible" data-section="energy">
+      <div class="section-label">⚡ Energy</div>
+      <div class="course-grid">
+        <div class="course-card theme-teal" onclick="openStory('solar')"><span class="card-icon">☀️</span><div class="card-title">Solar Energy</div><span class="card-tag">Renewable</span></div>
+        <div class="course-card theme-teal" onclick="openStory('wind')"><span class="card-icon">💨</span><div class="card-title">Wind Power</div><span class="card-tag">Renewable</span></div>
+        <div class="course-card theme-teal" onclick="openStory('fossil_fuels')"><span class="card-icon">⛽</span><div class="card-title">Fossil Fuels</div><span class="card-tag">Non-renewable</span></div>
+        <div class="course-card theme-teal" onclick="openStory('energy_saving')"><span class="card-icon">💡</span><div class="card-title">Energy Saving</div><span class="card-tag">Efficiency</span></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════ STORY SCREEN ══════════ -->
+<div id="story-screen" class="screen">
+  <div class="story-topbar">
+    <button class="back-btn" onclick="goBack()">&#8592;</button>
+    <div class="story-title-bar" id="story-title-bar">Story</div>
+  </div>
+  <div class="scene-area" id="scene-area"></div>
+  <div class="story-body" id="story-body"></div>
+</div>
+
+<script>
+// ── CHARACTERS ──────────────────────────────────────────
+const chars = {
+  leaf: (s=60) => `<svg width="${s}" height="${s}" viewBox="0 0 60 60"><ellipse cx="30" cy="50" rx="14" ry="8" fill="#44bb77"/><circle cx="30" cy="26" r="18" fill="#44bb77"/><circle cx="24" cy="22" r="4.5" fill="white"/><circle cx="36" cy="22" r="4.5" fill="white"/><circle cx="24" cy="23" r="2.5" fill="#1a3a28"/><circle cx="36" cy="23" r="2.5" fill="#1a3a28"/><circle cx="25" cy="22" r="1" fill="white"/><circle cx="37" cy="22" r="1" fill="white"/><path d="M26 31 Q30 35 34 31" stroke="#1a3a28" stroke-width="1.8" fill="none" stroke-linecap="round"/><ellipse cx="20" cy="26" rx="4" ry="3" fill="#66dd99" opacity="0.6"/><line x1="30" y1="44" x2="30" y2="58" stroke="#1a6e3f" stroke-width="2" stroke-linecap="round"/></svg>`,
+  drop: (s=60) => `<svg width="${s}" height="${s}" viewBox="0 0 60 60"><path d="M30 5 Q44 23 44 38 Q44 53 30 53 Q16 53 16 38 Q16 23 30 5Z" fill="#2176b8"/><circle cx="24" cy="34" r="5" fill="white"/><circle cx="36" cy="34" r="5" fill="white"/><circle cx="24" cy="35" r="2.8" fill="#0d3a6b"/><circle cx="36" cy="35" r="2.8" fill="#0d3a6b"/><circle cx="25" cy="34" r="1.2" fill="white"/><circle cx="37" cy="34" r="1.2" fill="white"/><path d="M26 43 Q30 47 34 43" stroke="#0d3a6b" stroke-width="1.8" fill="none" stroke-linecap="round"/><ellipse cx="22" cy="25" rx="4" ry="3" fill="#66aaff" opacity="0.5"/></svg>`,
+  sun: (s=60) => `<svg width="${s}" height="${s}" viewBox="0 0 60 60"><g transform="translate(30,28)"><line x1="0" y1="-20" x2="0" y2="-14" stroke="#e8920a" stroke-width="2.5" stroke-linecap="round"/><line x1="14.1" y1="-14.1" x2="9.9" y2="-9.9" stroke="#e8920a" stroke-width="2.5" stroke-linecap="round"/><line x1="20" y1="0" x2="14" y2="0" stroke="#e8920a" stroke-width="2.5" stroke-linecap="round"/><line x1="14.1" y1="14.1" x2="9.9" y2="9.9" stroke="#e8920a" stroke-width="2.5" stroke-linecap="round"/><line x1="0" y1="20" x2="0" y2="14" stroke="#e8920a" stroke-width="2.5" stroke-linecap="round"/><line x1="-14.1" y1="14.1" x2="-9.9" y2="9.9" stroke="#e8920a" stroke-width="2.5" stroke-linecap="round"/><line x1="-20" y1="0" x2="-14" y2="0" stroke="#e8920a" stroke-width="2.5" stroke-linecap="round"/><line x1="-14.1" y1="-14.1" x2="-9.9" y2="-9.9" stroke="#e8920a" stroke-width="2.5" stroke-linecap="round"/></g><circle cx="30" cy="28" r="12" fill="#ffd050"/><circle cx="25" cy="25" r="3.5" fill="white"/><circle cx="35" cy="25" r="3.5" fill="white"/><circle cx="25" cy="26" r="2" fill="#5a3500"/><circle cx="35" cy="26" r="2" fill="#5a3500"/><path d="M27 32 Q30 36 33 32" stroke="#5a3500" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>`,
+  fish: (s=60) => `<svg width="${s}" height="${s}" viewBox="0 0 60 60"><path d="M10 30 Q8 20 16 20 Q24 14 40 30 Q24 46 16 40 Q8 40 10 30Z" fill="#2176b8"/><path d="M10 30 L2 20 L2 40 Z" fill="#1560a0"/><circle cx="34" cy="28" r="4.5" fill="white"/><circle cx="34" cy="29" r="2.5" fill="#0d3a6b"/><circle cx="35" cy="28" r="1" fill="white"/><path d="M28 34 Q32 37 36 34" stroke="#0d3a6b" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>`,
+  bee: (s=60) => `<svg width="${s}" height="${s}" viewBox="0 0 60 60"><ellipse cx="30" cy="32" rx="13" ry="16" fill="#ffd050"/><rect x="22" y="28" width="16" height="4" rx="2" fill="#1a1a00" opacity="0.5"/><rect x="22" y="35" width="16" height="4" rx="2" fill="#1a1a00" opacity="0.5"/><circle cx="30" cy="20" r="8" fill="#ffd050"/><circle cx="26" cy="18" r="3.5" fill="white"/><circle cx="34" cy="18" r="3.5" fill="white"/><circle cx="26" cy="19" r="2" fill="#1a1a00"/><circle cx="34" cy="19" r="2" fill="#1a1a00"/><path d="M27 25 Q30 28 33 25" stroke="#1a1a00" stroke-width="1.5" fill="none" stroke-linecap="round"/><path d="M30 16 Q38 8 44 12" stroke="#aaddff" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.8"/><path d="M30 16 Q22 8 16 12" stroke="#aaddff" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.8"/></svg>`,
+  cloud: (s=60) => `<svg width="${s}" height="${s}" viewBox="0 0 60 60"><ellipse cx="30" cy="30" rx="22" ry="14" fill="#b0c8e8"/><circle cx="20" cy="28" r="10" fill="#c8ddf0"/><circle cx="38" cy="26" r="12" fill="#ddeeff"/><circle cx="30" cy="22" r="11" fill="#eaf4ff"/><circle cx="22" cy="38" r="4" fill="white"/><circle cx="38" cy="38" r="4" fill="white"/><circle cx="22" cy="39" r="2.2" fill="#2a5080"/><circle cx="38" cy="39" r="2.2" fill="#2a5080"/><path d="M26 44 Q30 48 34 44" stroke="#2a5080" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>`
+};
+
+// ── BEAUTIFUL SVG SCENES ─────────────────────────────────
+const scenes = {
+  // CARBON - city with factories and green vs grey sky
+  carbon: `<svg width="100%" height="240" viewBox="0 0 900 240" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <linearGradient id="skyG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#c8d8e8"/><stop offset="100%" stop-color="#a8b8c8"/></linearGradient>
+    </defs>
+    <rect width="900" height="240" fill="url(#skyG)"/>
+    <!-- Smoke clouds -->
+    <ellipse cx="180" cy="60" rx="45" ry="35" fill="#b0b8c0" opacity="0.7"/>
+    <ellipse cx="210" cy="40" rx="40" ry="30" fill="#c0c8d0" opacity="0.6"/>
+    <ellipse cx="160" cy="45" rx="35" ry="28" fill="#a8b0b8" opacity="0.65"/>
+    <ellipse cx="450" cy="50" rx="50" ry="38" fill="#b8bfc8" opacity="0.65"/>
+    <ellipse cx="490" cy="30" rx="42" ry="32" fill="#c8cfd8" opacity="0.6"/>
+    <!-- Ground -->
+    <rect x="0" y="180" width="900" height="60" fill="#8a9a8a"/>
+    <!-- Buildings left -->
+    <rect x="40" y="100" width="90" height="100" fill="#788090"/>
+    <rect x="50" y="80" width="70" height="30" fill="#8890a0"/>
+    <rect x="60" y="65" width="50" height="20" fill="#6a7888"/>
+    <!-- Factory chimney left -->
+    <rect x="115" y="55" width="18" height="50" fill="#707878"/>
+    <ellipse cx="124" cy="50" rx="18" ry="25" fill="#a8b0b0" opacity="0.8"/>
+    <!-- Buildings mid -->
+    <rect x="200" y="120" width="120" height="80" fill="#6a7880"/>
+    <rect x="220" y="100" width="80" height="28" fill="#7a8890"/>
+    <rect x="310" y="90" width="22" height="40" fill="#686e78"/>
+    <ellipse cx="321" cy="84" rx="16" ry="22" fill="#b0b8b8" opacity="0.7"/>
+    <!-- Car road -->
+    <rect x="0" y="195" width="900" height="22" fill="#555a60"/>
+    <rect x="0" y="204" width="900" height="4" fill="#888" opacity="0.5"/>
+    <!-- Dashed line -->
+    <line x1="0" y1="206" x2="900" y2="206" stroke="#ffcc00" stroke-width="2" stroke-dasharray="30 20" opacity="0.6"/>
+    <!-- Right side trees (eco side) -->
+    <rect x="600" y="140" width="16" height="60" fill="#5a3a1a"/>
+    <ellipse cx="608" cy="134" rx="30" ry="36" fill="#2d9e5f"/>
+    <rect x="680" y="150" width="14" height="50" fill="#5a3a1a"/>
+    <ellipse cx="687" cy="144" rx="26" ry="30" fill="#3aaa6a"/>
+    <rect x="750" y="135" width="18" height="65" fill="#5a3a1a"/>
+    <ellipse cx="759" cy="128" rx="34" ry="38" fill="#268e50"/>
+    <rect x="820" y="145" width="14" height="55" fill="#5a3a1a"/>
+    <ellipse cx="827" cy="139" rx="25" ry="30" fill="#44bb77"/>
+    <!-- Sun peeking right -->
+    <circle cx="870" cy="35" r="38" fill="#ffd050" opacity="0.9"/>
+  </svg>`,
+
+  // DEFORESTATION - lush left, barren right with stumps
+  deforestation: `<svg width="100%" height="240" viewBox="0 0 900 240" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <linearGradient id="skyF" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#7ec8e3"/><stop offset="55%" stop-color="#a8d8a0"/><stop offset="55%" stop-color="#6ab04c"/><stop offset="100%" stop-color="#4a8a2a"/></linearGradient>
+    </defs>
+    <rect width="900" height="240" fill="url(#skyF)"/>
+    <rect x="0" y="148" width="900" height="92" fill="#6ab04c"/>
+    <!-- Dense forest left -->
+    <rect x="20" y="55" width="22" height="110" rx="4" fill="#5a3a1a"/>
+    <ellipse cx="31" cy="48" rx="36" ry="48" fill="#1e7e34"/>
+    <rect x="85" y="70" width="18" height="95" rx="3" fill="#4a2e10"/>
+    <ellipse cx="94" cy="62" rx="30" ry="40" fill="#28a745"/>
+    <rect x="145" y="45" width="24" height="120" rx="4" fill="#5a3a1a"/>
+    <ellipse cx="157" cy="36" rx="38" ry="50" fill="#155724"/>
+    <rect x="215" y="60" width="20" height="105" rx="3" fill="#4a2e10"/>
+    <ellipse cx="225" cy="52" rx="32" ry="42" fill="#2d9e5f"/>
+    <rect x="280" y="50" width="22" height="115" rx="4" fill="#5a3a1a"/>
+    <ellipse cx="291" cy="42" rx="34" ry="46" fill="#1e7e34"/>
+    <!-- Dividing line / chainsaw area -->
+    <line x1="360" y1="0" x2="360" y2="240" stroke="#8B6914" stroke-width="4" opacity="0.3" stroke-dasharray="12 8"/>
+    <!-- Stumps right side -->
+    <ellipse cx="410" cy="168" rx="28" ry="12" fill="#8B4513"/>
+    <rect x="386" y="148" width="48" height="20" rx="4" fill="#A0522D"/>
+    <ellipse cx="410" cy="148" rx="24" ry="8" fill="#8B4513"/>
+    <ellipse cx="500" cy="172" rx="22" ry="10" fill="#8B4513"/>
+    <rect x="480" y="155" width="40" height="17" rx="3" fill="#A0522D"/>
+    <ellipse cx="500" cy="155" rx="19" ry="7" fill="#7a3e0f"/>
+    <ellipse cx="600" cy="170" rx="25" ry="11" fill="#8B4513"/>
+    <rect x="577" y="152" width="46" height="18" rx="3" fill="#A0522D"/>
+    <!-- Fallen log -->
+    <rect x="440" y="178" width="130" height="18" rx="8" fill="#6B3A1F"/>
+    <ellipse cx="440" cy="187" rx="10" ry="9" fill="#8B5530"/>
+    <ellipse cx="570" cy="187" rx="10" ry="9" fill="#8B5530"/>
+    <!-- Sky birds left (healthy) -->
+    <path d="M50 20 Q55 16 60 20" fill="none" stroke="#2176b8" stroke-width="1.5"/>
+    <path d="M70 14 Q76 10 82 14" fill="none" stroke="#2176b8" stroke-width="1.5"/>
+    <!-- Dust cloud right -->
+    <ellipse cx="700" cy="110" rx="60" ry="40" fill="#c8b870" opacity="0.3"/>
+    <ellipse cx="760" cy="130" rx="50" ry="32" fill="#d4c080" opacity="0.25"/>
+    <!-- Sun -->
+    <circle cx="850" cy="45" r="40" fill="#ffd050" opacity="0.85"/>
+  </svg>`,
+
+  // POLLUTION - grey industrial city with coloured toxic clouds
+  pollution: `<svg width="100%" height="240" viewBox="0 0 900 240" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <linearGradient id="smG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#8090a0"/><stop offset="100%" stop-color="#a0aab4"/></linearGradient>
+    </defs>
+    <rect width="900" height="240" fill="url(#smG)"/>
+    <!-- Toxic clouds -->
+    <ellipse cx="150" cy="50" rx="80" ry="50" fill="#b0b840" opacity="0.4"/>
+    <ellipse cx="300" cy="35" rx="90" ry="55" fill="#c0a030" opacity="0.35"/>
+    <ellipse cx="500" cy="45" rx="100" ry="60" fill="#a0b040" opacity="0.38"/>
+    <ellipse cx="700" cy="40" rx="85" ry="52" fill="#b0c050" opacity="0.32"/>
+    <!-- Ground road -->
+    <rect x="0" y="190" width="900" height="50" fill="#484848"/>
+    <rect x="0" y="180" width="900" height="14" fill="#606060"/>
+    <!-- Factory 1 -->
+    <rect x="50" y="100" width="110" height="100" rx="3" fill="#505860"/>
+    <rect x="70" y="80" width="70" height="28" fill="#5a6270"/>
+    <rect x="90" y="52" width="24" height="36" rx="3" fill="#484e58"/>
+    <ellipse cx="102" cy="46" rx="20" ry="28" fill="#909090" opacity="0.75"/>
+    <ellipse cx="102" cy="26" rx="24" ry="24" fill="#a0a0a0" opacity="0.65"/>
+    <!-- Factory 2 -->
+    <rect x="240" y="110" width="140" height="90" rx="3" fill="#505060"/>
+    <rect x="270" y="90" width="80" height="26" fill="#5a5a70"/>
+    <rect x="290" y="55" width="22" height="42" rx="3" fill="#484858"/>
+    <ellipse cx="301" cy="48" rx="18" ry="26" fill="#b8a040" opacity="0.7"/>
+    <ellipse cx="310" cy="28" rx="22" ry="22" fill="#c0a840" opacity="0.55"/>
+    <!-- Factory 3 -->
+    <rect x="480" y="105" width="160" height="95" rx="3" fill="#484858"/>
+    <rect x="510" y="85" width="100" height="28" fill="#505060"/>
+    <rect x="535" y="48" width="26" height="44" rx="3" fill="#404050"/>
+    <ellipse cx="548" cy="40" rx="22" ry="30" fill="#808080" opacity="0.8"/>
+    <ellipse cx="548" cy="18" rx="26" ry="22" fill="#909090" opacity="0.7"/>
+    <!-- Tiny car -->
+    <rect x="700" y="172" width="60" height="22" rx="6" fill="#cc4444"/>
+    <circle cx="712" cy="196" r="8" fill="#333"/>
+    <circle cx="748" cy="196" r="8" fill="#333"/>
+    <!-- Barren tree right -->
+    <rect x="820" y="100" width="10" height="90" fill="#5a5a5a"/>
+    <path d="M825 100 Q810 80 800 65" stroke="#5a5a5a" stroke-width="5" fill="none"/>
+    <path d="M825 115 Q845 95 855 78" stroke="#5a5a5a" stroke-width="4" fill="none"/>
+  </svg>`,
+
+  // COMPOSTING - garden with worms and compost bin
+  composting: `<svg width="100%" height="240" viewBox="0 0 900 240" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <linearGradient id="garG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#87ceeb"/><stop offset="60%" stop-color="#c8e8c0"/><stop offset="60%" stop-color="#7ab840"/><stop offset="100%" stop-color="#5a9a20"/></linearGradient>
+    </defs>
+    <rect width="900" height="240" fill="url(#garG)"/>
+    <rect x="0" y="156" width="900" height="84" fill="#7ab840"/>
+    <!-- Rich soil patch -->
+    <ellipse cx="450" cy="188" rx="280" ry="52" fill="#5a3a0a" opacity="0.7"/>
+    <!-- Compost bin -->
+    <rect x="340" y="100" width="90" height="95" rx="8" fill="#5a8a20"/>
+    <rect x="335" y="92" width="100" height="18" rx="5" fill="#4a7a18"/>
+    <rect x="350" y="106" width="70" height="8" rx="3" fill="#3a6a10" opacity="0.5"/>
+    <rect x="350" y="118" width="70" height="8" rx="3" fill="#3a6a10" opacity="0.5"/>
+    <rect x="350" y="130" width="70" height="8" rx="3" fill="#3a6a10" opacity="0.5"/>
+    <!-- Worms -->
+    <path d="M200 190 Q210 180 220 190 Q230 200 240 190" fill="none" stroke="#d4804a" stroke-width="6" stroke-linecap="round"/>
+    <path d="M550 195 Q565 183 580 195 Q595 207 610 195" fill="none" stroke="#e08050" stroke-width="5" stroke-linecap="round"/>
+    <path d="M680 185 Q692 175 704 185" fill="none" stroke="#d4804a" stroke-width="5" stroke-linecap="round"/>
+    <!-- Food scraps flying in -->
+    <text x="160" y="130" font-size="28">🍎</text>
+    <text x="220" y="110" font-size="22">🥦</text>
+    <text x="120" y="148" font-size="20">🍂</text>
+    <!-- Arrows -->
+    <path d="M200 145 Q260 130 340 120" fill="none" stroke="#5a9a20" stroke-width="3" stroke-dasharray="8 5" marker-end="url(#arr)"/>
+    <!-- Flowers from compost -->
+    <line x1="480" y1="160" x2="480" y2="115" stroke="#5a9a20" stroke-width="3"/>
+    <circle cx="480" cy="110" r="12" fill="#ff6b9d"/>
+    <circle cx="475" cy="118" r="8" fill="#ff9b3d"/>
+    <line x1="560" y1="155" x2="560" y2="118" stroke="#5a9a20" stroke-width="3"/>
+    <circle cx="560" cy="112" r="11" fill="#ffd050"/>
+    <line x1="630" y1="158" x2="630" y2="124" stroke="#5a9a20" stroke-width="3"/>
+    <circle cx="630" cy="118" r="10" fill="#a855f7"/>
+    <!-- Sun -->
+    <circle cx="820" cy="45" r="42" fill="#ffd050" opacity="0.9"/>
+    <!-- Butterfly -->
+    <text x="720" y="100" font-size="26">🦋</text>
+  </svg>`,
+
+  // PLASTIC - ocean surface covered in plastic debris
+  plastic: `<svg width="100%" height="240" viewBox="0 0 900 240" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <linearGradient id="pOcG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#87ceeb"/><stop offset="40%" stop-color="#4a90c8"/><stop offset="100%" stop-color="#1a5a90"/></linearGradient>
+    </defs>
+    <rect width="900" height="240" fill="url(#pOcG)"/>
+    <!-- Waves -->
+    <path d="M0 160 Q60 148 120 160 Q180 172 240 160 Q300 148 360 160 Q420 172 480 160 Q540 148 600 160 Q660 172 720 160 Q780 148 840 160 Q870 166 900 160 L900 240 L0 240Z" fill="#2176b8" opacity="0.6"/>
+    <path d="M0 175 Q50 165 100 175 Q150 185 200 175 Q250 165 300 175 Q350 185 400 175 Q450 165 500 175 Q550 185 600 175 Q650 165 700 175 Q750 185 800 175 Q860 165 900 175 L900 240 L0 240Z" fill="#1560a0" opacity="0.5"/>
+    <!-- Plastic bottles -->
+    <rect x="80" y="148" width="38" height="22" rx="5" fill="#cc4444" opacity="0.9"/>
+    <rect x="84" y="141" width="12" height="10" rx="3" fill="#aa3333"/>
+    <rect x="200" y="143" width="42" height="24" rx="5" fill="#4a90e2" opacity="0.9"/>
+    <rect x="205" y="136" width="14" height="9" rx="3" fill="#3a70c2"/>
+    <rect x="350" y="150" width="36" height="20" rx="5" fill="#f0a020" opacity="0.9"/>
+    <rect x="490" y="145" width="40" height="22" rx="5" fill="#44aa44" opacity="0.9"/>
+    <rect x="650" y="148" width="38" height="21" rx="5" fill="#e040fb" opacity="0.9"/>
+    <!-- Plastic bags -->
+    <ellipse cx="160" cy="155" rx="25" ry="14" fill="#f0f0a0" opacity="0.75"/>
+    <ellipse cx="420" cy="158" rx="20" ry="12" fill="#a0e0f0" opacity="0.7"/>
+    <ellipse cx="760" cy="154" rx="22" ry="13" fill="#f0c0a0" opacity="0.75"/>
+    <!-- Floating rings / straws -->
+    <circle cx="560" cy="155" r="14" fill="none" stroke="#ff8888" stroke-width="4" opacity="0.8"/>
+    <line x1="300" y1="148" x2="320" y2="172" stroke="#cc4444" stroke-width="4" stroke-linecap="round" opacity="0.7"/>
+    <!-- Sad fish underwater -->
+    <path d="M400 205 Q415 198 430 205 Q415 213 400 205Z" fill="#2a90d0"/>
+    <circle cx="424" cy="203" r="3" fill="white"/>
+    <circle cx="424" cy="203" r="1.5" fill="#111"/>
+    <!-- Seagull sky -->
+    <path d="M100 60 Q110 54 120 60" fill="none" stroke="#555" stroke-width="2"/>
+    <path d="M200 45 Q212 38 224 45" fill="none" stroke="#555" stroke-width="2"/>
+    <path d="M700 55 Q712 48 724 55" fill="none" stroke="#555" stroke-width="2"/>
+    <!-- Sun -->
+    <circle cx="820" cy="40" r="38" fill="#ffd050" opacity="0.9"/>
+  </svg>`,
+
+  // CORAL REEFS - vivid underwater scene
+  coral: `<svg width="100%" height="240" viewBox="0 0 900 240" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <linearGradient id="seaG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#40b4e0"/><stop offset="100%" stop-color="#0a4060"/></linearGradient>
+    </defs>
+    <rect width="900" height="240" fill="url(#seaG)"/>
+    <!-- Light rays -->
+    <path d="M200 0 L140 240" stroke="white" stroke-width="18" opacity="0.06"/>
+    <path d="M400 0 L340 240" stroke="white" stroke-width="14" opacity="0.06"/>
+    <path d="M650 0 L590 240" stroke="white" stroke-width="16" opacity="0.06"/>
+    <!-- Sandy bottom -->
+    <ellipse cx="450" cy="248" rx="500" ry="60" fill="#c8a860" opacity="0.5"/>
+    <!-- Coral formations left -->
+    <ellipse cx="80" cy="210" rx="55" ry="38" fill="#e84040" opacity="0.7"/>
+    <ellipse cx="70" cy="190" rx="22" ry="40" fill="#f05050" opacity="0.9"/>
+    <ellipse cx="100" cy="195" rx="18" ry="34" fill="#ff6060" opacity="0.85"/>
+    <ellipse cx="55" cy="200" rx="16" ry="28" fill="#e03030" opacity="0.9"/>
+    <!-- Coral mid -->
+    <ellipse cx="300" cy="215" rx="65" ry="42" fill="#c03828" opacity="0.65"/>
+    <ellipse cx="285" cy="192" rx="20" ry="36" fill="#e04838" opacity="0.9"/>
+    <ellipse cx="310" cy="195" rx="24" ry="40" fill="#f05545" opacity="0.85"/>
+    <ellipse cx="340" cy="200" rx="18" ry="32" fill="#d84030" opacity="0.9"/>
+    <!-- Brain coral -->
+    <circle cx="520" cy="220" r="32" fill="#e87830" opacity="0.8"/>
+    <path d="M495 215 Q510 205 525 215 Q540 205 555 215" fill="none" stroke="#c06020" stroke-width="3"/>
+    <path d="M492 222 Q508 212 522 222 Q538 212 552 222" fill="none" stroke="#c06020" stroke-width="3"/>
+    <!-- Sea anemone -->
+    <circle cx="680" cy="218" r="18" fill="#ff69b4" opacity="0.8"/>
+    <line x1="680" y1="200" x2="668" y2="180" stroke="#ff69b4" stroke-width="3" stroke-linecap="round"/>
+    <line x1="680" y1="200" x2="692" y2="178" stroke="#ff69b4" stroke-width="3" stroke-linecap="round"/>
+    <line x1="680" y1="200" x2="660" y2="186" stroke="#ff69b4" stroke-width="3" stroke-linecap="round"/>
+    <line x1="680" y1="200" x2="700" y2="186" stroke="#ff69b4" stroke-width="3" stroke-linecap="round"/>
+    <line x1="680" y1="200" x2="672" y2="174" stroke="#ff8ec4" stroke-width="2" stroke-linecap="round"/>
+    <!-- Fish swimming -->
+    <path d="M550 120 Q560 114 570 120 Q560 126 550 120Z" fill="#ffd050"/>
+    <circle cx="564" cy="118" r="2.5" fill="#111"/>
+    <path d="M620 90 Q634 83 648 90 Q634 97 620 90Z" fill="#ff6b6b"/>
+    <circle cx="638" cy="88" r="3" fill="#111"/>
+    <path d="M150 100 Q164 93 178 100 Q164 107 150 100Z" fill="#44bb88"/>
+    <circle cx="168" cy="98" r="2.5" fill="#111"/>
+    <!-- Bubbles -->
+    <circle cx="200" cy="60" r="5" fill="none" stroke="white" stroke-width="1.5" opacity="0.5"/>
+    <circle cx="215" cy="40" r="7" fill="none" stroke="white" stroke-width="1.5" opacity="0.4"/>
+    <circle cx="600" cy="70" r="6" fill="none" stroke="white" stroke-width="1.5" opacity="0.45"/>
+    <circle cx="620" cy="45" r="4" fill="none" stroke="white" stroke-width="1.5" opacity="0.4"/>
+  </svg>`,
+
+  // OCEAN ACIDIFICATION - ocean with pH scale, dissolving shells
+  ocean_acidification: `<svg width="100%" height="240" viewBox="0 0 900 240" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <linearGradient id="acidG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#60b8e0"/><stop offset="100%" stop-color="#1a4860"/></linearGradient>
+    </defs>
+    <rect width="900" height="240" fill="url(#acidG)"/>
+    <!-- CO2 bubbles coming down from sky -->
+    <circle cx="150" cy="30" r="22" fill="#90c0d0" opacity="0.5"/>
+    <text x="140" y="36" font-size="12" fill="#205070" font-family="sans-serif" font-weight="bold">CO₂</text>
+    <circle cx="400" cy="20" r="26" fill="#90c0d0" opacity="0.5"/>
+    <text x="387" y="26" font-size="14" fill="#205070" font-family="sans-serif" font-weight="bold">CO₂</text>
+    <circle cx="700" cy="25" r="20" fill="#90c0d0" opacity="0.5"/>
+    <text x="691" y="31" font-size="11" fill="#205070" font-family="sans-serif" font-weight="bold">CO₂</text>
+    <!-- Arrows going down -->
+    <line x1="150" y1="52" x2="150" y2="90" stroke="#4a8aa0" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#arr2)" opacity="0.6"/>
+    <line x1="400" y1="46" x2="400" y2="90" stroke="#4a8aa0" stroke-width="2" stroke-dasharray="5 4" opacity="0.6"/>
+    <line x1="700" y1="45" x2="700" y2="90" stroke="#4a8aa0" stroke-width="2" stroke-dasharray="5 4" opacity="0.6"/>
+    <!-- Water acidifying (yellowish tinge bottom) -->
+    <ellipse cx="450" cy="240" rx="500" ry="80" fill="#88b840" opacity="0.12"/>
+    <!-- pH scale visual -->
+    <rect x="680" y="110" width="180" height="20" rx="10" fill="url(#phG)"/>
+    <defs>
+      <linearGradient id="phG" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#e03030"/><stop offset="50%" stop-color="#ffd050"/><stop offset="100%" stop-color="#3090e0"/></linearGradient>
+    </defs>
+    <text x="680" y="108" font-size="11" fill="white" font-family="sans-serif">pH 0</text>
+    <text x="840" y="108" font-size="11" fill="white" font-family="sans-serif">pH 14</text>
+    <text x="760" y="108" font-size="10" fill="white" font-family="sans-serif" opacity="0.8">7 (neutral)</text>
+    <line x1="740" y1="108" x2="740" y2="132" stroke="white" stroke-width="2"/>
+    <!-- Ocean today marker (moving left = more acidic) -->
+    <line x1="810" y1="108" x2="810" y2="132" stroke="#ff6060" stroke-width="2.5"/>
+    <text x="790" y="148" font-size="10" fill="#ff8888" font-family="sans-serif">today ↓</text>
+    <!-- Dissolving shells at bottom -->
+    <path d="M100 200 Q130 175 160 200 Q130 220 100 200Z" fill="#e8d8c0" opacity="0.6"/>
+    <path d="M105 202 Q130 180 155 202" fill="none" stroke="#c0b090" stroke-width="2" opacity="0.5"/>
+    <!-- Second shell (partly dissolved) -->
+    <path d="M250 205 Q275 185 300 205 Q275 218 250 205Z" fill="#e8d8c0" opacity="0.4"/>
+    <path d="M400 195 Q430 170 460 195" fill="none" stroke="#e8d8c0" stroke-width="3" stroke-dasharray="8 6" opacity="0.5"/>
+    <!-- Sad coral (bleached) -->
+    <ellipse cx="580" cy="215" rx="35" ry="25" fill="#f0ece0" opacity="0.7"/>
+    <ellipse cx="568" cy="198" rx="14" ry="24" fill="#f0f0e8" opacity="0.8"/>
+    <ellipse cx="590" cy="200" rx="16" ry="28" fill="#e8e8e0" opacity="0.8"/>
+    <!-- Normal fish -->
+    <path d="M200 130 Q215 123 230 130 Q215 138 200 130Z" fill="#2176b8"/>
+  </svg>`,
+
+  // SEA LEVEL RISE - coastal city with water rising
+  sea_level: `<svg width="100%" height="240" viewBox="0 0 900 240" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <linearGradient id="slG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#87c8e8"/><stop offset="100%" stop-color="#2060a0"/></linearGradient>
+    </defs>
+    <rect width="900" height="240" fill="url(#slG)"/>
+    <!-- Flooded lower buildings -->
+    <rect x="50" y="130" width="80" height="120" fill="#c8a060" opacity="0.7"/>
+    <rect x="60" y="110" width="60" height="28" fill="#d4b070" opacity="0.7"/>
+    <rect x="160" y="110" width="100" height="140" fill="#b89050" opacity="0.7"/>
+    <rect x="175" y="90" width="70" height="26" fill="#c8a060" opacity="0.7"/>
+    <!-- Taller building still above water -->
+    <rect x="300" y="60" width="120" height="180" fill="#a09080"/>
+    <rect x="315" y="40" width="90" height="26" fill="#b0a090"/>
+    <!-- Windows -->
+    <rect x="315" y="70" width="20" height="16" rx="2" fill="#c8e8ff" opacity="0.6"/>
+    <rect x="345" y="70" width="20" height="16" rx="2" fill="#c8e8ff" opacity="0.6"/>
+    <rect x="375" y="70" width="20" height="16" rx="2" fill="#c8e8ff" opacity="0.6"/>
+    <rect x="315" y="96" width="20" height="16" rx="2" fill="#c8e8ff" opacity="0.4"/>
+    <rect x="345" y="96" width="20" height="16" rx="2" fill="#c8e8ff" opacity="0.4"/>
+    <!-- Rising water -->
+    <path d="M0 165 Q80 152 160 165 Q240 178 320 165 Q400 152 480 165 Q560 178 640 165 Q720 152 800 165 Q860 172 900 165 L900 240 L0 240Z" fill="#2060a0" opacity="0.85"/>
+    <path d="M0 180 Q60 170 120 180 Q180 190 240 180 Q300 170 360 180 Q420 190 480 180 Q540 170 600 180 Q660 190 720 180 Q780 170 840 180 Q870 185 900 180 L900 240 L0 240Z" fill="#1550a0" opacity="0.7"/>
+    <!-- Old shoreline dotted -->
+    <line x1="0" y1="210" x2="900" y2="210" stroke="#60c0ff" stroke-width="2" stroke-dasharray="14 8" opacity="0.5"/>
+    <text x="750" y="207" font-size="11" fill="#90d8ff" font-family="sans-serif" opacity="0.8">old sea level</text>
+    <!-- Melting iceberg right -->
+    <path d="M720 60 L680 130 L760 130Z" fill="white" opacity="0.9"/>
+    <path d="M730 130 L700 165 L760 165Z" fill="#c8e8ff" opacity="0.7"/>
+    <path d="M750 125 L740 145 L770 145Z" fill="#d8f0ff" opacity="0.65"/>
+    <!-- Sun -->
+    <circle cx="840" cy="38" r="36" fill="#ffd050" opacity="0.9"/>
+    <!-- Helicopter rescue -->
+    <text x="430" y="80" font-size="28">🚁</text>
+    <!-- House half submerged -->
+    <path d="M530 165 L600 130 L670 165Z" fill="#c09060"/>
+    <rect x="545" y="165" width="110" height="50" fill="#b08050" opacity="0.5"/>
+  </svg>`,
+
+  // MARINE LIFE - colourful ocean with many animals
+  marine_life: `<svg width="100%" height="240" viewBox="0 0 900 240" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <linearGradient id="mlG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#48b0e0"/><stop offset="100%" stop-color="#083858"/></linearGradient>
+    </defs>
+    <rect width="900" height="240" fill="url(#mlG)"/>
+    <!-- Light shafts -->
+    <path d="M200 0 L120 240" stroke="white" stroke-width="20" opacity="0.05"/>
+    <path d="M500 0 L420 240" stroke="white" stroke-width="16" opacity="0.05"/>
+    <!-- Seabed -->
+    <ellipse cx="450" cy="252" rx="520" ry="65" fill="#c8a860" opacity="0.4"/>
+    <!-- Seaweed -->
+    <path d="M60 240 Q50 210 65 190 Q80 170 68 150 Q55 130 70 110" fill="none" stroke="#2d9e5f" stroke-width="8" stroke-linecap="round"/>
+    <path d="M100 240 Q112 208 96 185 Q80 162 98 140" fill="none" stroke="#3aaa6a" stroke-width="7" stroke-linecap="round"/>
+    <path d="M780 240 Q770 212 785 190 Q800 168 786 148" fill="none" stroke="#2d9e5f" stroke-width="8" stroke-linecap="round"/>
+    <path d="M830 240 Q842 208 826 182 Q810 156 828 132" fill="none" stroke="#3aaa6a" stroke-width="6" stroke-linecap="round"/>
+    <!-- Whale -->
+    <path d="M550 80 Q640 60 710 80 Q680 110 640 115 Q600 118 550 100Z" fill="#2060a0"/>
+    <path d="M550 80 L530 65 L535 100Z" fill="#1550a0"/>
+    <circle cx="680" cy="82" r="6" fill="white"/>
+    <circle cx="680" cy="82" r="3" fill="#111"/>
+    <!-- Dolphin -->
+    <path d="M180 100 Q230 82 270 100 Q250 118 210 120Z" fill="#4090c0"/>
+    <path d="M180 100 L162 86 L166 108Z" fill="#3080b0"/>
+    <circle cx="255" cy="94" r="4" fill="white"/>
+    <circle cx="255" cy="94" r="2" fill="#111"/>
+    <!-- Turtle -->
+    <ellipse cx="420" cy="175" rx="36" ry="26" fill="#3a8a40"/>
+    <circle cx="420" cy="155" r="14" fill="#4a9a50"/>
+    <path d="M398 168 L380 158" stroke="#3a8a40" stroke-width="5" stroke-linecap="round"/>
+    <path d="M442 168 L460 158" stroke="#3a8a40" stroke-width="5" stroke-linecap="round"/>
+    <path d="M415 196 L412 215" stroke="#3a8a40" stroke-width="4" stroke-linecap="round"/>
+    <!-- Colourful fish school -->
+    <path d="M600 155 Q612 149 624 155 Q612 162 600 155Z" fill="#ff6b6b"/>
+    <path d="M625 148 Q637 142 649 148 Q637 155 625 148Z" fill="#ffd050"/>
+    <path d="M615 162 Q627 156 639 162 Q627 169 615 162Z" fill="#44bb88"/>
+    <path d="M640 158 Q652 152 664 158 Q652 165 640 158Z" fill="#ff6b6b"/>
+    <!-- Octopus -->
+    <circle cx="140" cy="195" r="24" fill="#9b59b6"/>
+    <path d="M120 215 Q112 228 108 240" fill="none" stroke="#8e44ad" stroke-width="6" stroke-linecap="round"/>
+    <path d="M130 220 Q124 234 122 240" fill="none" stroke="#8e44ad" stroke-width="6" stroke-linecap="round"/>
+    <path d="M140 222 Q140 236 140 240" fill="none" stroke="#8e44ad" stroke-width="6" stroke-linecap="round"/>
+    <path d="M150 220 Q156 234 158 240" fill="none" stroke="#8e44ad" stroke-width="6" stroke-linecap="round"/>
+    <path d="M160 215 Q168 228 172 240" fill="none" stroke="#8e44ad" stroke-width="6" stroke-linecap="round"/>
+    <circle cx="134" cy="188" r="5" fill="white"/>
+    <circle cx="134" cy="188" r="2.5" fill="#111"/>
+    <circle cx="148" cy="188" r="5" fill="white"/>
+    <circle cx="148" cy="188" r="2.5" fill="#111"/>
+    <!-- Bubbles -->
+    <circle cx="300" cy="55" r="6" fill="none" stroke="white" stroke-width="1.5" opacity="0.5"/>
+    <circle cx="316" cy="38" r="8" fill="none" stroke="white" stroke-width="1.5" opacity="0.4"/>
+    <circle cx="750" cy="65" r="5" fill="none" stroke="white" stroke-width="1.5" opacity="0.45"/>
+  </svg>`,
+
+  // GREENHOUSE EFFECT - Earth with heat rays trapped
+  greenhouse: `<svg width="100%" height="240" viewBox="0 0 900 240" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <linearGradient id="ghG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1a0a3a"/><stop offset="40%" stop-color="#4060c0"/><stop offset="80%" stop-color="#e87030"/><stop offset="100%" stop-color="#6ab04c"/></linearGradient>
+    </defs>
+    <rect width="900" height="240" fill="url(#ghG)"/>
+    <!-- Earth -->
+    <circle cx="450" cy="320" r="220" fill="#2d7a3a"/>
+    <ellipse cx="380" cy="270" rx="60" ry="40" fill="#2176b8" opacity="0.8"/>
+    <ellipse cx="510" cy="295" rx="40" ry="28" fill="#2176b8" opacity="0.7"/>
+    <!-- Atmosphere layer -->
+    <circle cx="450" cy="320" r="250" fill="none" stroke="#80c0ff" stroke-width="18" opacity="0.2"/>
+    <circle cx="450" cy="320" r="265" fill="none" stroke="#6080ff" stroke-width="10" opacity="0.15"/>
+    <!-- CO2/GHG layer text -->
+    <text x="600" y="55" font-size="14" fill="#ffcc60" font-family="sans-serif" font-weight="bold" opacity="0.9">CO₂ CH₄ N₂O</text>
+    <!-- Sun left -->
+    <circle cx="90" cy="60" r="48" fill="#ffd050"/>
+    <line x1="90" y1="14" x2="90" y2="4" stroke="#ffd050" stroke-width="4" stroke-linecap="round"/>
+    <line x1="124" y1="26" x2="131" y2="18" stroke="#ffd050" stroke-width="4" stroke-linecap="round"/>
+    <line x1="138" y1="60" x2="148" y2="60" stroke="#ffd050" stroke-width="4" stroke-linecap="round"/>
+    <line x1="124" y1="94" x2="131" y2="102" stroke="#ffd050" stroke-width="4" stroke-linecap="round"/>
+    <!-- Incoming rays (yellow) -->
+    <line x1="138" y1="60" x2="350" y2="110" stroke="#ffd050" stroke-width="3" stroke-dasharray="10 5" opacity="0.7"/>
+    <line x1="138" y1="60" x2="400" y2="80" stroke="#ffd050" stroke-width="2" stroke-dasharray="10 5" opacity="0.5"/>
+    <!-- Reflected rays trapped (red) -->
+    <path d="M380 150 Q450 80 520 150 Q580 80 650 120" fill="none" stroke="#ff6020" stroke-width="3" stroke-dasharray="8 5" opacity="0.7"/>
+    <path d="M360 170 Q440 100 510 170" fill="none" stroke="#ff8040" stroke-width="2" stroke-dasharray="8 5" opacity="0.6"/>
+    <!-- Heat arrows trapped -->
+    <line x1="420" y1="160" x2="380" y2="100" stroke="#ff4400" stroke-width="2" stroke-dasharray="5 4" opacity="0.55"/>
+    <line x1="480" y1="155" x2="540" y2="95" stroke="#ff4400" stroke-width="2" stroke-dasharray="5 4" opacity="0.55"/>
+    <!-- Thermometer right -->
+    <rect x="820" y="60" width="20" height="120" rx="10" fill="#e0e0e0"/>
+    <rect x="825" y="68" width="10" height="100" rx="5" fill="white"/>
+    <circle cx="830" cy="185" r="16" fill="#e03030"/>
+    <rect x="825" y="100" width="10" height="84" rx="5" fill="#e03030"/>
+    <text x="810" y="58" font-size="11" fill="white" font-family="sans-serif">🌡️</text>
+  </svg>`,
+
+  // OZONE LAYER - space view with ozone shield and hole
+  ozone: `<svg width="100%" height="240" viewBox="0 0 900 240" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <linearGradient id="ozG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#08082a"/><stop offset="45%" stop-color="#1a2070"/><stop offset="75%" stop-color="#3060c0"/><stop offset="100%" stop-color="#60a0e0"/></linearGradient>
+    </defs>
+    <rect width="900" height="240" fill="url(#ozG)"/>
+    <!-- Stars -->
+    <circle cx="50" cy="20" r="1.5" fill="white" opacity="0.8"/>
+    <circle cx="150" cy="10" r="2" fill="white" opacity="0.7"/>
+    <circle cx="250" cy="30" r="1.5" fill="white" opacity="0.8"/>
+    <circle cx="600" cy="15" r="2" fill="white" opacity="0.7"/>
+    <circle cx="750" cy="8" r="1.5" fill="white" opacity="0.8"/>
+    <circle cx="850" cy="22" r="2" fill="white" opacity="0.7"/>
+    <!-- Ozone layer (mostly intact) -->
+    <path d="M0 90 Q150 70 300 88 Q450 106 550 88 Q700 65 900 85 L900 110 Q700 88 550 110 Q450 128 300 110 Q150 92 0 112Z" fill="#4060e0" opacity="0.45"/>
+    <!-- Ozone hole -->
+    <path d="M540 75 Q580 62 620 75 Q640 88 620 100 Q580 112 540 100 Q520 88 540 75Z" fill="#1a1050" opacity="0.8"/>
+    <text x="545" y="92" font-size="11" fill="#ff9060" font-family="sans-serif" font-weight="bold">HOLE</text>
+    <!-- UV rays going through hole (dangerous) -->
+    <line x1="580" y1="62" x2="580" y2="0" stroke="#ff6020" stroke-width="3" stroke-dasharray="8 5" opacity="0.7"/>
+    <line x1="560" y1="65" x2="545" y2="10" stroke="#ff6020" stroke-width="2" stroke-dasharray="8 5" opacity="0.6"/>
+    <line x1="600" y1="63" x2="618" y2="8" stroke="#ff6020" stroke-width="2" stroke-dasharray="8 5" opacity="0.6"/>
+    <!-- Safe UV blocked left -->
+    <line x1="200" y1="88" x2="200" y2="0" stroke="#ffd050" stroke-width="3" stroke-dasharray="8 5" opacity="0.5"/>
+    <path d="M190 88 Q200 78 210 88" fill="none" stroke="#ffd050" stroke-width="3" opacity="0.7"/>
+    <text x="170" y="76" font-size="10" fill="#ffd050" font-family="sans-serif">BLOCKED ✓</text>
+    <!-- Earth surface below -->
+    <ellipse cx="450" cy="255" rx="520" ry="80" fill="#6ab04c" opacity="0.7"/>
+    <!-- CFC molecules -->
+    <circle cx="720" cy="130" r="10" fill="#c0a0e0" opacity="0.7"/>
+    <text x="710" y="134" font-size="8" fill="#8060a0" font-family="sans-serif">CFC</text>
+    <circle cx="760" cy="115" r="10" fill="#c0a0e0" opacity="0.65"/>
+    <text x="750" y="119" font-size="8" fill="#8060a0" font-family="sans-serif">CFC</text>
+    <!-- Sun -->
+    <circle cx="80" cy="35" r="38" fill="#ffd050" opacity="0.9"/>
+    <!-- OZONE label -->
+    <text x="60" y="100" font-size="13" fill="#a0c0ff" font-family="sans-serif" font-weight="bold" opacity="0.8">O Z O N E   L A Y E R</text>
+  </svg>`,
+
+  // ACID RAIN - dark clouds raining on damaged buildings & forest
+  acid_rain: `<svg width="100%" height="240" viewBox="0 0 900 240" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <linearGradient id="arG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#485870"/><stop offset="60%" stop-color="#708090"/><stop offset="100%" stop-color="#6a7a4a"/></linearGradient>
+    </defs>
+    <rect width="900" height="240" fill="url(#arG)"/>
+    <rect x="0" y="180" width="900" height="60" fill="#5a6a3a"/>
+    <!-- Dark storm clouds -->
+    <ellipse cx="150" cy="55" rx="120" ry="55" fill="#384050" opacity="0.95"/>
+    <ellipse cx="100" cy="45" rx="80" ry="45" fill="#404858" opacity="0.9"/>
+    <ellipse cx="200" cy="42" rx="90" ry="48" fill="#383848" opacity="0.9"/>
+    <ellipse cx="450" cy="50" rx="130" ry="58" fill="#404055" opacity="0.9"/>
+    <ellipse cx="380" cy="40" rx="90" ry="44" fill="#383850" opacity="0.92"/>
+    <ellipse cx="520" cy="38" rx="95" ry="46" fill="#3a3a52" opacity="0.9"/>
+    <ellipse cx="730" cy="52" rx="125" ry="56" fill="#384050" opacity="0.92"/>
+    <ellipse cx="680" cy="42" rx="85" ry="44" fill="#404858" opacity="0.9"/>
+    <!-- Acid rain drops (yellow-green tinge) -->
+    <line x1="80" y1="100" x2="72" y2="135" stroke="#c0d840" stroke-width="2" opacity="0.7" stroke-linecap="round"/>
+    <line x1="115" y1="104" x2="107" y2="139" stroke="#c0d840" stroke-width="2" opacity="0.7" stroke-linecap="round"/>
+    <line x1="150" y1="100" x2="142" y2="135" stroke="#c8e040" stroke-width="2" opacity="0.65" stroke-linecap="round"/>
+    <line x1="185" y1="106" x2="177" y2="141" stroke="#c0d840" stroke-width="2" opacity="0.7" stroke-linecap="round"/>
+    <line x1="220" y1="100" x2="212" y2="135" stroke="#c8e040" stroke-width="2" opacity="0.65" stroke-linecap="round"/>
+    <line x1="380" y1="104" x2="372" y2="139" stroke="#c0d840" stroke-width="2" opacity="0.7" stroke-linecap="round"/>
+    <line x1="415" y1="100" x2="407" y2="135" stroke="#c8e040" stroke-width="2" opacity="0.65" stroke-linecap="round"/>
+    <line x1="450" y1="106" x2="442" y2="141" stroke="#c0d840" stroke-width="2" opacity="0.7" stroke-linecap="round"/>
+    <line x1="490" y1="102" x2="482" y2="137" stroke="#c8e040" stroke-width="2" opacity="0.65" stroke-linecap="round"/>
+    <line x1="680" y1="104" x2="672" y2="139" stroke="#c0d840" stroke-width="2" opacity="0.7" stroke-linecap="round"/>
+    <line x1="720" y1="100" x2="712" y2="135" stroke="#c8e040" stroke-width="2" opacity="0.65" stroke-linecap="round"/>
+    <line x1="760" y1="106" x2="752" y2="141" stroke="#c0d840" stroke-width="2" opacity="0.7" stroke-linecap="round"/>
+    <!-- Damaged building -->
+    <rect x="280" y="120" width="90" height="120" fill="#808878"/>
+    <rect x="295" y="100" width="60" height="26" fill="#909980"/>
+    <!-- Damaged/dead trees right -->
+    <rect x="580" y="110" width="10" height="90" fill="#6a5a4a"/>
+    <path d="M585 110 Q570 90 558 75" stroke="#6a5a4a" stroke-width="6" fill="none"/>
+    <path d="M585 125 Q602 105 614 88" stroke="#6a5a4a" stroke-width="5" fill="none"/>
+    <rect x="650" y="120" width="10" height="80" fill="#7a6a5a"/>
+    <path d="M655 120 Q640 100 628 82" stroke="#7a6a5a" stroke-width="5" fill="none"/>
+    <!-- pH droplet -->
+    <path d="M820 80 Q830 65 840 80 Q840 95 830 95 Q820 95 820 80Z" fill="#c8e040" opacity="0.85"/>
+    <text x="820" y="88" font-size="10" fill="#505020" font-family="sans-serif" font-weight="bold">pH 4</text>
+    <!-- Factory emitting SO2 left -->
+    <rect x="30" y="145" width="60" height="95" fill="#606070"/>
+    <rect x="14" y="105" width="18" height="48" fill="#505060"/>
+    <ellipse cx="23" cy="98" rx="16" ry="22" fill="#505860" opacity="0.8"/>
+  </svg>`,
+
+  // SMOG - city covered in thick yellow-brown haze
+  smog: `<svg width="100%" height="240" viewBox="0 0 900 240" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <linearGradient id="smogG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#c8b460"/><stop offset="50%" stop-color="#b0a050"/><stop offset="100%" stop-color="#808050"/></linearGradient>
+    </defs>
+    <rect width="900" height="240" fill="url(#smogG)"/>
+    <!-- Thick haze layers -->
+    <ellipse cx="450" cy="100" rx="500" ry="80" fill="#d0c060" opacity="0.5"/>
+    <ellipse cx="300" cy="130" rx="400" ry="70" fill="#b8a840" opacity="0.45"/>
+    <ellipse cx="650" cy="120" rx="380" ry="65" fill="#c0b040" opacity="0.4"/>
+    <!-- Buildings barely visible through smog -->
+    <rect x="50" y="110" width="80" height="130" fill="#707040" opacity="0.6"/>
+    <rect x="150" y="90" width="100" height="150" fill="#808050" opacity="0.55"/>
+    <rect x="280" y="100" width="130" height="140" fill="#707040" opacity="0.5"/>
+    <rect x="440" y="80" width="110" height="160" fill="#808050" opacity="0.5"/>
+    <rect x="580" y="95" width="100" height="145" fill="#707040" opacity="0.55"/>
+    <rect x="710" y="85" width="120" height="155" fill="#808050" opacity="0.5"/>
+    <!-- Cars on road -->
+    <rect x="0" y="200" width="900" height="40" fill="#484830"/>
+    <rect x="80" y="205" width="55" height="22" rx="5" fill="#c03030" opacity="0.8"/>
+    <rect x="220" y="207" width="50" height="20" rx="5" fill="#3050c0" opacity="0.8"/>
+    <rect x="400" y="205" width="55" height="22" rx="5" fill="#30a030" opacity="0.8"/>
+    <rect x="600" y="207" width="50" height="20" rx="5" fill="#c08030" opacity="0.8"/>
+    <rect x="750" y="205" width="55" height="22" rx="5" fill="#808080" opacity="0.8"/>
+    <!-- AQI meter top right -->
+    <rect x="740" y="20" width="140" height="55" rx="8" fill="#202020" opacity="0.75"/>
+    <text x="755" y="40" font-size="11" fill="#ff8888" font-family="sans-serif" font-weight="bold">AQI: 280</text>
+    <text x="755" y="56" font-size="10" fill="#ffaa88" font-family="sans-serif">Very Unhealthy ⚠️</text>
+    <rect x="750" y="60" width="120" height="8" rx="4" fill="#333"/>
+    <rect x="750" y="60" width="95" height="8" rx="4" fill="#ff4040"/>
+    <!-- Mask emoji -->
+    <text x="380" y="58" font-size="30" opacity="0.8">😷</text>
+    <!-- Sun barely visible -->
+    <circle cx="100" cy="35" r="30" fill="#ffd050" opacity="0.25"/>
+  </svg>`,
+
+  // BIODIVERSITY - vibrant jungle with many animals
+  biodiversity: `<svg width="100%" height="240" viewBox="0 0 900 240" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <linearGradient id="bioG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#87ceeb"/><stop offset="45%" stop-color="#6ab04c"/><stop offset="100%" stop-color="#3a8020"/></linearGradient>
+    </defs>
+    <rect width="900" height="240" fill="url(#bioG)"/>
+    <rect x="0" y="155" width="900" height="85" fill="#4a9a28"/>
+    <!-- Giant trees -->
+    <rect x="30" y="50" width="28" height="190" rx="5" fill="#5a3a1a"/>
+    <ellipse cx="44" cy="40" rx="52" ry="62" fill="#1e7e34"/>
+    <rect x="160" y="65" width="22" height="175" rx="4" fill="#4a2e10"/>
+    <ellipse cx="171" cy="55" rx="44" ry="55" fill="#28a745"/>
+    <rect x="780" y="45" width="28" height="195" rx="5" fill="#5a3a1a"/>
+    <ellipse cx="794" cy="35" rx="55" ry="64" fill="#155724"/>
+    <rect x="840" y="60" width="24" height="180" rx="4" fill="#4a2e10"/>
+    <ellipse cx="852" cy="50" rx="46" ry="58" fill="#1e7e34"/>
+    <!-- Flowers ground -->
+    <circle cx="250" cy="168" r="10" fill="#ff6b9d"/>
+    <circle cx="280" cy="162" r="9" fill="#ffd050"/>
+    <circle cx="310" cy="170" r="11" fill="#ff6b6b"/>
+    <circle cx="560" cy="165" r="10" fill="#a855f7"/>
+    <circle cx="590" cy="170" r="9" fill="#ffd050"/>
+    <circle cx="620" cy="163" r="11" fill="#ff6b9d"/>
+    <!-- Animals -->
+    <text x="380" y="155" font-size="36">🦋</text>
+    <text x="440" y="145" font-size="30">🐸</text>
+    <text x="500" y="158" font-size="28">🦜</text>
+    <text x="310" y="145" font-size="28">🐒</text>
+    <text x="620" y="148" font-size="26">🦊</text>
+    <text x="200" y="148" font-size="24">🦁</text>
+    <text x="680" y="145" font-size="24">🐘</text>
+    <text x="120" y="160" font-size="22">🐍</text>
+    <text x="740" y="155" font-size="22">🦌</text>
+    <!-- Bees / birds -->
+    <text x="420" y="75" font-size="20">🐝</text>
+    <text x="550" y="65" font-size="18">🐦</text>
+    <text x="280" y="70" font-size="18">🦅</text>
+    <!-- Sun -->
+    <circle cx="820" cy="38" r="36" fill="#ffd050" opacity="0.9"/>
+  </svg>`,
+
+  // EXTINCTION - barren landscape with ghost outlines of animals
+  extinction: `<svg width="100%" height="240" viewBox="0 0 900 240" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <linearGradient id="extG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#c8baa0"/><stop offset="55%" stop-color="#a89070"/><stop offset="100%" stop-color="#7a6040"/></linearGradient>
+    </defs>
+    <rect width="900" height="240" fill="url(#extG)"/>
+    <rect x="0" y="175" width="900" height="65" fill="#8a6840"/>
+    <!-- Cracked dry earth -->
+    <path d="M0 195 Q45 190 50 200 Q55 210 100 205 Q150 200 200 208" fill="none" stroke="#6a5030" stroke-width="2" opacity="0.6"/>
+    <path d="M300 195 Q340 188 355 198 Q370 208 420 200" fill="none" stroke="#6a5030" stroke-width="2" opacity="0.6"/>
+    <path d="M600 198 Q650 190 670 200 Q690 210 750 202" fill="none" stroke="#6a5030" stroke-width="2" opacity="0.6"/>
+    <!-- Ghost outlines of extinct animals -->
+    <!-- Ghost rhino -->
+    <path d="M80 140 Q130 120 170 140 Q185 155 160 170 Q130 175 100 165 Q75 158 80 140Z" fill="none" stroke="#c0b090" stroke-width="2" stroke-dasharray="8 5" opacity="0.6"/>
+    <path d="M80 140 Q70 130 75 120" stroke="#c0b090" stroke-width="2" stroke-dasharray="6 4" opacity="0.5" fill="none"/>
+    <!-- Ghost elephant -->
+    <ellipse cx="400" cy="145" rx="65" ry="40" fill="none" stroke="#c0b090" stroke-width="2" stroke-dasharray="8 5" opacity="0.55"/>
+    <path d="M345 148 Q330 165 332 182" stroke="#c0b090" stroke-width="2" stroke-dasharray="6 4" opacity="0.5" fill="none"/>
+    <path d="M360 145 Q355 130 350 115 Q360 108 375 118" stroke="#c0b090" stroke-width="2" stroke-dasharray="6 4" opacity="0.5" fill="none"/>
+    <!-- Ghost dodo bird -->
+    <circle cx="650" cy="150" r="24" fill="none" stroke="#c0b090" stroke-width="2" stroke-dasharray="7 5" opacity="0.55"/>
+    <path d="M650 126 Q655 115 665 112" stroke="#c0b090" stroke-width="2" stroke-dasharray="5 4" opacity="0.5" fill="none"/>
+    <!-- Dead trees -->
+    <rect x="240" y="90" width="10" height="90" fill="#7a6a5a"/>
+    <path d="M245 90 Q228 70 218 55" stroke="#7a6a5a" stroke-width="6" fill="none"/>
+    <path d="M245 105 Q264 85 278 68" stroke="#7a6a5a" stroke-width="5" fill="none"/>
+    <rect x="750" y="80" width="12" height="100" fill="#8a7a6a"/>
+    <path d="M756 80 Q738 58 726 44" stroke="#8a7a6a" stroke-width="6" fill="none"/>
+    <path d="M756 95 Q776 72 790 56" stroke="#8a7a6a" stroke-width="5" fill="none"/>
+    <!-- X marks -->
+    <line x1="160" y1="60" x2="180" y2="80" stroke="#c03020" stroke-width="3" opacity="0.6"/>
+    <line x1="180" y1="60" x2="160" y2="80" stroke="#c03020" stroke-width="3" opacity="0.6"/>
+    <line x1="440" y1="58" x2="460" y2="78" stroke="#c03020" stroke-width="3" opacity="0.6"/>
+    <line x1="460" y1="58" x2="440" y2="78" stroke="#c03020" stroke-width="3" opacity="0.6"/>
+    <line x1="680" y1="55" x2="700" y2="75" stroke="#c03020" stroke-width="3" opacity="0.6"/>
+    <line x1="700" y1="55" x2="680" y2="75" stroke="#c03020" stroke-width="3" opacity="0.6"/>
+    <!-- Dim sun -->
+    <circle cx="820" cy="42" r="34" fill="#e8c060" opacity="0.5"/>
+  </svg>`,
+
+  // WETLANDS - marshland with birds and reeds
+  wetlands: `<svg width="100%" height="240" viewBox="0 0 900 240" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <linearGradient id="wetG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#87ceeb"/><stop offset="50%" stop-color="#b0d8a0"/><stop offset="100%" stop-color="#3a7820"/></linearGradient>
+      <linearGradient id="waterG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#4a90c8"/><stop offset="100%" stop-color="#2060a0"/></linearGradient>
+    </defs>
+    <rect width="900" height="240" fill="url(#wetG)"/>
+    <!-- Water patches -->
+    <ellipse cx="220" cy="195" rx="180" ry="55" fill="url(#waterG)" opacity="0.75"/>
+    <ellipse cx="650" cy="200" rx="200" ry="50" fill="url(#waterG)" opacity="0.7"/>
+    <!-- Water reflections -->
+    <path d="M80 192 Q150 186 220 192" fill="none" stroke="white" stroke-width="1.5" opacity="0.4"/>
+    <path d="M500 198 Q600 192 700 198" fill="none" stroke="white" stroke-width="1.5" opacity="0.4"/>
+    <!-- Reed beds left -->
+    <line x1="60" y1="240" x2="60" y2="140" stroke="#8a7040" stroke-width="5" stroke-linecap="round"/>
+    <ellipse cx="60" cy="136" rx="6" ry="14" fill="#7a6030"/>
+    <line x1="80" y1="240" x2="80" y2="128" stroke="#8a7040" stroke-width="5" stroke-linecap="round"/>
+    <ellipse cx="80" cy="124" rx="6" ry="14" fill="#7a6030"/>
+    <line x1="100" y1="240" x2="100" y2="135" stroke="#8a7040" stroke-width="5" stroke-linecap="round"/>
+    <ellipse cx="100" cy="131" rx="6" ry="13" fill="#7a6030"/>
+    <line x1="120" y1="240" x2="120" y2="142" stroke="#9a8050" stroke-width="4" stroke-linecap="round"/>
+    <ellipse cx="120" cy="138" rx="5" ry="12" fill="#7a6030"/>
+    <!-- Reed beds right -->
+    <line x1="780" y1="240" x2="780" y2="138" stroke="#8a7040" stroke-width="5" stroke-linecap="round"/>
+    <ellipse cx="780" cy="134" rx="6" ry="14" fill="#7a6030"/>
+    <line x1="800" y1="240" x2="800" y2="130" stroke="#8a7040" stroke-width="5" stroke-linecap="round"/>
+    <ellipse cx="800" cy="126" rx="6" ry="14" fill="#7a6030"/>
+    <line x1="820" y1="240" x2="820" y2="140" stroke="#8a7040" stroke-width="4" stroke-linecap="round"/>
+    <ellipse cx="820" cy="136" rx="5" ry="13" fill="#7a6030"/>
+    <line x1="840" y1="240" x2="840" y2="132" stroke="#9a8050" stroke-width="4" stroke-linecap="round"/>
+    <ellipse cx="840" cy="128" rx="5" ry="12" fill="#7a6030"/>
+    <!-- Flamingo left water -->
+    <line x1="200" y1="195" x2="200" y2="158" stroke="#ff9090" stroke-width="4" stroke-linecap="round"/>
+    <line x1="200" y1="195" x2="185" y2="200" stroke="#ff9090" stroke-width="3" stroke-linecap="round"/>
+    <ellipse cx="200" cy="150" rx="16" ry="22" fill="#ffb0b0"/>
+    <path d="M190 138 Q195 128 210 132" fill="none" stroke="#ff9090" stroke-width="4" stroke-linecap="round"/>
+    <!-- Heron right -->
+    <line x1="660" y1="198" x2="660" y2="148" stroke="#b0b0b0" stroke-width="4" stroke-linecap="round"/>
+    <ellipse cx="660" cy="140" rx="14" ry="18" fill="#d0d0d0"/>
+    <line x1="660" y1="122" x2="680" y2="112" stroke="#555" stroke-width="3" stroke-linecap="round"/>
+    <!-- Lily pads -->
+    <ellipse cx="320" cy="205" rx="22" ry="12" fill="#2d9e5f" opacity="0.8"/>
+    <circle cx="320" cy="202" r="5" fill="#ff6b9d" opacity="0.8"/>
+    <ellipse cx="560" cy="210" rx="20" ry="11" fill="#2d9e5f" opacity="0.8"/>
+    <circle cx="560" cy="207" r="4" fill="#ff9b3d" opacity="0.8"/>
+    <!-- Frog -->
+    <text x="380" y="200" font-size="22">🐸</text>
+    <!-- Duck -->
+    <text x="480" y="192" font-size="20">🦆</text>
+    <!-- Dragonfly -->
+    <text x="290" y="158" font-size="18">🦗</text>
+    <!-- Sun -->
+    <circle cx="820" cy="38" r="36" fill="#ffd050" opacity="0.9"/>
+    <!-- Reflective sky in water -->
+    <ellipse cx="220" cy="185" rx="140" ry="20" fill="#87ceeb" opacity="0.2"/>
+    <ellipse cx="650" cy="190" rx="160" ry="22" fill="#87ceeb" opacity="0.2"/>
+  </svg>`,
+
+  // SOLAR - sunny landscape with solar panels
+  solar: `<svg width="100%" height="240" viewBox="0 0 900 240" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <linearGradient id="solG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#87e0f0"/><stop offset="55%" stop-color="#ffe87a"/><stop offset="100%" stop-color="#6ab04c"/></linearGradient>
+    </defs>
+    <rect width="900" height="240" fill="url(#solG)"/>
+    <rect x="0" y="185" width="900" height="55" fill="#5a9a2a"/>
+    <!-- Big bright sun -->
+    <circle cx="450" cy="55" r="58" fill="#ffd050"/>
+    <line x1="450" y1="0" x2="450" y2="-8" stroke="#ffd050" stroke-width="5" stroke-linecap="round"/>
+    <line x1="490" y1="10" x2="498" y2="2" stroke="#ffd050" stroke-width="4" stroke-linecap="round"/>
+    <line x1="508" y1="50" x2="516" y2="50" stroke="#ffd050" stroke-width="4" stroke-linecap="round"/>
+    <line x1="490" y1="96" x2="498" y2="104" stroke="#ffd050" stroke-width="4" stroke-linecap="round"/>
+    <line x1="410" y1="10" x2="402" y2="2" stroke="#ffd050" stroke-width="4" stroke-linecap="round"/>
+    <line x1="392" y1="50" x2="384" y2="50" stroke="#ffd050" stroke-width="4" stroke-linecap="round"/>
+    <line x1="410" y1="96" x2="402" y2="104" stroke="#ffd050" stroke-width="4" stroke-linecap="round"/>
+    <!-- Solar panel arrays -->
+    <!-- Panel group 1 -->
+    <g transform="rotate(-20, 150, 170)">
+      <rect x="60" y="155" width="190" height="12" rx="3" fill="#3060c0"/>
+      <rect x="60" y="170" width="190" height="12" rx="3" fill="#3a70d0"/>
+      <rect x="60" y="185" width="190" height="12" rx="3" fill="#3060c0"/>
+      <rect x="60" y="200" width="190" height="12" rx="3" fill="#3a70d0"/>
+      <line x1="120" y1="155" x2="120" y2="212" stroke="#2040a0" stroke-width="2"/>
+      <line x1="180" y1="155" x2="180" y2="212" stroke="#2040a0" stroke-width="2"/>
+      <line x1="240" y1="155" x2="240" y2="212" stroke="#2040a0" stroke-width="2"/>
+    </g>
+    <rect x="145" y="208" width="6" height="30" fill="#555"/>
+    <!-- Panel group 2 -->
+    <g transform="rotate(-20, 550, 170)">
+      <rect x="460" y="155" width="190" height="12" rx="3" fill="#3060c0"/>
+      <rect x="460" y="170" width="190" height="12" rx="3" fill="#3a70d0"/>
+      <rect x="460" y="185" width="190" height="12" rx="3" fill="#3060c0"/>
+      <rect x="460" y="200" width="190" height="12" rx="3" fill="#3a70d0"/>
+      <line x1="520" y1="155" x2="520" y2="212" stroke="#2040a0" stroke-width="2"/>
+      <line x1="580" y1="155" x2="580" y2="212" stroke="#2040a0" stroke-width="2"/>
+      <line x1="640" y1="155" x2="640" y2="212" stroke="#2040a0" stroke-width="2"/>
+    </g>
+    <rect x="545" y="208" width="6" height="30" fill="#555"/>
+    <!-- Energy bolts to house -->
+    <path d="M450 113 Q420 140 380 155" fill="none" stroke="#ffdd00" stroke-width="3" stroke-dasharray="10 6" opacity="0.7"/>
+    <path d="M450 113 Q480 140 520 155" fill="none" stroke="#ffdd00" stroke-width="3" stroke-dasharray="10 6" opacity="0.7"/>
+    <!-- House with solar -->
+    <path d="M360 165 L450 125 L540 165Z" fill="#c09060"/>
+    <rect x="375" y="165" width="150" height="60" fill="#b08050"/>
+    <rect x="420" y="185" width="40" height="40" fill="#7a5030"/>
+    <!-- Small solar on house roof -->
+    <rect x="380" y="148" width="40" height="10" rx="2" fill="#3060c0" transform="rotate(-22, 400, 153)"/>
+    <rect x="395" y="153" width="40" height="10" rx="2" fill="#3a70d0" transform="rotate(-22, 415, 158)"/>
+  </svg>`,
+
+  // WIND POWER - rolling hills with wind turbines
+  wind: `<svg width="100%" height="240" viewBox="0 0 900 240" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <linearGradient id="windG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#b8dcf0"/><stop offset="58%" stop-color="#90c8e8"/><stop offset="100%" stop-color="#6ab040"/></linearGradient>
+    </defs>
+    <rect width="900" height="240" fill="url(#windG)"/>
+    <!-- Rolling hills -->
+    <ellipse cx="150" cy="260" rx="250" ry="110" fill="#5a9a20"/>
+    <ellipse cx="500" cy="275" rx="300" ry="120" fill="#4a8a18"/>
+    <ellipse cx="820" cy="265" rx="250" ry="115" fill="#5a9a20"/>
+    <!-- Wind streams -->
+    <path d="M0 80 Q120 65 240 82 Q360 99 480 78 Q600 57 720 80 Q840 103 900 80" stroke="white" stroke-width="2.5" fill="none" opacity="0.35"/>
+    <path d="M0 100 Q100 84 200 100 Q300 116 400 98 Q500 80 600 100 Q700 120 800 100 Q860 88 900 100" stroke="white" stroke-width="2" fill="none" opacity="0.28"/>
+    <path d="M0 120 Q150 108 300 122 Q450 136 600 118 Q750 100 900 120" stroke="white" stroke-width="1.5" fill="none" opacity="0.22"/>
+    <!-- Turbine 1 (left, tall) -->
+    <rect x="146" y="70" width="8" height="150" fill="#e0e0e0"/>
+    <circle cx="150" cy="70" r="8" fill="#d0d0d0"/>
+    <!-- Blade group 1 -->
+    <line x1="150" y1="70" x2="150" y2="20" stroke="#e8e8e8" stroke-width="6" stroke-linecap="round"/>
+    <line x1="150" y1="70" x2="193" y2="95" stroke="#e8e8e8" stroke-width="6" stroke-linecap="round" transform="rotate(120 150 70)"/>
+    <line x1="150" y1="70" x2="193" y2="95" stroke="#e8e8e8" stroke-width="6" stroke-linecap="round" transform="rotate(240 150 70)"/>
+    <!-- Turbine 2 (mid) -->
+    <rect x="446" y="80" width="8" height="145" fill="#e0e0e0"/>
+    <circle cx="450" cy="80" r="7" fill="#d0d0d0"/>
+    <line x1="450" y1="80" x2="450" y2="35" stroke="#e8e8e8" stroke-width="5" stroke-linecap="round"/>
+    <line x1="450" y1="80" x2="450" y2="35" stroke="#e8e8e8" stroke-width="5" stroke-linecap="round" transform="rotate(120 450 80)"/>
+    <line x1="450" y1="80" x2="450" y2="35" stroke="#e8e8e8" stroke-width="5" stroke-linecap="round" transform="rotate(240 450 80)"/>
+    <!-- Turbine 3 (right, tall) -->
+    <rect x="746" y="65" width="8" height="155" fill="#e0e0e0"/>
+    <circle cx="750" cy="65" r="8" fill="#d0d0d0"/>
+    <line x1="750" y1="65" x2="750" y2="15" stroke="#e8e8e8" stroke-width="6" stroke-linecap="round"/>
+    <line x1="750" y1="65" x2="750" y2="15" stroke="#e8e8e8" stroke-width="6" stroke-linecap="round" transform="rotate(120 750 65)"/>
+    <line x1="750" y1="65" x2="750" y2="15" stroke="#e8e8e8" stroke-width="6" stroke-linecap="round" transform="rotate(240 750 65)"/>
+    <!-- Small turbine far back -->
+    <rect x="296" y="105" width="5" height="110" fill="#d8d8d8"/>
+    <circle cx="298" cy="105" r="5" fill="#c8c8c8"/>
+    <line x1="298" y1="105" x2="298" y2="72" stroke="#d8d8d8" stroke-width="4" stroke-linecap="round"/>
+    <line x1="298" y1="105" x2="298" y2="72" stroke="#d8d8d8" stroke-width="4" stroke-linecap="round" transform="rotate(120 298 105)"/>
+    <line x1="298" y1="105" x2="298" y2="72" stroke="#d8d8d8" stroke-width="4" stroke-linecap="round" transform="rotate(240 298 105)"/>
+    <!-- Clouds -->
+    <ellipse cx="680" cy="45" rx="60" ry="28" fill="white" opacity="0.7"/>
+    <ellipse cx="720" cy="38" rx="48" ry="24" fill="white" opacity="0.65"/>
+    <ellipse cx="650" cy="42" rx="38" ry="20" fill="white" opacity="0.6"/>
+    <!-- Sun -->
+    <circle cx="60" cy="38" r="36" fill="#ffd050" opacity="0.9"/>
+  </svg>`,
+
+  // FOSSIL FUELS - oil rigs, coal mine, dark sky
+  fossil_fuels: `<svg width="100%" height="240" viewBox="0 0 900 240" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <linearGradient id="ffG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#484040"/><stop offset="60%" stop-color="#706050"/><stop offset="100%" stop-color="#585040"/></linearGradient>
+    </defs>
+    <rect width="900" height="240" fill="url(#ffG)"/>
+    <rect x="0" y="175" width="900" height="65" fill="#403020"/>
+    <!-- Oil derrick left -->
+    <path d="M80 240 L80 80 L140 240Z" fill="none" stroke="#606060" stroke-width="4"/>
+    <path d="M110 240 L80 80 L140 80 L110 240Z" fill="#505050"/>
+    <path d="M85 160 L135 160" stroke="#606060" stroke-width="3"/>
+    <path d="M90 200 L130 200" stroke="#606060" stroke-width="3"/>
+    <path d="M92 120 L128 120" stroke="#606060" stroke-width="3"/>
+    <!-- Pump jack left -->
+    <rect x="95" y="68" width="40" height="20" rx="4" fill="#404040"/>
+    <line x1="115" y1="68" x2="115" y2="50" stroke="#555" stroke-width="5" stroke-linecap="round"/>
+    <!-- Oil barrel -->
+    <rect x="55" y="190" width="36" height="48" rx="6" fill="#2a2a2a"/>
+    <rect x="55" y="196" width="36" height="4" fill="#383838"/>
+    <rect x="55" y="210" width="36" height="4" fill="#383838"/>
+    <text x="62" y="224" font-size="11" fill="#888" font-family="sans-serif">OIL</text>
+    <!-- Coal mine mid -->
+    <path d="M330 240 Q330 180 380 175 Q430 170 430 240Z" fill="#302820"/>
+    <rect x="310" y="218" width="140" height="22" fill="#282018"/>
+    <text x="342" y="234" font-size="11" fill="#666" font-family="sans-serif">COAL MINE</text>
+    <!-- Coal piles -->
+    <ellipse cx="280" cy="230" rx="50" ry="18" fill="#1a1a1a"/>
+    <ellipse cx="280" cy="218" rx="38" ry="16" fill="#222"/>
+    <ellipse cx="490" cy="225" rx="45" ry="16" fill="#1a1a1a"/>
+    <!-- Oil rig sea right -->
+    <rect x="660" y="130" width="10" height="110" fill="#555"/>
+    <rect x="700" y="130" width="10" height="110" fill="#555"/>
+    <rect x="650" y="120" width="80" height="20" fill="#484848"/>
+    <path d="M640 120 L680 60 L720 120Z" fill="none" stroke="#555" stroke-width="3"/>
+    <rect x="658" y="62" width="46" height="66" fill="#404040"/>
+    <!-- Sea under rig -->
+    <rect x="600" y="185" width="230" height="55" fill="#2050a0" opacity="0.6"/>
+    <path d="M600 185 Q650 178 700 185 Q750 192 800 185 Q830 180 900 185" fill="#2060b0" opacity="0.5"/>
+    <!-- Smoke from everything -->
+    <ellipse cx="115" cy="50" rx="30" ry="22" fill="#303030" opacity="0.8"/>
+    <ellipse cx="120" cy="32" rx="36" ry="26" fill="#383838" opacity="0.7"/>
+    <ellipse cx="460" cy="100" rx="40" ry="28" fill="#303030" opacity="0.75"/>
+    <ellipse cx="680" cy="52" rx="35" ry="24" fill="#383838" opacity="0.8"/>
+    <!-- Dim sun behind smog -->
+    <circle cx="800" cy="40" r="32" fill="#d0a030" opacity="0.3"/>
+    <!-- CO2 text -->
+    <text x="160" y="80" font-size="16" fill="#808070" font-family="sans-serif" font-weight="bold" opacity="0.7">CO₂</text>
+    <text x="500" y="90" font-size="14" fill="#808070" font-family="sans-serif" font-weight="bold" opacity="0.65">CO₂</text>
+  </svg>`,
+
+  // ENERGY SAVING - bright home with efficient appliances
+  energy_saving: `<svg width="100%" height="240" viewBox="0 0 900 240" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <linearGradient id="esG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#c8f0f8"/><stop offset="55%" stop-color="#90d8f0"/><stop offset="100%" stop-color="#60b040"/></linearGradient>
+    </defs>
+    <rect width="900" height="240" fill="url(#esG)"/>
+    <rect x="0" y="185" width="900" height="55" fill="#50a020"/>
+    <!-- House left -->
+    <path d="M50 180 L160 120 L270 180Z" fill="#c09060"/>
+    <rect x="68" y="180" width="184" height="65" fill="#b08050"/>
+    <rect x="148" y="200" width="48" height="45" fill="#6a3a20"/>
+    <!-- Solar panels on roof -->
+    <rect x="78" y="148" width="60" height="14" rx="2" fill="#3060c0" transform="rotate(-26, 108, 155)"/>
+    <rect x="108" y="140" width="60" height="14" rx="2" fill="#3a70d0" transform="rotate(-26, 138, 147)"/>
+    <!-- LED bulb glow left house -->
+    <circle cx="100" cy="158" r="18" fill="#ffd050" opacity="0.3"/>
+    <!-- House right (bigger) -->
+    <path d="M580 180 L720 105 L860 180Z" fill="#c8a070"/>
+    <rect x="598" y="180" width="244" height="65" fill="#b89060"/>
+    <rect x="700" y="200" width="50" height="45" fill="#704020"/>
+    <!-- Solar on right house -->
+    <rect x="615" y="145" width="70" height="14" rx="2" fill="#3060c0" transform="rotate(-22, 650, 152)"/>
+    <rect x="655" y="136" width="70" height="14" rx="2" fill="#3a70d0" transform="rotate(-22, 690, 143)"/>
+    <!-- LED bulb glow -->
+    <circle cx="650" cy="148" r="20" fill="#ffd050" opacity="0.3"/>
+    <!-- Center: giant glowing LED bulb -->
+    <ellipse cx="450" cy="100" rx="50" ry="55" fill="#fffde0"/>
+    <ellipse cx="450" cy="100" rx="50" ry="55" fill="#ffd050" opacity="0.4"/>
+    <rect x="435" y="150" width="30" height="20" rx="3" fill="#d0c060"/>
+    <rect x="430" y="168" width="40" height="12" rx="4" fill="#c0b050"/>
+    <!-- Bulb glow rays -->
+    <line x1="450" y1="42" x2="450" y2="25" stroke="#ffd050" stroke-width="4" stroke-linecap="round" opacity="0.7"/>
+    <line x1="492" y1="55" x2="505" y2="42" stroke="#ffd050" stroke-width="4" stroke-linecap="round" opacity="0.7"/>
+    <line x1="505" y1="100" x2="522" y2="100" stroke="#ffd050" stroke-width="4" stroke-linecap="round" opacity="0.7"/>
+    <line x1="492" y1="142" x2="508" y2="156" stroke="#ffd050" stroke-width="4" stroke-linecap="round" opacity="0.7"/>
+    <line x1="408" y1="55" x2="395" y2="42" stroke="#ffd050" stroke-width="4" stroke-linecap="round" opacity="0.7"/>
+    <line x1="395" y1="100" x2="378" y2="100" stroke="#ffd050" stroke-width="4" stroke-linecap="round" opacity="0.7"/>
+    <line x1="408" y1="142" x2="392" y2="156" stroke="#ffd050" stroke-width="4" stroke-linecap="round" opacity="0.7"/>
+    <!-- Energy icons floating -->
+    <text x="200" y="108" font-size="22">⚡</text>
+    <text x="660" y="105" font-size="22">⚡</text>
+    <text x="160" y="68" font-size="18">🔋</text>
+    <text x="700" y="65" font-size="18">🔋</text>
+    <!-- Comparison: old bulb crossed out -->
+    <circle cx="780" cy="58" r="20" fill="#f0e080" opacity="0.5"/>
+    <line x1="768" y1="46" x2="792" y2="70" stroke="#e03030" stroke-width="3"/>
+    <line x1="792" y1="46" x2="768" y2="70" stroke="#e03030" stroke-width="3"/>
+    <text x="753" y="88" font-size="10" fill="#c03030" font-family="sans-serif">wasteful</text>
+    <!-- Trees happy -->
+    <rect x="320" y="140" width="10" height="50" fill="#5a3a1a"/>
+    <ellipse cx="325" cy="134" rx="22" ry="28" fill="#2d9e5f"/>
+    <rect x="540" y="145" width="10" height="45" fill="#5a3a1a"/>
+    <ellipse cx="545" cy="140" rx="20" ry="26" fill="#3aaa6a"/>
+  </svg>`
+};
+
+// ── STORY DATA ───────────────────────────────────────────
+const stories = {
+  carbon: { title:"Carbon Footprint", scene: scenes.carbon, panels:[
+    {type:'dialogue',side:'left',char:'leaf',name:'Leafy',text:"Hey! Do you know what a carbon footprint is?"},
+    {type:'dialogue',side:'right',char:'sun',name:'Sunny',text:"I heard about it... but I'm not sure what it really means!"},
+    {type:'dialogue',side:'left',char:'leaf',name:'Leafy',text:"It's the total amount of greenhouse gases we produce."},
+    {type:'dialogue',side:'left',char:'leaf',name:'Leafy',text:"Everything has a footprint — driving a car, eating food, using electricity!"},
+    {type:'fact',text:"The average person produces about 4 tons of CO2 per year. In the USA it's around 16 tons!"},
+    {type:'divider',text:'Why does it matter?'},
+    {type:'dialogue',side:'right',char:'sun',name:'Sunny',text:"So when we burn fuel... the carbon goes into the air?"},
+    {type:'dialogue',side:'left',char:'leaf',name:'Leafy',text:"Exactly! CO2 traps the sun's heat like a blanket around Earth."},
+    {type:'dialogue',side:'left',char:'leaf',name:'Leafy',text:"Too much of it warms the planet — that's climate change!"},
+    {type:'pros',title:'What we can do to help!',items:['Walk or cycle instead of driving','Eat more plants, less meat','Switch to renewable energy','Buy local and seasonal food','Reduce, reuse, recycle!']},
+    {type:'cons',title:'Why it is tough...',items:['Industries release massive amounts of CO2','Many people still depend on fossil fuels','Changing habits takes time and effort','Developing countries need cheap energy','International cooperation is hard']},
+    {type:'dialogue',side:'left',char:'leaf',name:'Leafy',text:"Even small actions count! Every ton of CO2 we save helps the planet."},
+    {type:'dialogue',side:'right',char:'sun',name:'Sunny',text:"Starting today, I'll walk to school!"},
+  ]},
+  deforestation: { title:"Deforestation", scene: scenes.deforestation, panels:[
+    {type:'dialogue',side:'left',char:'leaf',name:'Leafy',text:"Every year, we lose forests the size of a football field every second!"},
+    {type:'dialogue',side:'right',char:'bee',name:'Buzzy',text:"That's why my home keeps disappearing!"},
+    {type:'dialogue',side:'left',char:'leaf',name:'Leafy',text:"Forests are cut for farming, logging, and cities."},
+    {type:'dialogue',side:'left',char:'leaf',name:'Leafy',text:"Half of the world's forests are already gone."},
+    {type:'fact',text:"Tropical forests like the Amazon hold more than 50% of all plant and animal species on Earth!"},
+    {type:'divider',text:'Impact on our planet'},
+    {type:'dialogue',side:'right',char:'bee',name:'Buzzy',text:"Without forests, the air quality drops too, right?"},
+    {type:'dialogue',side:'left',char:'leaf',name:'Leafy',text:"Yes! Trees absorb CO2 and give us oxygen. They also prevent floods and keep soil healthy."},
+    {type:'pros',title:'How we can protect forests!',items:['Support reforestation projects','Buy certified sustainable wood products','Reduce paper use — go digital!','Eat less beef (forest cleared for cattle)','Support indigenous forest communities']},
+    {type:'cons',title:'The hard reality...',items:['15 billion trees are cut down every year','Illegal logging is very hard to stop','Poor communities depend on forest land','Palm oil demand drives massive clearing','Once biodiversity is lost, it cannot return']},
+    {type:'dialogue',side:'left',char:'leaf',name:'Leafy',text:"Planting even one tree makes a difference!"},
+    {type:'dialogue',side:'right',char:'bee',name:'Buzzy',text:"Let's plant a whole forest together!"},
+  ]},
+  pollution: { title:"Pollution", scene: scenes.pollution, panels:[
+    {type:'dialogue',side:'left',char:'cloud',name:'Cloudy',text:"I used to be fluffy white... but now I look grey and sad."},
+    {type:'dialogue',side:'right',char:'leaf',name:'Leafy',text:"Pollution is hurting the air, water, and soil all around us."},
+    {type:'dialogue',side:'left',char:'cloud',name:'Cloudy',text:"Factories, cars, and burning trash release toxic particles."},
+    {type:'fact',text:"9 out of 10 people on Earth breathe air that exceeds WHO safe pollution guidelines!"},
+    {type:'divider',text:'Types of pollution'},
+    {type:'dialogue',side:'right',char:'leaf',name:'Leafy',text:"There's air pollution, water pollution, and soil pollution."},
+    {type:'dialogue',side:'left',char:'cloud',name:'Cloudy',text:"And even noise and light pollution that disturb animals!"},
+    {type:'pros',title:'What can we do!',items:['Use public transport or electric vehicles','Properly dispose of chemicals and waste','Support clean energy policies','Reduce plastic use drastically','Plant trees to filter air naturally']},
+    {type:'cons',title:'The scale of the problem...',items:['Industrial pollution is hard to regulate globally','Plastic takes 500+ years to fully decompose','Soil contamination destroys farmland forever','Water pollution causes waterborne diseases','Cost of cleanup runs into trillions of dollars']},
+    {type:'dialogue',side:'left',char:'cloud',name:'Cloudy',text:"I want to be white and fluffy again someday..."},
+    {type:'dialogue',side:'right',char:'leaf',name:'Leafy',text:"We can make it happen if everyone does their part!"},
+  ]},
+  composting: { title:"Composting", scene: scenes.composting, panels:[
+    {type:'dialogue',side:'left',char:'leaf',name:'Leafy',text:"Did you know your kitchen scraps can become amazing plant food?"},
+    {type:'dialogue',side:'right',char:'bee',name:'Buzzy',text:"Really? How does rotting food help the planet?"},
+    {type:'dialogue',side:'left',char:'leaf',name:'Leafy',text:"Composting turns food and yard waste into rich soil called humus."},
+    {type:'dialogue',side:'left',char:'leaf',name:'Leafy',text:"This feeds plants, reduces landfill waste, and cuts methane emissions!"},
+    {type:'fact',text:"About 30% of what we throw away could be composted instead of going to landfill!"},
+    {type:'divider',text:'How composting works'},
+    {type:'dialogue',side:'right',char:'bee',name:'Buzzy',text:"So tiny creatures break down the food scraps?"},
+    {type:'dialogue',side:'left',char:'leaf',name:'Leafy',text:"Yes! Bacteria, fungi, and worms do all the work over a few weeks."},
+    {type:'dialogue',side:'left',char:'leaf',name:'Leafy',text:"You need a mix of 'greens' (food scraps) and 'browns' (leaves, paper)."},
+    {type:'pros',title:'Benefits of composting!',items:['Reduces landfill waste and methane gas','Creates free fertiliser for gardens','Improves soil structure and water retention','Reduces need for chemical fertilisers','Easy to do at home or community gardens']},
+    {type:'cons',title:'Challenges...',items:['Can smell bad if done incorrectly','Takes weeks to months to produce compost','Requires some space outdoors','Not all food can be composted (meat/dairy)','Needs regular turning and moisture management']},
+    {type:'dialogue',side:'left',char:'leaf',name:'Leafy',text:"Start with a small bin — even apartment dwellers can compost!"},
+    {type:'dialogue',side:'right',char:'bee',name:'Buzzy',text:"I'll help pollinate the flowers that grow in your compost garden! 🌸"},
+  ]},
+  plastic: { title:"Plastic Waste", scene: scenes.plastic, panels:[
+    {type:'dialogue',side:'left',char:'fish',name:'Finn',text:"Help! There's more plastic in the ocean than fish!"},
+    {type:'dialogue',side:'right',char:'drop',name:'Droppy',text:"8 million tons of plastic enter the ocean every single year."},
+    {type:'dialogue',side:'left',char:'fish',name:'Finn',text:"I keep mistaking plastic bags for jellyfish..."},
+    {type:'dialogue',side:'right',char:'drop',name:'Droppy',text:"Plastic breaks into microplastics — tiny pieces found everywhere!"},
+    {type:'fact',text:"By 2050, there will be more plastic in the ocean by weight than fish, if current trends continue."},
+    {type:'divider',text:'The big plastic problem'},
+    {type:'dialogue',side:'left',char:'fish',name:'Finn',text:"Plastic takes up to 1000 years to decompose!"},
+    {type:'dialogue',side:'right',char:'drop',name:'Droppy',text:"Every plastic bottle ever made still exists somewhere on Earth."},
+    {type:'pros',title:'Fighting plastic waste!',items:['Use reusable bags, bottles, and containers','Refuse single-use plastic straws and cutlery','Support bans on unnecessary plastics','Participate in beach and river cleanups','Choose products with minimal packaging']},
+    {type:'cons',title:'Why it is so hard...',items:['Plastic is cheap and very convenient','Recycling only handles 9% of all plastic','Microplastics are already in our food chain','Ocean cleanup is extremely expensive','Single-use plastic demand keeps rising']},
+    {type:'dialogue',side:'left',char:'fish',name:'Finn',text:"Please say no to single-use plastic. My life depends on it!"},
+  ]},
+  coral: { title:"Coral Reefs", scene: scenes.coral, panels:[
+    {type:'dialogue',side:'left',char:'drop',name:'Droppy',text:"Welcome to the coral reef — the rainforest of the sea!"},
+    {type:'dialogue',side:'right',char:'fish',name:'Finn',text:"This is my home! Coral reefs are so colorful and alive!"},
+    {type:'dialogue',side:'left',char:'drop',name:'Droppy',text:"Reefs cover less than 1% of the ocean floor, but support 25% of ALL marine species!"},
+    {type:'fact',text:"Coral is actually alive! It's made of tiny animals called polyps that build hard limestone skeletons."},
+    {type:'divider',text:'Why reefs are in danger'},
+    {type:'dialogue',side:'right',char:'fish',name:'Finn',text:"Some of my coral friends have turned completely white..."},
+    {type:'dialogue',side:'left',char:'drop',name:'Droppy',text:"That's called coral bleaching. It happens when water gets too warm."},
+    {type:'dialogue',side:'left',char:'drop',name:'Droppy',text:"50% of the world's coral reefs have died since 1950."},
+    {type:'pros',title:'Why coral reefs matter!',items:['Home to over 4000 species of fish','Protect coastlines from storms and waves','Provide food for 500 million+ people','Source of medicines for diseases','Worth $375 billion yearly to economies']},
+    {type:'cons',title:'What threatens them...',items:['Rising ocean temperatures cause bleaching','Pollution from farms and cities runs off','Overfishing destroys reef ecosystems','Ocean acidification dissolves coral','Destructive fishing methods like dynamite']},
+    {type:'dialogue',side:'right',char:'fish',name:'Finn',text:"Please help us! We need clean, cool oceans!"},
+    {type:'dialogue',side:'left',char:'drop',name:'Droppy',text:"Use less single-use plastic. It ends up in our home!"},
+  ]},
+  ocean_acidification: { title:"Ocean Acidification", scene: scenes.ocean_acidification, panels:[
+    {type:'dialogue',side:'left',char:'drop',name:'Droppy',text:"Every day, oceans absorb about 25% of all the CO2 we emit."},
+    {type:'dialogue',side:'right',char:'fish',name:'Finn',text:"That sounds helpful... but is there a catch?"},
+    {type:'dialogue',side:'left',char:'drop',name:'Droppy',text:"Yes! When CO2 dissolves in water, it forms carbonic acid."},
+    {type:'dialogue',side:'left',char:'drop',name:'Droppy',text:"This makes the ocean more acidic, dissolving shells and coral skeletons!"},
+    {type:'fact',text:"Ocean acidity has increased by 26% since the Industrial Revolution — faster than any time in 300 million years!"},
+    {type:'divider',text:'What gets affected'},
+    {type:'dialogue',side:'right',char:'fish',name:'Finn',text:"My shell friends can't grow properly in acidic water..."},
+    {type:'dialogue',side:'left',char:'drop',name:'Droppy',text:"Oysters, clams, mussels, and coral all struggle to build their shells."},
+    {type:'pros',title:'What we can do!',items:['Reduce CO2 emissions globally','Switch to renewable energy sources','Protect coastal ecosystems like mangroves','Support marine protected areas','Reduce ocean pollution and runoff']},
+    {type:'cons',title:'Why it is alarming...',items:['Ocean pH has already dropped significantly','Some damage to ecosystems is irreversible','Food chains that depend on shellfish collapse','Affects fishing industries worth billions','Changes are happening faster than animals can adapt']},
+    {type:'dialogue',side:'left',char:'drop',name:'Droppy',text:"The ocean has been our climate ally — let's protect it!"},
+  ]},
+  sea_level: { title:"Sea Level Rise", scene: scenes.sea_level, panels:[
+    {type:'dialogue',side:'left',char:'drop',name:'Droppy',text:"The ocean is rising! Our coastal cities are at risk."},
+    {type:'dialogue',side:'right',char:'sun',name:'Sunny',text:"My extra heat is melting ice caps and glaciers..."},
+    {type:'dialogue',side:'left',char:'drop',name:'Droppy',text:"Sea levels have risen about 20cm since 1900."},
+    {type:'dialogue',side:'left',char:'drop',name:'Droppy',text:"And they could rise another 1-2 meters this century!"},
+    {type:'fact',text:"Over 1 billion people live in low-lying coastal areas that could be flooded by rising seas!"},
+    {type:'divider',text:'What causes it?'},
+    {type:'dialogue',side:'right',char:'sun',name:'Sunny',text:"Two main causes — melting ice and water expanding as it warms."},
+    {type:'dialogue',side:'left',char:'drop',name:'Droppy',text:"Greenland and Antarctica hold enough ice to raise seas by 65 meters."},
+    {type:'pros',title:'What we can do!',items:['Cut carbon emissions to slow warming','Build sea walls and coastal defenses','Create climate migration pathways','Restore mangroves that buffer coastlines','Invest in early warning flood systems']},
+    {type:'cons',title:'The harsh reality...',items:['Some rise is already locked in — unstoppable','Island nations like Maldives may disappear','Millions face displacement and flooding','Saltwater intrudes into freshwater supplies','Storm surges become much more dangerous']},
+    {type:'dialogue',side:'left',char:'drop',name:'Droppy',text:"We need to act now — for those who live on the coast!"},
+  ]},
+  marine_life: { title:"Marine Life", scene: scenes.marine_life, panels:[
+    {type:'dialogue',side:'left',char:'fish',name:'Finn',text:"The ocean is the largest habitat on Earth — covering 71% of our planet!"},
+    {type:'dialogue',side:'right',char:'drop',name:'Droppy',text:"It's home to everything from tiny plankton to the blue whale!"},
+    {type:'dialogue',side:'left',char:'fish',name:'Finn',text:"The ocean produces over 50% of the oxygen we breathe."},
+    {type:'dialogue',side:'right',char:'drop',name:'Droppy',text:"And feeds over 3 billion people as a primary protein source!"},
+    {type:'fact',text:"We have explored less than 20% of the ocean. More species live in the deep sea than anywhere on Earth!"},
+    {type:'divider',text:'Threats to marine life'},
+    {type:'dialogue',side:'left',char:'fish',name:'Finn',text:"Overfishing, pollution, and climate change are my biggest threats."},
+    {type:'dialogue',side:'right',char:'drop',name:'Droppy',text:"Ghost fishing nets trap and kill millions of sea animals every year."},
+    {type:'pros',title:'How we protect the ocean!',items:['Create marine protected areas (no-fishing zones)','Reduce single-use plastic entering the sea','Eat sustainably sourced seafood only','Support ocean cleanup initiatives','Reduce carbon emissions to slow warming']},
+    {type:'cons',title:'The challenges...',items:['Overfishing has depleted 90% of large fish','Deep sea mining threatens unknown species','Ocean noise pollution disorients whales','Climate change shifts ocean currents','Plastics break into microplastics in food chains']},
+    {type:'dialogue',side:'left',char:'fish',name:'Finn',text:"A healthy ocean means a healthy planet. Please protect us!"},
+  ]},
+  greenhouse: { title:"Greenhouse Effect", scene: scenes.greenhouse, panels:[
+    {type:'dialogue',side:'left',char:'sun',name:'Sunny',text:"I send light and warmth to Earth every day!"},
+    {type:'dialogue',side:'right',char:'cloud',name:'Cloudy',text:"And some gases in the atmosphere trap that heat..."},
+    {type:'dialogue',side:'left',char:'sun',name:'Sunny',text:"The greenhouse effect keeps Earth warm enough for life."},
+    {type:'dialogue',side:'right',char:'cloud',name:'Cloudy',text:"But too much of it is overheating our planet!"},
+    {type:'fact',text:"Without any greenhouse effect, Earth's average temperature would be -18°C — way too cold for life!"},
+    {type:'divider',text:'Main greenhouse gases'},
+    {type:'dialogue',side:'left',char:'sun',name:'Sunny',text:"CO2, methane, and nitrous oxide are the main culprits."},
+    {type:'dialogue',side:'right',char:'cloud',name:'Cloudy',text:"Methane is 80x more potent than CO2 over 20 years!"},
+    {type:'pros',title:'Solutions that help!',items:['Transition to solar and wind energy','Reforestation absorbs CO2 naturally','Electric vehicles cut transport emissions','Better agriculture reduces methane','International climate agreements']},
+    {type:'cons',title:'Why it is still growing...',items:['Global CO2 levels hit record highs each year','Industry growth outpaces clean energy','Permafrost melting releases ancient methane','Feedback loops speed up warming','Delayed effects mean we feel future damage now']},
+    {type:'dialogue',side:'left',char:'sun',name:'Sunny',text:"I don't want to harm anyone — keep my rays balanced!"},
+  ]},
+  ozone: { title:"Ozone Layer", scene: scenes.ozone, panels:[
+    {type:'dialogue',side:'left',char:'sun',name:'Sunny',text:"I love you, ozone layer — you protect life from my UV rays!"},
+    {type:'dialogue',side:'right',char:'cloud',name:'Cloudy',text:"The ozone layer is a thin shield 15-35 km above Earth."},
+    {type:'dialogue',side:'left',char:'sun',name:'Sunny',text:"UV radiation causes skin cancer, eye damage, and crop failure."},
+    {type:'dialogue',side:'right',char:'cloud',name:'Cloudy',text:"Chemicals called CFCs made a massive hole in it over Antarctica!"},
+    {type:'fact',text:"The ozone hole was discovered in 1985. The Montreal Protocol (1987) banned CFCs — and the hole is slowly healing!"},
+    {type:'divider',text:'A success story!'},
+    {type:'dialogue',side:'left',char:'sun',name:'Sunny',text:"The ozone story is actually hopeful!"},
+    {type:'dialogue',side:'right',char:'cloud',name:'Cloudy',text:"Countries united and banned harmful chemicals. It's working!"},
+    {type:'pros',title:'Good news for ozone!',items:['Montreal Protocol is the most successful environmental treaty','CFCs are now banned in 197 countries','Ozone hole is slowly recovering since 2000','Expected to fully heal by 2066','Shows international cooperation CAN work']},
+    {type:'cons',title:'Still challenges...',items:['Some CFC substitutes still warm the climate','Illegal CFC production still detected','Full recovery takes decades more','Wildfires can damage the ozone layer too','Climate change may slow ozone recovery']},
+    {type:'dialogue',side:'right',char:'cloud',name:'Cloudy',text:"The ozone layer proves: when we work together, we CAN heal Earth!"},
+  ]},
+  acid_rain: { title:"Acid Rain", scene: scenes.acid_rain, panels:[
+    {type:'dialogue',side:'left',char:'cloud',name:'Cloudy',text:"I'm crying... but my tears are burning the trees!"},
+    {type:'dialogue',side:'right',char:'leaf',name:'Leafy',text:"That's acid rain — caused by sulfur dioxide and nitrogen oxides in the air."},
+    {type:'dialogue',side:'left',char:'cloud',name:'Cloudy',text:"Factories and cars release these gases, which mix with water vapour."},
+    {type:'dialogue',side:'right',char:'leaf',name:'Leafy',text:"The result is rain with a pH as low as 4 — as acidic as vinegar!"},
+    {type:'fact',text:"Acid rain can travel thousands of kilometres from its source, damaging ecosystems in faraway countries!"},
+    {type:'divider',text:'What acid rain damages'},
+    {type:'dialogue',side:'left',char:'cloud',name:'Cloudy',text:"It kills fish in lakes, strips nutrients from soil, and damages buildings."},
+    {type:'dialogue',side:'right',char:'leaf',name:'Leafy',text:"Forests in Europe and North America lost millions of trees to acid rain."},
+    {type:'pros',title:'How we reduced acid rain!',items:['Pollution controls on factories and power plants','Catalytic converters in car exhausts','Switching from coal to cleaner fuels','International clean air agreements','Scrubbers that remove SO2 from chimneys']},
+    {type:'cons',title:'Remaining challenges...',items:['Developing nations still burn lots of coal','Lake ecosystems recover very slowly','Acid rain leaches toxic metals into waterways','Historical damage to stone monuments is permanent','Continued emissions keep the problem alive']},
+    {type:'dialogue',side:'left',char:'cloud',name:'Cloudy',text:"Cleaner air means my tears can nourish — not harm — the Earth again!"},
+  ]},
+  smog: { title:"Smog & Haze", scene: scenes.smog, panels:[
+    {type:'dialogue',side:'left',char:'cloud',name:'Cloudy',text:"Can you see me? I'm hidden behind this thick yellow smog!"},
+    {type:'dialogue',side:'right',char:'leaf',name:'Leafy',text:"Smog forms when vehicle emissions and factory gases react with sunlight."},
+    {type:'dialogue',side:'left',char:'cloud',name:'Cloudy',text:"It creates ground-level ozone and fine particles called PM2.5."},
+    {type:'dialogue',side:'right',char:'leaf',name:'Leafy',text:"These particles enter your lungs and cause serious health problems!"},
+    {type:'fact',text:"Cities like Delhi, Beijing, and Los Angeles have had smog so thick it reduced visibility to just a few hundred metres!"},
+    {type:'divider',text:'Health impacts'},
+    {type:'dialogue',side:'left',char:'cloud',name:'Cloudy',text:"Smog causes asthma, heart disease, and even early death."},
+    {type:'dialogue',side:'right',char:'leaf',name:'Leafy',text:"Children and elderly are most vulnerable on high-smog days."},
+    {type:'pros',title:'Clearing the air!',items:['Stricter vehicle emission standards','Expand public transport and cycling lanes','Clean cooking fuels in developing nations','Industry emission controls and filters','Air quality monitoring and public alerts']},
+    {type:'cons',title:'The stubborn problem...',items:['Millions of cars and trucks are hard to replace quickly','Economic growth often means more industry','Wood and coal burning is common in rural areas','Weather patterns trap smog in valleys','Long-term health effects last even after air improves']},
+    {type:'dialogue',side:'left',char:'cloud',name:'Cloudy',text:"I want to be able to see the sun and mountains again someday!"},
+  ]},
+  biodiversity: { title:"Biodiversity", scene: scenes.biodiversity, panels:[
+    {type:'dialogue',side:'left',char:'bee',name:'Buzzy',text:"Our planet has over 8.7 million species of living things!"},
+    {type:'dialogue',side:'right',char:'leaf',name:'Leafy',text:"And we've only discovered about 1.5 million of them!"},
+    {type:'dialogue',side:'left',char:'bee',name:'Buzzy',text:"Every single species plays a role in keeping ecosystems balanced."},
+    {type:'dialogue',side:'right',char:'leaf',name:'Leafy',text:"Even tiny insects like me are essential for pollinating crops!"},
+    {type:'fact',text:"If bees disappeared, humanity would have only 4 years left — most of our food depends on pollination!"},
+    {type:'divider',text:'Why diversity matters'},
+    {type:'dialogue',side:'left',char:'bee',name:'Buzzy',text:"Nature is like a web — pull one thread and it unravels."},
+    {type:'dialogue',side:'right',char:'leaf',name:'Leafy',text:"We're losing species 1000 times faster than normal rates."},
+    {type:'pros',title:'Benefits of biodiversity!',items:['Diverse ecosystems resist disease and drought','Wild plants are source of most medicines','Variety ensures food security for all','Healthy ecosystems clean air and water','Nature has spiritual and cultural value']},
+    {type:'cons',title:'Threats to biodiversity...',items:['Habitat loss from farming and development','Invasive species push out native ones','Climate change shifts habitats drastically','Overhunting and illegal wildlife trade','Pollution poisons food chains']},
+    {type:'dialogue',side:'left',char:'bee',name:'Buzzy',text:"Every creature, big or small, deserves to exist on this Earth!"},
+  ]},
+  extinction: { title:"Extinction Crisis", scene: scenes.extinction, panels:[
+    {type:'dialogue',side:'left',char:'bee',name:'Buzzy',text:"We're losing species at 1000x the natural background rate."},
+    {type:'dialogue',side:'right',char:'leaf',name:'Leafy',text:"Scientists call this the 6th mass extinction event."},
+    {type:'dialogue',side:'left',char:'bee',name:'Buzzy',text:"The last one wiped out the dinosaurs 66 million years ago."},
+    {type:'dialogue',side:'right',char:'leaf',name:'Leafy',text:"But this time, humans are the main cause."},
+    {type:'fact',text:"About 1 million plant and animal species currently face extinction — many within decades!"},
+    {type:'divider',text:'Main causes'},
+    {type:'dialogue',side:'left',char:'bee',name:'Buzzy',text:"Habitat loss is the number one killer of species."},
+    {type:'dialogue',side:'right',char:'leaf',name:'Leafy',text:"Hunting, pollution, invasive species, and climate change follow."},
+    {type:'pros',title:'How we protect species!',items:['Create and expand protected nature reserves','Pass strong anti-poaching laws','Restore degraded habitats','Captive breeding for critically endangered species','Reduce consumption of threatened wildlife products']},
+    {type:'cons',title:'The sad reality...',items:['Once extinct, a species is gone forever','Illegal wildlife trade is a multi-billion dollar industry','Protecting habitat conflicts with development','Climate change is driving ranges to extinction','Funding for conservation is severely limited']},
+    {type:'dialogue',side:'left',char:'bee',name:'Buzzy',text:"Every species matters. Together, we can stop this crisis!"},
+  ]},
+  wetlands: { title:"Wetlands", scene: scenes.wetlands, panels:[
+    {type:'dialogue',side:'left',char:'drop',name:'Droppy',text:"Wetlands are one of Earth's most productive and important ecosystems!"},
+    {type:'dialogue',side:'right',char:'bee',name:'Buzzy',text:"They're like nature's kidneys — filtering water for us!"},
+    {type:'dialogue',side:'left',char:'drop',name:'Droppy',text:"Wetlands include swamps, marshes, bogs, mangroves, and shallow lakes."},
+    {type:'dialogue',side:'right',char:'bee',name:'Buzzy',text:"They're home to a huge variety of birds, fish, and plant life!"},
+    {type:'fact',text:"Wetlands store more carbon per hectare than tropical forests — making them vital climate allies!"},
+    {type:'divider',text:'Why wetlands matter'},
+    {type:'dialogue',side:'left',char:'drop',name:'Droppy',text:"They act as natural sponges, absorbing floodwater and preventing disasters."},
+    {type:'dialogue',side:'right',char:'bee',name:'Buzzy',text:"Over 40% of the world's species breed or feed in wetlands!"},
+    {type:'pros',title:'The power of wetlands!',items:['Filter pollutants and clean water naturally','Store carbon and fight climate change','Protect coasts from storm surge and erosion','Support massive biodiversity including migratory birds','Provide livelihoods for millions of people']},
+    {type:'cons',title:'Under serious threat...',items:['35% of wetlands lost since 1970 globally','Drained for agriculture and urban development','Polluted by farm runoff and industry','Invasive species disrupt delicate ecosystems','Climate change causes drought and saltwater intrusion']},
+    {type:'dialogue',side:'left',char:'drop',name:'Droppy',text:"Protecting wetlands is one of the best investments we can make for the planet!"},
+  ]},
+  solar: { title:"Solar Energy", scene: scenes.solar, panels:[
+    {type:'dialogue',side:'left',char:'sun',name:'Sunny',text:"I shine 430 quintillion joules of energy onto Earth every HOUR!"},
+    {type:'dialogue',side:'right',char:'leaf',name:'Leafy',text:"And we can capture it with solar panels!"},
+    {type:'dialogue',side:'left',char:'sun',name:'Sunny',text:"One hour of my sunshine could power all of humanity for a year."},
+    {type:'dialogue',side:'right',char:'leaf',name:'Leafy',text:"And solar panels produce zero emissions when running!"},
+    {type:'fact',text:"The cost of solar energy has dropped 89% over the last decade — it's now the cheapest electricity source in history!"},
+    {type:'pros',title:'Reasons to love solar!',items:['Completely clean — no emissions when operating','Sun is free and inexhaustible','Reduces electricity bills significantly','Works in remote areas without grid access','Panels last 25-30 years']},
+    {type:'cons',title:'The limitations...',items:['Does not generate power at night','Less effective on cloudy days','Large land area needed for big farms','Manufacturing panels uses some energy','Energy storage (batteries) is still costly']},
+    {type:'dialogue',side:'left',char:'sun',name:'Sunny',text:"Use my power wisely! Together we can keep the planet cool!"},
+  ]},
+  wind: { title:"Wind Power", scene: scenes.wind, panels:[
+    {type:'dialogue',side:'right',char:'cloud',name:'Cloudy',text:"I help spin wind turbines when I bring my breezes!"},
+    {type:'dialogue',side:'left',char:'leaf',name:'Leafy',text:"Wind is one of the fastest-growing energy sources on Earth!"},
+    {type:'dialogue',side:'right',char:'cloud',name:'Cloudy',text:"Wind turbines make zero emissions while generating electricity."},
+    {type:'dialogue',side:'left',char:'leaf',name:'Leafy',text:"The world's largest turbine blades are longer than a football field!"},
+    {type:'fact',text:"Wind energy could theoretically supply the entire world's electricity needs many times over!"},
+    {type:'pros',title:'Why wind power rocks!',items:['Zero carbon emissions when operating','Wind is free and never runs out','Farmers can earn income from turbines on land','Offshore wind is very powerful and consistent','Fast to build compared to nuclear plants']},
+    {type:'cons',title:'Wind power challenges...',items:['Wind is inconsistent — sometimes no wind','Turbines can harm birds and bats','Visual impact — some communities oppose them','Noise from turbines in residential areas','Best wind sites may be far from cities']},
+    {type:'dialogue',side:'right',char:'cloud',name:'Cloudy',text:"Every breeze I blow can light up a house. Let's use it!"},
+  ]},
+  fossil_fuels: { title:"Fossil Fuels", scene: scenes.fossil_fuels, panels:[
+    {type:'dialogue',side:'left',char:'cloud',name:'Cloudy',text:"For 200 years, humans have burned coal, oil, and gas for energy."},
+    {type:'dialogue',side:'right',char:'leaf',name:'Leafy',text:"These are called fossil fuels — formed from ancient organisms over millions of years."},
+    {type:'dialogue',side:'left',char:'cloud',name:'Cloudy',text:"They powered the industrial revolution and modern civilisation."},
+    {type:'dialogue',side:'right',char:'leaf',name:'Leafy',text:"But burning them releases CO2 that was stored for millions of years — all at once!"},
+    {type:'fact',text:"Fossil fuels provide about 80% of the world's energy — but they cause over 75% of global greenhouse gas emissions!"},
+    {type:'divider',text:'Why we need to move on'},
+    {type:'dialogue',side:'left',char:'cloud',name:'Cloudy',text:"Oil spills destroy ecosystems. Coal mines devastate landscapes."},
+    {type:'dialogue',side:'right',char:'leaf',name:'Leafy',text:"And they will run out — they are finite, non-renewable resources."},
+    {type:'pros',title:'The energy transition!',items:['Renewable energy is now cheaper than fossil fuels','Millions of green jobs being created globally','Energy independence from fossil fuel imports','Cleaner air and better public health outcomes','Technology improving solar, wind, and batteries fast']},
+    {type:'cons',title:'The tough transition...',items:['Entire industries and economies depend on fossil fuels','Millions of workers need retraining and support','Stranded assets worth trillions of dollars','Some processes still lack green alternatives','Political resistance from oil-producing nations']},
+    {type:'dialogue',side:'left',char:'cloud',name:'Cloudy',text:"The future is renewable — the sooner we transition, the better!"},
+  ]},
+  energy_saving: { title:"Energy Saving", scene: scenes.energy_saving, panels:[
+    {type:'dialogue',side:'left',char:'sun',name:'Sunny',text:"The greenest energy is the energy you never use!"},
+    {type:'dialogue',side:'right',char:'leaf',name:'Leafy',text:"Energy efficiency means doing the same things using less power."},
+    {type:'dialogue',side:'left',char:'sun',name:'Sunny',text:"LED bulbs use 80% less electricity than old incandescent bulbs!"},
+    {type:'dialogue',side:'right',char:'leaf',name:'Leafy',text:"Good insulation in homes can cut heating bills by half!"},
+    {type:'fact',text:"If every US home replaced just one old bulb with an LED, it would save enough energy to light 3 million homes for a year!"},
+    {type:'divider',text:'Easy ways to save energy'},
+    {type:'dialogue',side:'left',char:'sun',name:'Sunny',text:"Turn off lights and unplug devices when not in use."},
+    {type:'dialogue',side:'right',char:'leaf',name:'Leafy',text:"Wash clothes in cold water — it works just as well and uses 90% less energy!"},
+    {type:'pros',title:'Benefits of saving energy!',items:['Lower electricity bills every month','Reduces CO2 emissions immediately','Less strain on the power grid','Makes renewable energy go further','Creates demand for efficient products']},
+    {type:'cons',title:'The challenges...',items:['Energy-efficient appliances cost more upfront','Old buildings are expensive to insulate','Behaviour change is hard to maintain','Some industries are hard to make efficient','Rebound effect — people use savings to consume more']},
+    {type:'dialogue',side:'left',char:'sun',name:'Sunny',text:"Save energy today — and I'll shine even brighter tomorrow! ☀️"},
+  ]},
+};
+
+// ── FILTER ───────────────────────────────────────────────
+function filterSection(section, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.section-group').forEach(g => {
+    g.classList.toggle('visible', section === 'all' || g.dataset.section === section);
+  });
+}
+
+// ── OPEN STORY ───────────────────────────────────────────
+function openStory(key) {
+  const data = stories[key];
+  if (!data) { alert('Story coming soon!'); return; }
+
+  document.getElementById('story-title-bar').textContent = data.title;
+  document.getElementById('scene-area').innerHTML = data.scene;
+
+  const body = document.getElementById('story-body');
+  body.innerHTML = '';
+  data.panels.forEach(p => {
+    const div = document.createElement('div');
+    div.className = 'panel';
+    div.innerHTML = buildPanel(p);
+    body.appendChild(div);
+  });
+
+  document.getElementById('dashboard').classList.remove('active');
+  document.getElementById('story-screen').classList.add('active');
+  window.scrollTo(0, 0);
+  setTimeout(() => {
+    document.querySelectorAll('.panel').forEach((p, i) => {
+      setTimeout(() => p.classList.add('shown'), 150 + i * 170);
+    });
+  }, 50);
+}
+
+function buildPanel(p) {
+  if (p.type === 'dialogue') {
+    const svg = chars[p.char] ? chars[p.char](60) : chars.leaf(60);
+    return `<div class="dialogue ${p.side}">
+      <div class="char-avatar anim-float">${svg}</div>
+      <div class="speech-bubble"><div class="bubble-name">${p.name}</div>${p.text}</div>
+    </div>`;
+  }
+  if (p.type === 'fact') return `<div class="fact-banner">💡 ${p.text}</div>`;
+  if (p.type === 'divider') return `<div class="divider-label">${p.text}</div>`;
+  if (p.type === 'pros') return `<div class="info-card pro"><h3>✅ ${p.title}</h3><ul>${p.items.map(i=>`<li>${i}</li>`).join('')}</ul></div>`;
+  if (p.type === 'cons') return `<div class="info-card con"><h3>⚠️ ${p.title}</h3><ul>${p.items.map(i=>`<li>${i}</li>`).join('')}</ul></div>`;
+  return '';
+}
+
+function goBack() {
+  document.getElementById('story-screen').classList.remove('active');
+  document.getElementById('dashboard').classList.add('active');
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>

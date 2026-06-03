@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>FIRE RESCUE</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:    #08030a;
+    --tile:  #120a0f;
+    --fire1: #ff3300;
+    --fire2: #ff8800;
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: var(--bg);
+    overflow: hidden;
+    font-family: 'Rajdhani', sans-serif;
+    color: #ffccaa;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: flex-start;
+    touch-action: none;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse 55% 45% at 15% 25%, rgba(200,40,0,0.08) 0%, transparent 65%),
+      radial-gradient(ellipse 60% 50% at 85% 75%, rgba(255,60,0,0.06) 0%, transparent 65%);
+    pointer-events: none; z-index: 0;
+  }
+  body::after {
+    content: '';
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.06) 3px, rgba(0,0,0,0.06) 4px);
+    pointer-events: none; z-index: 100;
+  }
+
+  /* ── TOP BAR ── */
+  #topbar {
+    position: relative; z-index: 10;
+    width: 100%;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px 6px;
+    background: linear-gradient(180deg, rgba(8,3,10,0.97) 0%, transparent 100%);
+    flex-shrink: 0; gap: 8px;
+  }
+
+  #back-btn {
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(255,80,0,0.1); border: 1px solid rgba(255,80,0,0.3);
+    border-radius: 8px; padding: 7px 12px;
+    color: #ff8844; font-family: 'Rajdhani', sans-serif;
+    font-size: 12px; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; cursor: pointer; text-decoration: none;
+    transition: all 0.18s; flex-shrink: 0;
+  }
+  #back-btn:hover { background: rgba(255,80,0,0.2); border-color: rgba(255,80,0,0.6); }
+
+  #title-text {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(18px, 4.5vw, 28px);
+    letter-spacing: 5px; color: #ff5500;
+    text-shadow: 0 0 18px rgba(255,80,0,0.5);
+    flex: 1; text-align: center;
+  }
+
+  #hud { display: flex; gap: 12px; flex-shrink: 0; }
+  .hud-item { display: flex; flex-direction: column; align-items: center; min-width: 34px; }
+  .hud-val { font-family: 'Bebas Neue', sans-serif; font-size: 20px; line-height: 1; }
+  .hud-label { font-size: 7px; letter-spacing: 2px; color: rgba(255,150,80,0.45); text-transform: uppercase; }
+  #fire-val  { color: #ff4400; text-shadow: 0 0 8px rgba(255,60,0,0.7); }
+  #steps-val { color: #ffcc55; }
+  #level-val { color: #ff8844; }
+  #door-val  { color: #00ffaa; font-size: 15px; letter-spacing: 0; }
+
+  /* ── COOLDOWN BAR ── */
+  #coolbar-wrap {
+    width: 100%; padding: 2px 14px 0;
+    z-index: 10; position: relative; flex-shrink: 0;
+  }
+  #coolbar-bg {
+    height: 5px; background: rgba(255,80,0,0.12);
+    border-radius: 3px; overflow: hidden; border: 1px solid rgba(255,80,0,0.2);
+  }
+  #coolbar-fill {
+    height: 100%; width: 100%;
+    background: linear-gradient(90deg, #00cc88, #00ffaa);
+    box-shadow: 0 0 6px rgba(0,255,150,0.6);
+    transition: background 0.15s;
+  }
+  #coolbar-fill.charging {
+    background: linear-gradient(90deg, #ff3300, #ff8800);
+    box-shadow: 0 0 6px rgba(255,60,0,0.6);
+  }
+
+  /* ── GAME AREA ── */
+  #game-wrap {
+    position: relative; z-index: 5;
+    display: flex; align-items: center; justify-content: center;
+    flex: 1; width: 100%; padding: 4px; overflow: hidden;
+  }
+  #grid-container { position: relative; }
+
+  .tile {
+    position: absolute;
+    border: 1px solid #1e0e14;
+    background: var(--tile);
+  }
+  .tile.fire {
+    background: radial-gradient(circle at 50% 75%, #ff1a00 0%, #ff6600 45%, #ffcc00 100%);
+    border-color: #ff3300;
+    animation: flicker 0.35s infinite alternate;
+  }
+  .tile.burned { background: #0a0508; border-color: #150a10; }
+
+  @keyframes flicker {
+    from { filter: brightness(1) saturate(1); }
+    to   { filter: brightness(1.3) saturate(1.3); }
+  }
+
+  #player {
+    position: absolute;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 6; pointer-events: none;
+    transition: left 0.07s ease, top 0.07s ease;
+    filter: drop-shadow(0 0 5px rgba(255,255,200,0.9));
+  }
+
+  #exit-el {
+    position: absolute;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 5; pointer-events: none;
+    animation: exitPulse 1.1s ease infinite;
+  }
+  @keyframes exitPulse {
+    0%,100% { filter: drop-shadow(0 0 4px #00ffaa); transform: scale(1); }
+    50%      { filter: drop-shadow(0 0 14px #00ffaa); transform: scale(1.18); }
+  }
+
+  /* ── D-PAD ── */
+  #dpad {
+    position: relative; z-index: 10;
+    display: grid;
+    grid-template-areas: ". up ." "left . right" ". down .";
+    grid-template-columns: 64px 64px 64px;
+    grid-template-rows: 64px 64px 64px;
+    gap: 5px; padding: 8px 0 12px; flex-shrink: 0;
+  }
+  .dpad-btn {
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(255,80,0,0.1); border: 1px solid rgba(255,80,0,0.28);
+    border-radius: 12px; font-size: 24px; cursor: pointer;
+    user-select: none; -webkit-tap-highlight-color: transparent;
+    transition: background 0.1s, transform 0.08s; touch-action: manipulation;
+  }
+  .dpad-btn:active { background: rgba(255,80,0,0.28); transform: scale(0.88); }
+  .dpad-btn.up    { grid-area: up; }
+  .dpad-btn.left  { grid-area: left; }
+  .dpad-btn.right { grid-area: right; }
+  .dpad-btn.down  { grid-area: down; }
+
+  @media (hover: hover) and (pointer: fine) { #dpad { display: none; } }
+
+  /* ── INSTRUCTIONS ── */
+  #instructions {
+    position: fixed; inset: 0; z-index: 80;
+    background: rgba(8,3,10,0.97); backdrop-filter: blur(12px);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 20px; gap: 0;
+    animation: fadeIn 0.4s ease;
+    overflow-y: auto;
+  }
+
+  .ins-icon { font-size: 48px; margin-bottom: 6px; }
+  .ins-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(30px, 8vw, 50px);
+    letter-spacing: 6px; color: #ff5500;
+    text-shadow: 0 0 28px rgba(255,80,0,0.6);
+    margin-bottom: 3px;
+  }
+  .ins-sub {
+    font-size: 10px; letter-spacing: 4px;
+    color: rgba(255,150,80,0.45); text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .ins-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 8px 14px; max-width: 350px; width: 100%; margin-bottom: 14px;
+  }
+  .ins-item {
+    display: flex; align-items: flex-start; gap: 9px;
+    background: rgba(255,60,0,0.06); border: 1px solid rgba(255,60,0,0.14);
+    border-radius: 10px; padding: 9px 11px;
+  }
+  .ins-item .ico { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+  .ins-item .txt { display: flex; flex-direction: column; gap: 2px; }
+  .ins-item .txt strong { font-size: 12px; font-weight: 700; letter-spacing: 1px; color: #ff9955; }
+  .ins-item .txt span   { font-size: 10px; color: rgba(255,180,120,0.55); line-height: 1.4; }
+
+  .ins-warn {
+    background: rgba(255,30,0,0.1); border: 1px solid rgba(255,30,0,0.28);
+    border-radius: 10px; padding: 10px 16px;
+    font-size: 12px; letter-spacing: 0.5px; color: #ff7755;
+    text-align: center; max-width: 340px; margin-bottom: 14px; line-height: 1.65;
+  }
+  .ins-warn strong { color: #ff2200; }
+
+  .ins-levels {
+    display: flex; gap: 6px; margin-bottom: 18px;
+    flex-wrap: wrap; justify-content: center;
+  }
+  .lvl-pill {
+    padding: 4px 11px; border-radius: 20px;
+    font-size: 10px; letter-spacing: 1.5px;
+    font-weight: 700; text-transform: uppercase;
+  }
+  .lp1 { background: rgba(0,200,100,0.1); border: 1px solid rgba(0,200,100,0.28); color: #00dd88; }
+  .lp2 { background: rgba(255,140,0,0.1); border: 1px solid rgba(255,140,0,0.28); color: #ffaa33; }
+  .lp3 { background: rgba(255,40,0,0.1);  border: 1px solid rgba(255,40,0,0.28);  color: #ff5522; }
+  .lp4 { background: rgba(180,0,255,0.1); border: 1px solid rgba(180,0,255,0.28); color: #cc44ff; }
+
+  #start-btn {
+    padding: 13px 38px; border-radius: 10px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px; letter-spacing: 5px;
+    background: transparent; border: 2px solid #ff5500;
+    color: #ff5500; cursor: pointer; transition: all 0.2s; text-transform: uppercase;
+  }
+  #start-btn:hover, #start-btn:active {
+    background: rgba(255,80,0,0.14);
+    box-shadow: 0 0 22px rgba(255,80,0,0.32); transform: scale(1.04);
+  }
+
+  /* ── OVERLAY ── */
+  #overlay {
+    position: fixed; inset: 0; z-index: 70;
+    display: none; flex-direction: column;
+    align-items: center; justify-content: center;
+    background: rgba(8,3,10,0.93); backdrop-filter: blur(12px);
+  }
+  #overlay.show { display: flex; animation: fadeIn 0.35s ease; }
+
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  #ov-icon { font-size: 58px; margin-bottom: 10px; }
+  #ov-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(28px, 8vw, 50px);
+    letter-spacing: 6px; margin-bottom: 5px;
+  }
+  #ov-sub {
+    font-size: 11px; letter-spacing: 3px;
+    color: rgba(255,150,80,0.42); text-transform: uppercase; margin-bottom: 22px;
+  }
+  .ov-stats  { display: flex; gap: 24px; margin-bottom: 10px; }
+  .ov-stat   { text-align: center; }
+  .ov-stat-num   { font-family: 'Bebas Neue', sans-serif; font-size: 27px; display: block; }
+  .ov-stat-label { font-size: 8px; letter-spacing: 3px; color: rgba(255,150,80,0.38); text-transform: uppercase; }
+  #ov-next-info  { font-size: 10px; letter-spacing: 2px; color: rgba(255,120,60,0.45); text-transform: uppercase; margin-bottom: 18px; text-align: center; }
+  .ov-btns { display: flex; gap: 9px; flex-wrap: wrap; justify-content: center; }
+  .ov-btn {
+    padding: 11px 22px; border-radius: 8px;
+    font-family: 'Rajdhani', sans-serif; font-size: 13px;
+    font-weight: 700; letter-spacing: 3px; text-transform: uppercase;
+    cursor: pointer; border: 1px solid currentColor; background: transparent; transition: all 0.18s;
+  }
+  .ov-btn.primary   { color: #ff5500; border-color: #ff5500; }
+  .ov-btn.primary:hover   { background: rgba(255,80,0,0.14); box-shadow: 0 0 16px rgba(255,60,0,0.28); }
+  .ov-btn.secondary { color: rgba(255,150,80,0.42); border-color: rgba(255,150,80,0.18); }
+  .ov-btn.secondary:hover { color: #ff8844; border-color: #ff8844; }
+
+  .win  #ov-title { color: #00ffaa; text-shadow: 0 0 22px rgba(0,255,170,0.5); }
+  .loss #ov-title { color: #ff2200; text-shadow: 0 0 22px rgba(255,30,0,0.5); }
+  .win  .ov-stat-num { color: #00ffaa; }
+  .loss .ov-stat-num { color: #ff4400; }
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <a id="back-btn" href="map.html">
+    <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="7,1 2,5.5 7,10"/></svg>
+    BACK
+  </a>
+  <div id="title-text">🔥 FIRE RESCUE</div>
+  <div id="hud">
+    <div class="hud-item"><div class="hud-val" id="level-val">1</div><div class="hud-label">LVL</div></div>
+    <div class="hud-item"><div class="hud-val" id="fire-val">0</div><div class="hud-label">FIRE</div></div>
+    <div class="hud-item"><div class="hud-val" id="steps-val">0</div><div class="hud-label">STEPS</div></div>
+    <div class="hud-item"><div class="hud-val" id="door-val">🚪—</div><div class="hud-label">DOOR</div></div>
+  </div>
+</div>
+
+<div id="coolbar-wrap">
+  <div id="coolbar-bg"><div id="coolbar-fill"></div></div>
+</div>
+
+<div id="game-wrap">
+  <div id="grid-container"></div>
+</div>
+
+<div id="dpad">
+  <button class="dpad-btn up"    id="btn-up">▲</button>
+  <button class="dpad-btn left"  id="btn-left">◀</button>
+  <button class="dpad-btn right" id="btn-right">▶</button>
+  <button class="dpad-btn down"  id="btn-down">▼</button>
+</div>
+
+<!-- INSTRUCTIONS -->
+<div id="instructions">
+  <div class="ins-icon">🔥</div>
+  <div class="ins-title">FIRE RESCUE</div>
+  <div class="ins-sub">ESCAPE BEFORE THE GRID BURNS</div>
+
+  <div class="ins-grid">
+    <div class="ins-item">
+      <div class="ico">🧑‍🚒</div>
+      <div class="txt"><strong>YOU</strong><span>Start top-left. Reach the exit.</span></div>
+    </div>
+    <div class="ins-item">
+      <div class="ico">🚪</div>
+      <div class="txt"><strong>EXIT</strong><span>Moves every level! Check HUD for its grid code (e.g. J10).</span></div>
+    </div>
+    <div class="ins-item">
+      <div class="ico">🔥</div>
+      <div class="txt"><strong>FIRE</strong><span>Spreads every tick. Step on it = dead.</span></div>
+    </div>
+    <div class="ins-item">
+      <div class="ico">⏱️</div>
+      <div class="txt"><strong>COOLDOWN</strong><span>Each move has a delay. No spamming.</span></div>
+    </div>
+  </div>
+
+  <div class="ins-warn">
+    ⚠ <strong>ONE MOVE AT A TIME.</strong><br>
+    Holding a key does nothing. Each move triggers a cooldown — wait for the green bar, then move again. Plan your path or burn.
+  </div>
+
+  <div class="ins-levels">
+    <div class="lvl-pill lp1">LVL 1–2 · Slow fire</div>
+    <div class="lvl-pill lp2">LVL 3–4 · Spreading</div>
+    <div class="lvl-pill lp3">LVL 5–6 · Fast</div>
+    <div class="lvl-pill lp4">LVL 7+  · Inferno</div>
+  </div>
+
+  <button id="start-btn" onclick="startGame()">ENTER THE FIRE</button>
+</div>
+
+<!-- OVERLAY -->
+<div id="overlay">
+  <div id="ov-icon">💀</div>
+  <div id="ov-title">BURNED</div>
+  <div id="ov-sub">THE FIRE WON THIS TIME</div>
+  <div class="ov-stats">
+    <div class="ov-stat"><span class="ov-stat-num" id="ov-steps">0</span><span class="ov-stat-label">Steps</span></div>
+    <div class="ov-stat"><span class="ov-stat-num" id="ov-fire">0</span><span class="ov-stat-label">Fire Tiles</span></div>
+    <div class="ov-stat"><span class="ov-stat-num" id="ov-level">1</span><span class="ov-stat-label">Level</span></div>
+  </div>
+  <div id="ov-next-info"></div>
+  <div class="ov-btns">
+    <button class="ov-btn primary"   id="ov-main-btn" onclick="handleMain()">RETRY</button>
+    <button class="ov-btn secondary" onclick="showInstructions()">HOW TO PLAY</button>
+    <button class="ov-btn secondary" onclick="goMap()">← MAP</button>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════
+//  DIFFICULTY SCALING per level (0-indexed)
+// ════════════════════════════════════════════════
+function getCfg(lvl) {
+  return {
+    tickMs:     Math.max(300, 880 - lvl * 72),
+    spreadP:    Math.min(0.75, 0.25 + lvl * 0.065),
+    maxSpread:  Math.min(7,   2 + Math.floor(lvl / 2)),
+    extraIgn:   Math.min(4,   Math.floor(lvl / 2)),
+    moveCoolMs: Math.max(180, 420 - lvl * 20),
+  };
+}
+
+// ════════════════════════════════════════════════
+//  DOOR POSITIONS per level  {x, y}  (0-indexed)
+//  Cycles if level > list length
+//  Player always starts at (0,0)
+// ════════════════════════════════════════════════
+const DOOR_POSITIONS = [
+  { x: 9, y: 9 },   // LVL 1 — bottom-right corner (classic)
+  { x: 9, y: 0 },   // LVL 2 — top-right corner
+  { x: 4, y: 9 },   // LVL 3 — bottom middle
+  { x: 9, y: 5 },   // LVL 4 — right middle
+  { x: 0, y: 9 },   // LVL 5 — bottom-left corner
+  { x: 5, y: 0 },   // LVL 6 — top middle
+  { x: 7, y: 3 },   // LVL 7 — upper right area
+  { x: 2, y: 7 },   // LVL 8 — lower left area
+  { x: 6, y: 6 },   // LVL 9 — center-right
+  { x: 3, y: 4 },   // LVL 10 — dead center (hardest to reach)
+];
+
+function getDoor(lvl) {
+  return DOOR_POSITIONS[lvl % DOOR_POSITIONS.length];
+}
+// ════════════════════════════════════════════════
+
+const BASE = 10;
+let TILE = 40;
+let grid = [], player = {}, exitPos = {};
+let fireTimer = null;
+let dead = false, won = false;
+let steps = 0, level = 0;
+let onCooldown = false, coolMs = 400;
+let coolRaf = null, coolStart = 0;
+
+const container = document.getElementById('grid-container');
+
+// ── TILE SIZE ─────────────────────────────────────
+function computeTile() {
+  const topH  = document.getElementById('topbar').offsetHeight
+              + document.getElementById('coolbar-wrap').offsetHeight;
+  const dEl   = document.getElementById('dpad');
+  const dpadH = window.getComputedStyle(dEl).display === 'none' ? 0 : dEl.offsetHeight;
+  const avW   = window.innerWidth  - 10;
+  const avH   = window.innerHeight - topH - dpadH - 14;
+  TILE = Math.floor(Math.min(avW / BASE, avH / BASE));
+  TILE = Math.max(26, Math.min(TILE, 58));
+}
+
+// ── BUILD ─────────────────────────────────────────
+function init() {
+  computeTile();
+  if (fireTimer) clearInterval(fireTimer);
+  if (coolRaf)   cancelAnimationFrame(coolRaf);
+  container.innerHTML = '';
+  grid = []; steps = 0; dead = false; won = false; onCooldown = false;
+
+  const cfg = getCfg(level);
+  coolMs = cfg.moveCoolMs;
+
+  container.style.width  = (BASE * TILE) + 'px';
+  container.style.height = (BASE * TILE) + 'px';
+
+  // Build tiles
+  for (let y = 0; y < BASE; y++) {
+    for (let x = 0; x < BASE; x++) {
+      const el = document.createElement('div');
+      el.className = 'tile';
+      el.style.cssText = `left:${x*TILE}px;top:${y*TILE}px;width:${TILE}px;height:${TILE}px`;
+      container.appendChild(el);
+      grid.push({ x, y, state: 'normal', el });
+    }
+  }
+
+  // Exit — position varies per level
+  exitPos = getDoor(level);
+  const eEl = document.createElement('div');
+  eEl.id = 'exit-el'; eEl.textContent = '🚪';
+  eEl.style.cssText = `left:${exitPos.x*TILE}px;top:${exitPos.y*TILE}px;width:${TILE}px;height:${TILE}px;font-size:${Math.floor(TILE*0.65)}px`;
+  container.appendChild(eEl);
+
+  // Player — always top-left
+  player = { x: 0, y: 0 };
+  const pEl = document.createElement('div');
+  pEl.id = 'player'; pEl.textContent = '🧑‍🚒';
+  pEl.style.cssText = `width:${TILE}px;height:${TILE}px;font-size:${Math.floor(TILE*0.62)}px`;
+  container.appendChild(pEl);
+  player.el = pEl;
+
+  // Safe zones — never ignite near player start OR the door
+  const ex = exitPos.x, ey = exitPos.y;
+  const safe = new Set([
+    gi(0,0), gi(1,0), gi(0,1), gi(1,1),
+    gi(ex,ey),
+    gi(Math.max(0,ex-1), ey), gi(Math.min(BASE-1,ex+1), ey),
+    gi(ex, Math.max(0,ey-1)), gi(ex, Math.min(BASE-1,ey+1)),
+  ]);
+  const pool = grid.filter(t => !safe.has(gi(t.x, t.y)));
+  shuffleArr(pool);
+
+  // Start fires
+  ignite(pool[0]);
+  for (let i = 0; i < cfg.extraIgn; i++) ignite(pool[i + 1]);
+
+  barReady();
+  updateHUD();
+  render();
+  startFire();
+}
+
+function gi(x, y)    { return y * BASE + x; }
+function tileAt(x,y) { return grid[gi(x,y)]; }
+function shuffleArr(a) {
+  for (let i = a.length-1; i > 0; i--) {
+    const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]];
+  }
+}
+
+// ── FIRE ──────────────────────────────────────────
+function ignite(t) {
+  if (!t || t.state === 'fire') return;
+  t.state = 'fire';
+  t.el.className = 'tile fire';
+}
+
+function startFire() {
+  const cfg = getCfg(level);
+  fireTimer = setInterval(() => {
+    if (dead || won) return;
+    const cands = [];
+    grid.forEach(t => {
+      if (t.state !== 'fire') return;
+      [[-1,0],[1,0],[0,-1],[0,1]].forEach(([dx,dy]) => {
+        const n = tileAt(t.x+dx, t.y+dy);
+        if (n && n.state === 'normal' && Math.random() < cfg.spreadP) cands.push(n);
+      });
+    });
+    shuffleArr(cands);
+    cands.slice(0, cfg.maxSpread).forEach(n => ignite(n));
+    updateHUD();
+    // fire might have reached player between moves
+    const pt = tileAt(player.x, player.y);
+    if (pt && pt.state === 'fire') triggerDeath();
+  }, cfg.tickMs);
+}
+
+// ── COOLDOWN BAR ──────────────────────────────────
+function barReady() {
+  const f = document.getElementById('coolbar-fill');
+  f.classList.remove('charging');
+  f.style.width = '100%';
+}
+
+function barCharge(ms) {
+  const f = document.getElementById('coolbar-fill');
+  f.classList.add('charging');
+  f.style.width = '0%';
+  coolStart = performance.now();
+  function step(now) {
+    const pct = Math.min(1, (now - coolStart) / ms);
+    f.style.width = (pct * 100) + '%';
+    if (pct < 1) coolRaf = requestAnimationFrame(step);
+    else barReady();
+  }
+  coolRaf = requestAnimationFrame(step);
+}
+
+// ── MOVE ──────────────────────────────────────────
+// Prevent long-press: track which keys are currently held.
+// A key can only fire once per press (on keydown), and only if it wasn't already down.
+const held = new Set();
+
+window.addEventListener('keydown', e => {
+  const map = {
+    ArrowUp:[0,-1], ArrowDown:[0,1], ArrowLeft:[-1,0], ArrowRight:[1,0],
+    w:[0,-1], s:[0,1], a:[-1,0], d:[1,0]
+  };
+  const dir = map[e.key];
+  if (!dir) return;
+  e.preventDefault();
+  if (held.has(e.key)) return;  // key already held — ignore repeat
+  held.add(e.key);
+  doMove(...dir);
+});
+
+window.addEventListener('keyup', e => { held.delete(e.key); });
+
+function doMove(dx, dy) {
+  if (dead || won) return;
+  if (onCooldown) return;   // move blocked — wait for bar
+
+  const nx = player.x + dx, ny = player.y + dy;
+  if (nx < 0 || ny < 0 || nx >= BASE || ny >= BASE) return;
+
+  player.x = nx; player.y = ny;
+  steps++;
+
+  // enforce cooldown
+  onCooldown = true;
+  barCharge(coolMs);
+  setTimeout(() => { onCooldown = false; }, coolMs);
+
+  checkDeath();
+  checkWin();
+  render();
+  updateHUD();
+}
+
+// ── D-PAD (tap only, no repeat) ───────────────────
+function setupDpad() {
+  [['btn-up',0,-1],['btn-down',0,1],['btn-left',-1,0],['btn-right',1,0]]
+    .forEach(([id,dx,dy]) => {
+      const el = document.getElementById(id);
+      el.addEventListener('touchstart', e => { e.preventDefault(); doMove(dx,dy); }, { passive: false });
+      el.addEventListener('click', () => doMove(dx,dy));
+    });
+}
+
+// ── CHECKS ────────────────────────────────────────
+function checkDeath() {
+  const t = tileAt(player.x, player.y);
+  if (t && t.state === 'fire') triggerDeath();
+}
+function checkWin() {
+  if (player.x === exitPos.x && player.y === exitPos.y) triggerWin();
+}
+
+function triggerDeath() {
+  if (dead || won) return;
+  dead = true;
+  clearInterval(fireTimer);
+  showOverlay(false);
+}
+function triggerWin() {
+  if (dead || won) return;
+  won = true;
+  clearInterval(fireTimer);
+  showOverlay(true);
+}
+
+// ── RENDER ────────────────────────────────────────
+function render() {
+  player.el.style.left = (player.x * TILE) + 'px';
+  player.el.style.top  = (player.y * TILE) + 'px';
+}
+
+function updateHUD() {
+  document.getElementById('fire-val').textContent  = grid.filter(t => t.state==='fire').length;
+  document.getElementById('steps-val').textContent = steps;
+  document.getElementById('level-val').textContent = level + 1;
+  // Show door grid position (human-readable: col letter + row number like A1)
+  const col = String.fromCharCode(65 + exitPos.x); // A–J
+  const row = exitPos.y + 1;
+  document.getElementById('door-val').textContent = col + row;
+}
+
+// ── OVERLAY ───────────────────────────────────────
+function showOverlay(isWin) {
+  const ov = document.getElementById('overlay');
+  ov.className = (isWin ? 'win' : 'loss') + ' show';
+  document.getElementById('ov-icon').textContent  = isWin ? '🏆' : '💀';
+  document.getElementById('ov-title').textContent = isWin ? 'ESCAPED!' : 'BURNED';
+  document.getElementById('ov-sub').textContent   = isWin ? 'YOU MADE IT OUT ALIVE' : 'THE FIRE CONSUMED YOU';
+  document.getElementById('ov-steps').textContent = steps;
+  document.getElementById('ov-fire').textContent  = grid.filter(t=>t.state==='fire').length;
+  document.getElementById('ov-level').textContent = level + 1;
+  document.getElementById('ov-main-btn').textContent = isWin ? 'NEXT LEVEL →' : 'RETRY';
+
+  if (isWin) {
+    const nc = getCfg(level + 1);
+    document.getElementById('ov-next-info').textContent =
+      `LVL ${level+2} — Fire every ${nc.tickMs}ms · Move delay ${nc.moveCoolMs}ms`;
+  } else {
+    document.getElementById('ov-next-info').textContent = '';
+  }
+}
+
+function handleMain() {
+  const wasWin = won;
+  document.getElementById('overlay').className = '';
+  if (wasWin) level++;
+  init();
+}
+
+function showInstructions() {
+  document.getElementById('overlay').className = '';
+  document.getElementById('instructions').style.display = 'flex';
+}
+
+function startGame() {
+  document.getElementById('instructions').style.display = 'none';
+  init();
+}
+
+function goMap() { window.location.href = 'map.html'; }
+
+// ── SWIPE ─────────────────────────────────────────
+let tx = 0, ty = 0;
+document.addEventListener('touchstart', e => {
+  if (e.target.closest('#dpad,#instructions,#overlay,#back-btn')) return;
+  tx = e.touches[0].clientX; ty = e.touches[0].clientY;
+}, { passive: true });
+document.addEventListener('touchend', e => {
+  if (e.target.closest('#dpad,#instructions,#overlay,#back-btn')) return;
+  const dx = e.changedTouches[0].clientX - tx;
+  const dy = e.changedTouches[0].clientY - ty;
+  if (Math.abs(dx) < 22 && Math.abs(dy) < 22) return;
+  Math.abs(dx) > Math.abs(dy) ? doMove(dx>0?1:-1, 0) : doMove(0, dy>0?1:-1);
+}, { passive: true });
+
+// ── RESIZE ────────────────────────────────────────
+window.addEventListener('resize', () => { if (!dead && !won) init(); });
+
+// ── INIT ──────────────────────────────────────────
+setupDpad();
+// Game starts only after player presses "ENTER THE FIRE"
+</script>
+</body>
+</html>

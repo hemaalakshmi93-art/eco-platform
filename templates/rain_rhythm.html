@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rain Rhythm 🌧️</title>
+<link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@300;400;600;700&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --rain-blue: #4fc3f7;
+    --rain-dark: #0a1628;
+    --rain-mid: #0d1f3c;
+    --glass-bg: rgba(255,255,255,0.05);
+    --glass-border: rgba(100,180,255,0.2);
+    --glass-shine: rgba(255,255,255,0.08);
+    --accent-cyan: #00e5ff;
+    --accent-teal: #1de9b6;
+    --accent-green: #69f0ae;
+    --miss-red: #ff5252;
+    --warn-orange: #ffab40;
+    --font-main: 'Oxanium', monospace;
+    --font-sub: 'Rajdhani', sans-serif;
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: var(--rain-dark);
+    font-family: var(--font-main);
+    color: #cce8ff;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  #bg-canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; width: 100%; height: 100%; }
+
+  .screen {
+    position: fixed; inset: 0; z-index: 10;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    transition: opacity .4s ease;
+  }
+  .screen.hidden { opacity: 0; pointer-events: none; }
+
+  .glass {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 20px;
+    box-shadow: inset 0 1px 0 var(--glass-shine), 0 8px 40px rgba(0,100,200,0.2);
+  }
+
+  /* TITLE SCREEN */
+  #title-screen { gap: 32px; }
+  .title-logo { text-align: center; animation: float 4s ease-in-out infinite; }
+  .title-logo .big {
+    font-size: clamp(48px, 8vw, 96px); font-weight: 700; letter-spacing: 4px;
+    background: linear-gradient(135deg, #4fc3f7, #00e5ff, #1de9b6);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    filter: drop-shadow(0 0 30px rgba(79,195,247,0.4)); line-height: 1;
+  }
+  .title-logo .sub {
+    font-family: var(--font-sub); font-size: clamp(13px, 2vw, 17px);
+    color: rgba(100,200,255,0.7); letter-spacing: 6px; text-transform: uppercase; margin-top: 10px;
+  }
+  @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+
+  .title-card { padding: 36px 48px; width: min(480px, 90vw); text-align: center; }
+  .title-card h2 { font-size: 14px; color: var(--accent-cyan); letter-spacing: 4px; text-transform: uppercase; margin-bottom: 20px; }
+  .highscore-display { display: flex; gap: 24px; justify-content: center; margin-bottom: 28px; }
+  .hs-item { text-align: center; }
+  .hs-label { font-size: 11px; color: rgba(150,200,255,0.5); letter-spacing: 2px; text-transform: uppercase; }
+  .hs-val { font-size: 26px; font-weight: 600; color: var(--accent-teal); }
+
+  .btn-primary {
+    display: inline-block;
+    background: linear-gradient(135deg, rgba(0,229,255,0.2), rgba(29,233,182,0.2));
+    border: 1px solid rgba(0,229,255,0.5); color: var(--accent-cyan);
+    font-family: var(--font-main); font-size: 18px; font-weight: 600;
+    letter-spacing: 3px; text-transform: uppercase; padding: 14px 40px;
+    border-radius: 50px; cursor: pointer; transition: all .2s; outline: none;
+    box-shadow: 0 0 20px rgba(0,229,255,0.15);
+  }
+  .btn-primary:hover { background: linear-gradient(135deg, rgba(0,229,255,0.35), rgba(29,233,182,0.35)); box-shadow: 0 0 30px rgba(0,229,255,0.3); transform: scale(1.04); }
+  .btn-primary:active { transform: scale(0.97); }
+
+  .eco-tip {
+    font-family: var(--font-sub); font-size: 13px; color: rgba(100,200,150,0.7);
+    text-align: center; max-width: 360px; line-height: 1.7;
+    padding: 16px 24px; border-left: 2px solid rgba(105,240,174,0.3); margin-top: 4px;
+  }
+
+  /* GAME SCREEN */
+  #game-screen { flex-direction: column; gap: 0; padding: 0; justify-content: flex-start; align-items: stretch; }
+
+  #hud {
+    width: 100%; display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 24px; background: rgba(10,22,40,0.85);
+    border-bottom: 1px solid var(--glass-border); backdrop-filter: blur(16px);
+    z-index: 20; flex-shrink: 0; height: 70px;
+  }
+  .hud-block { display: flex; flex-direction: column; align-items: center; min-width: 80px; }
+  .hud-label { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: rgba(100,180,255,0.5); }
+  .hud-val { font-size: 22px; font-weight: 600; color: #fff; line-height: 1.2; }
+  #hud-score-val { color: var(--accent-cyan); }
+  #hud-combo-val { color: var(--accent-teal); }
+  #hud-level-val { color: var(--warn-orange); }
+
+  .health-bar-wrap { flex: 1; max-width: 200px; margin: 0 24px; display: flex; flex-direction: column; gap: 4px; }
+  .health-bar-track { height: 6px; background: rgba(255,255,255,0.08); border-radius: 99px; overflow: hidden; }
+  #health-fill { height: 100%; width: 100%; background: linear-gradient(90deg, var(--accent-teal), var(--accent-cyan)); border-radius: 99px; transition: width .4s ease, background .4s; }
+
+  #world-strip { width: 100%; height: 90px; flex-shrink: 0; position: relative; overflow: hidden; border-bottom: 1px solid rgba(79,195,247,0.15); }
+  #world-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+  #lane-area { flex: 1; width: 100%; position: relative; overflow: hidden; min-height: 0; }
+  #lane-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+  #tap-zone {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 90px;
+    display: flex; align-items: center; justify-content: center;
+    gap: clamp(8px, 2vw, 20px); padding: 0 clamp(8px, 3vw, 30px); z-index: 5;
+  }
+
+  .tap-btn {
+    flex: 1; max-width: 140px; height: 68px; border-radius: 14px; border: 1.5px solid;
+    cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-family: var(--font-main); font-size: 11px; font-weight: 600; letter-spacing: 2px;
+    text-transform: uppercase; position: relative; overflow: hidden;
+    transition: transform .08s, box-shadow .1s; background: var(--glass-bg);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); outline: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .tap-btn::before { content: ''; position: absolute; inset: 0; background: var(--glass-shine); }
+  .tap-btn .key-icon { font-size: 22px; margin-bottom: 3px; }
+  .tap-btn:active, .tap-btn.pressed { transform: scale(0.93); filter: brightness(1.6); }
+
+  .lane-0 { border-color: rgba(79,195,247,0.5); color: #4fc3f7; box-shadow: 0 0 16px rgba(79,195,247,0.2), inset 0 0 20px rgba(79,195,247,0.08); }
+  .lane-1 { border-color: rgba(0,229,255,0.5); color: #00e5ff; box-shadow: 0 0 16px rgba(0,229,255,0.2), inset 0 0 20px rgba(0,229,255,0.08); }
+  .lane-2 { border-color: rgba(29,233,182,0.5); color: #1de9b6; box-shadow: 0 0 16px rgba(29,233,182,0.2), inset 0 0 20px rgba(29,233,182,0.08); }
+  .lane-3 { border-color: rgba(105,240,174,0.5); color: #69f0ae; box-shadow: 0 0 16px rgba(105,240,174,0.2), inset 0 0 20px rgba(105,240,174,0.08); }
+
+  #feedback {
+    position: absolute; top: 28%; left: 50%; transform: translateX(-50%);
+    font-size: clamp(28px, 5vw, 48px); font-weight: 700; pointer-events: none; z-index: 30;
+    opacity: 0; transition: opacity .15s; text-shadow: 0 0 20px currentColor; white-space: nowrap;
+  }
+
+  #sound-name {
+    position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+    font-family: var(--font-sub); font-size: 12px; letter-spacing: 3px;
+    color: rgba(100,200,255,0.5); text-transform: uppercase; pointer-events: none; z-index: 20; white-space: nowrap;
+  }
+
+  /* RESULT SCREEN */
+  #result-screen { gap: 24px; }
+  .result-card { padding: 40px 48px; width: min(440px, 90vw); text-align: center; }
+  .result-title { font-size: 36px; font-weight: 700; letter-spacing: 4px; margin-bottom: 6px; }
+  .result-sub { font-family: var(--font-sub); font-size: 14px; color: rgba(150,200,255,0.6); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 28px; }
+
+  .result-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 28px; }
+  .stat-box { background: rgba(255,255,255,0.04); border: 1px solid rgba(100,200,255,0.12); border-radius: 14px; padding: 16px; }
+  .stat-box .sv { font-size: 30px; font-weight: 600; color: var(--accent-cyan); }
+  .stat-box .sl { font-size: 11px; color: rgba(150,200,255,0.5); letter-spacing: 2px; text-transform: uppercase; margin-top: 2px; }
+  .new-best { color: var(--accent-teal); animation: pulse 1s ease infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+
+  .eco-fact {
+    font-family: var(--font-sub); font-size: 13px; color: rgba(105,240,174,0.8);
+    line-height: 1.7; padding: 14px 18px; background: rgba(105,240,174,0.05);
+    border: 1px solid rgba(105,240,174,0.15); border-radius: 12px; margin-bottom: 24px;
+  }
+  .btn-row { display: flex; gap: 14px; justify-content: center; }
+  .btn-secondary {
+    background: transparent; border: 1px solid rgba(150,200,255,0.3); color: rgba(150,200,255,0.7);
+    font-family: var(--font-main); font-size: 13px; letter-spacing: 2px; text-transform: uppercase;
+    padding: 11px 24px; border-radius: 50px; cursor: pointer; transition: all .2s; outline: none;
+  }
+  .btn-secondary:hover { border-color: rgba(150,200,255,0.6); color: #fff; }
+
+  #kb-hints {
+    position: absolute; bottom: 6px; left: 50%; transform: translateX(-50%);
+    font-size: 11px; color: rgba(100,180,255,0.3); letter-spacing: 2px;
+    pointer-events: none; white-space: nowrap; z-index: 6;
+  }
+
+  #countdown {
+    position: fixed; inset: 0; z-index: 50;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 120px; font-weight: 700; color: var(--accent-cyan);
+    text-shadow: 0 0 60px rgba(0,229,255,0.5); pointer-events: none; opacity: 0;
+  }
+
+  #levelup-banner { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%); z-index: 40; text-align: center; opacity: 0; pointer-events: none; transition: opacity .3s; }
+  #levelup-banner .lu-text {
+    font-size: clamp(40px,6vw,72px); font-weight: 700;
+    background: linear-gradient(135deg, #ffab40, #ff6d00);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    filter: drop-shadow(0 0 20px rgba(255,171,64,0.5));
+  }
+  #levelup-banner .lu-sub { font-family: var(--font-sub); font-size: 16px; color: rgba(255,171,64,0.7); letter-spacing: 4px; text-transform: uppercase; margin-top: 8px; }
+
+  @media (max-width: 480px) {
+    .title-card { padding: 24px 20px; }
+    .result-card { padding: 28px 20px; }
+    .tap-btn { height: 54px; max-width: 90px; }
+    .tap-btn .key-icon { font-size: 18px; }
+    #hud { padding: 10px 12px; }
+    .hud-val { font-size: 18px; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+<div id="countdown"></div>
+<div id="levelup-banner">
+  <div class="lu-text">LEVEL UP!</div>
+  <div class="lu-sub" id="lu-sub-text"></div>
+</div>
+
+<!-- TITLE SCREEN -->
+<div class="screen" id="title-screen">
+  <div class="title-logo">
+    <div class="big">RAIN<br>RHYTHM</div>
+    <div class="sub">🌿 Eco Rhythm Game 🌿</div>
+  </div>
+  <div class="glass title-card">
+    <h2>🏆 High Scores</h2>
+    <div class="highscore-display">
+      <div class="hs-item"><div class="hs-label">Best Score</div><div class="hs-val" id="hs-score">0</div></div>
+      <div class="hs-item"><div class="hs-label">Best Level</div><div class="hs-val" id="hs-level">1</div></div>
+      <div class="hs-item"><div class="hs-label">Best Combo</div><div class="hs-val" id="hs-combo">0</div></div>
+    </div>
+    <button class="btn-primary" id="start-btn">▶ PLAY</button>
+  </div>
+  <div class="eco-tip" id="eco-tip-text">💧 The water cycle moves about 500,000 km³ of water around Earth every year.</div>
+</div>
+
+<!-- GAME SCREEN -->
+<div class="screen hidden" id="game-screen">
+  <div id="hud">
+    <div class="hud-block"><span class="hud-label">Score</span><span class="hud-val" id="hud-score-val">0</span></div>
+    <div class="hud-block"><span class="hud-label">Combo</span><span class="hud-val" id="hud-combo-val">×1</span></div>
+    <div class="health-bar-wrap">
+      <div class="hud-label" style="text-align:center;margin-bottom:2px">Health</div>
+      <div class="health-bar-track"><div id="health-fill"></div></div>
+    </div>
+    <div class="hud-block"><span class="hud-label">Level</span><span class="hud-val" id="hud-level-val">1</span></div>
+    <div class="hud-block"><span class="hud-label">Perfect</span><span class="hud-val" id="hud-perfect-val" style="color:#ffab40">0</span></div>
+  </div>
+  <div id="world-strip"><canvas id="world-canvas"></canvas></div>
+  <div id="lane-area">
+    <canvas id="lane-canvas"></canvas>
+    <div id="sound-name"></div>
+    <div id="feedback"></div>
+    <div id="tap-zone">
+      <button class="tap-btn lane-0" id="btn0" data-lane="0"><span class="key-icon">💧</span><span>A</span></button>
+      <button class="tap-btn lane-1" id="btn1" data-lane="1"><span class="key-icon">☁️</span><span>S</span></button>
+      <button class="tap-btn lane-2" id="btn2" data-lane="2"><span class="key-icon">⚡</span><span>D</span></button>
+      <button class="tap-btn lane-3" id="btn3" data-lane="3"><span class="key-icon">🐸</span><span>F</span></button>
+    </div>
+    <div id="kb-hints">Keyboard: A · S · D · F · Space = all lanes</div>
+  </div>
+</div>
+
+<!-- RESULT SCREEN -->
+<div class="screen hidden" id="result-screen">
+  <div class="glass result-card">
+    <div class="result-title" id="result-title">🌿 GREAT!</div>
+    <div class="result-sub" id="result-sub">Level completed</div>
+    <div class="result-stats">
+      <div class="stat-box"><div class="sv" id="res-score">0</div><div class="sl">Score</div></div>
+      <div class="stat-box"><div class="sv" id="res-level">1</div><div class="sl">Level</div></div>
+      <div class="stat-box"><div class="sv" id="res-combo">0</div><div class="sl">Max Combo</div></div>
+      <div class="stat-box"><div class="sv" id="res-acc">0%</div><div class="sl">Accuracy</div></div>
+    </div>
+    <div class="eco-fact" id="eco-fact"></div>
+    <div class="btn-row">
+      <button class="btn-secondary" id="menu-btn">Menu</button>
+      <button class="btn-primary" id="retry-btn">▶ RETRY</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const ECO_TIPS = [
+  "💧 The water cycle moves 500,000 km³ of water every year through evaporation and rainfall.",
+  "🌧️ Just 1 hour of rain can replenish an entire river ecosystem and support thousands of species.",
+  "🐸 Frogs are nature's rain gauge — they're among the first to thrive when rainfall returns.",
+  "🌿 Tropical rainforests create their own rainfall by releasing moisture through their leaves.",
+  "⛈️ A single thunderstorm can release more energy than an atomic bomb — all used to water the earth.",
+  "🌊 Healthy rainfall patterns depend on intact forests; deforestation disrupts the entire water cycle.",
+  "🌱 Rain water is naturally soft and slightly acidic, perfect for plant growth.",
+  "☁️ Clouds form when water evaporated from oceans rises and cools — the sky's own water recycler.",
+];
+const ECO_FACTS = [
+  "🌿 Rain replenishes groundwater that billions of people depend on for drinking water.",
+  "🐦 Migratory birds follow rainfall patterns across continents — your rhythm guided their journey!",
+  "🌊 Wetlands act as nature's kidneys, filtering rainwater before it enters rivers and oceans.",
+  "🐸 Frogs absorb water through their skin — clean rainfall is critical for their survival.",
+  "🌱 A single old-growth tree can absorb 100 gallons of rainwater per day.",
+  "⛈️ Lightning from storms converts nitrogen in the air into fertilizer for plants!",
+  "🌺 After drought, a single rain event can trigger millions of dormant seeds to sprout within hours.",
+];
+const SOUND_NAMES = ["💧 Drizzle", "☁️ Light Rain", "⚡ Thunderstorm", "🐸 Frog Choir"];
+
+// ── Audio Engine ──────────────────────────────
+const AC = new (window.AudioContext || window.webkitAudioContext)();
+
+function playNote(freq, type='sine', dur=0.18, vol=0.3) {
+  try {
+    const g = AC.createGain(), osc = AC.createOscillator();
+    osc.type = type; osc.frequency.setValueAtTime(freq, AC.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(freq * 0.85, AC.currentTime + dur);
+    g.gain.setValueAtTime(vol, AC.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + dur);
+    osc.connect(g); g.connect(AC.destination); osc.start(); osc.stop(AC.currentTime + dur);
+  } catch(e) {}
+}
+function playRainDrop(lane) {
+  const freqs = [440, 528, 660, 880];
+  const types = ['sine','triangle','sine','sawtooth'];
+  playNote(freqs[lane], types[lane], 0.22, 0.25);
+  playNote(freqs[lane] * 2, 'sine', 0.12, 0.08);
+}
+function playMiss() { playNote(120, 'sawtooth', 0.3, 0.15); }
+function playLevelUp() {
+  [523,659,784,1047].forEach((f,i) => setTimeout(() => playNote(f,'sine',0.3,0.3), i*100));
+}
+function playThunder() {
+  try {
+    const g = AC.createGain();
+    const buf = AC.createBuffer(1, AC.sampleRate*0.8, AC.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,2);
+    const src = AC.createBufferSource(); src.buffer = buf;
+    const bq = AC.createBiquadFilter(); bq.type='lowpass'; bq.frequency.value=200;
+    g.gain.setValueAtTime(0.4, AC.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime+0.8);
+    src.connect(bq); bq.connect(g); g.connect(AC.destination); src.start();
+  } catch(e) {}
+}
+function playAmbience() {
+  try {
+    const g = AC.createGain(), osc = AC.createOscillator();
+    osc.type='sine'; osc.frequency.value=60; g.gain.value=0.04;
+    osc.connect(g); g.connect(AC.destination); osc.start(); return osc;
+  } catch(e) { return null; }
+}
+
+// ── Game State ─────────────────────────────────
+const NUM_LANES = 4;
+const HIT_ZONE_Y = 0.82;
+const HIT_WINDOW = 0.07;
+
+let state = {
+  running: false, score: 0, combo: 1, maxCombo: 1,
+  health: 100, level: 1, hits: 0, misses: 0, perfects: 0,
+  notes: [], particles: [],
+  riverLevel: 0.2, forestDensity: 0.2, droughtFactor: 0.6,
+  spawnTimer: 0, spawnInterval: 100,
+  beatPattern: [], patternIdx: 0, frameCount: 0,
+  ambientOsc: null, nextLevelScore: 300, thunderTimer: 0, scoreAccum: 0,
+};
+
+let hs = { score: 0, level: 1, combo: 0 };
+try { const s = localStorage.getItem('rr_hs2'); if(s) hs = JSON.parse(s); } catch(e) {}
+function saveHS() { try { localStorage.setItem('rr_hs2', JSON.stringify(hs)); } catch(e) {} }
+
+// ── Canvases ─────────────────────────────────
+const bgCanvas = document.getElementById('bg-canvas');
+const bgCtx = bgCanvas.getContext('2d');
+const worldCanvas = document.getElementById('world-canvas');
+const wCtx = worldCanvas.getContext('2d');
+const laneCanvas = document.getElementById('lane-canvas');
+const lCtx = laneCanvas.getContext('2d');
+
+function resizeCanvases() {
+  bgCanvas.width = window.innerWidth; bgCanvas.height = window.innerHeight;
+  const wRect = worldCanvas.parentElement.getBoundingClientRect();
+  worldCanvas.width = Math.floor(wRect.width); worldCanvas.height = Math.floor(wRect.height);
+  const lRect = laneCanvas.parentElement.getBoundingClientRect();
+  laneCanvas.width = Math.floor(lRect.width); laneCanvas.height = Math.floor(lRect.height);
+}
+window.addEventListener('resize', resizeCanvases);
+
+// ── Beat Patterns ─────────────────────────────
+function generatePattern(level) {
+  const len = 20 + level * 4;
+  const pat = [];
+  for (let i = 0; i < len; i++) {
+    const maxLane = Math.min(NUM_LANES - 1, Math.floor(level / 1.5));
+    pat.push(Math.floor(Math.random() * (maxLane + 1)));
+  }
+  return pat;
+}
+
+function spawnNote() {
+  const lane = state.beatPattern[state.patternIdx % state.beatPattern.length];
+  state.patternIdx++;
+  const speed = 0.004 + state.level * 0.0015;
+  state.notes.push({ lane, y: -0.05, speed, hit: false, missed: false, wobble: Math.random()*Math.PI*2 });
+}
+
+// ── Custom shape drawers ───────────────────────
+const LANE_COLORS = ['#4fc3f7','#b0c4ff','#1de9b6','#69f0ae'];
+const LANE_GLOW   = ['#4fc3f7','#7090ff','#00e5ff','#00e676'];
+
+// Lane 0: Water Droplet shape
+function drawDroplet(ctx, x, y, r, col, glow, alpha=1) {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+
+  // Outer glow
+  ctx.shadowColor = glow;
+  ctx.shadowBlur = 20;
+
+  // Droplet path: circle top + pointed bottom
+  ctx.beginPath();
+  // The droplet goes: pointed tip at bottom, round top
+  const tipY = y + r * 1.3;
+  const topY = y - r * 0.6;
+  ctx.moveTo(x, tipY);
+  ctx.bezierCurveTo(x - r * 1.1, y + r * 0.3, x - r * 1.1, topY, x, topY - r * 0.4);
+  ctx.bezierCurveTo(x + r * 1.1, topY, x + r * 1.1, y + r * 0.3, x, tipY);
+  ctx.closePath();
+
+  // Gradient fill
+  const grd = ctx.createRadialGradient(x - r*0.3, y - r*0.4, r*0.05, x, y, r*1.4);
+  grd.addColorStop(0, '#ffffff');
+  grd.addColorStop(0.3, col);
+  grd.addColorStop(1, col + '66');
+  ctx.fillStyle = grd;
+  ctx.fill();
+
+  // Highlight glint
+  ctx.shadowBlur = 0;
+  ctx.globalAlpha = alpha * 0.7;
+  ctx.fillStyle = 'rgba(255,255,255,0.8)';
+  ctx.beginPath();
+  ctx.ellipse(x - r*0.28, y - r*0.45, r*0.22, r*0.13, -0.5, 0, Math.PI*2);
+  ctx.fill();
+  ctx.restore();
+}
+
+// Lane 1: Cloud shape (puffy cloud with base)
+function drawCloud(ctx, x, y, r, col, glow, alpha=1) {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.shadowColor = glow;
+  ctx.shadowBlur = 18;
+
+  const w = r * 1.5;
+  const h = r * 1.0;
+  // Multiple circles to form puffy cloud
+  ctx.fillStyle = col;
+  const parts = [
+    { dx: 0,       dy: 0,       rr: r*0.75 },
+    { dx: -w*0.45, dy: h*0.2,   rr: r*0.52 },
+    { dx:  w*0.45, dy: h*0.2,   rr: r*0.52 },
+    { dx: -w*0.22, dy: -h*0.1,  rr: r*0.60 },
+    { dx:  w*0.22, dy: -h*0.1,  rr: r*0.60 },
+    { dx:  0,      dy: h*0.28,  rr: r*0.55 },
+  ];
+
+  // Draw each puff
+  for (const p of parts) {
+    const grd = ctx.createRadialGradient(x+p.dx-p.rr*0.2, y+p.dy-p.rr*0.2, p.rr*0.05, x+p.dx, y+p.dy, p.rr);
+    grd.addColorStop(0, '#ffffff');
+    grd.addColorStop(0.4, col);
+    grd.addColorStop(1, col+'aa');
+    ctx.beginPath();
+    ctx.arc(x + p.dx, y + p.dy, p.rr, 0, Math.PI*2);
+    ctx.fillStyle = grd;
+    ctx.fill();
+  }
+
+  // Rain drops below cloud
+  ctx.shadowBlur = 0;
+  ctx.globalAlpha = alpha * 0.7;
+  ctx.strokeStyle = '#80d8ff';
+  ctx.lineWidth = 2;
+  const dropOffsets = [-r*0.5, 0, r*0.5];
+  for (const dx of dropOffsets) {
+    ctx.beginPath();
+    ctx.moveTo(x+dx, y + r*0.8);
+    ctx.lineTo(x+dx - 2, y + r*1.3);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+// Lane 2: Lightning bolt shape
+function drawLightning(ctx, x, y, r, col, glow, alpha=1) {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.shadowColor = glow;
+  ctx.shadowBlur = 25;
+
+  // Lightning bolt polygon
+  const s = r * 1.1;
+  ctx.beginPath();
+  ctx.moveTo(x + s*0.2,  y - s*1.2);   // top right
+  ctx.lineTo(x - s*0.5,  y - s*0.05);  // mid left
+  ctx.lineTo(x + s*0.15, y - s*0.05);  // mid center
+  ctx.lineTo(x - s*0.2,  y + s*1.2);   // bottom left
+  ctx.lineTo(x + s*0.55, y + s*0.0);   // mid right
+  ctx.lineTo(x + s*0.0,  y + s*0.0);   // mid center
+  ctx.closePath();
+
+  const grd = ctx.createLinearGradient(x, y-s*1.2, x, y+s*1.2);
+  grd.addColorStop(0, '#ffffff');
+  grd.addColorStop(0.3, '#ffe57f');
+  grd.addColorStop(0.7, col);
+  grd.addColorStop(1, col+'88');
+  ctx.fillStyle = grd;
+  ctx.fill();
+
+  // Inner bright core
+  ctx.shadowBlur = 30;
+  ctx.globalAlpha = alpha * 0.5;
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath();
+  ctx.moveTo(x + s*0.15, y - s*0.9);
+  ctx.lineTo(x - s*0.25, y - s*0.05);
+  ctx.lineTo(x + s*0.05, y - s*0.05);
+  ctx.lineTo(x - s*0.1,  y + s*0.9);
+  ctx.lineTo(x + s*0.4,  y + s*0.0);
+  ctx.lineTo(x + s*0.0,  y + s*0.0);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
+// Lane 3: Frog head shape
+function drawFrog(ctx, x, y, r, col, glow, alpha=1, wobble=0) {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.shadowColor = glow;
+  ctx.shadowBlur = 16;
+
+  const t = wobble; // animation phase
+
+  // Body - oval
+  ctx.fillStyle = col;
+  ctx.beginPath();
+  ctx.ellipse(x, y + r*0.1, r*0.9, r*0.8, 0, 0, Math.PI*2);
+  const grd = ctx.createRadialGradient(x-r*0.2, y-r*0.2, r*0.05, x, y, r);
+  grd.addColorStop(0, '#b9f6ca');
+  grd.addColorStop(0.5, col);
+  grd.addColorStop(1, col+'99');
+  ctx.fillStyle = grd;
+  ctx.fill();
+
+  // Eyes (big bulging)
+  ctx.shadowBlur = 0;
+  const eyeY = y - r*0.55;
+  const eyeR = r * 0.3;
+  for (const ex of [x - r*0.42, x + r*0.42]) {
+    // Eye whites
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(ex, eyeY, eyeR, 0, Math.PI*2);
+    ctx.fill();
+    // Pupil
+    ctx.fillStyle = '#1a1a2e';
+    ctx.beginPath();
+    ctx.arc(ex + Math.sin(t)*2, eyeY + Math.cos(t)*1, eyeR*0.45, 0, Math.PI*2);
+    ctx.fill();
+    // Eye shine
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(ex - eyeR*0.25, eyeY - eyeR*0.25, eyeR*0.18, 0, Math.PI*2);
+    ctx.fill();
+  }
+
+  // Smile
+  ctx.strokeStyle = '#1a3a2a';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(x, y + r*0.1, r*0.45, 0.2, Math.PI - 0.2);
+  ctx.stroke();
+
+  // Nostrils
+  ctx.fillStyle = '#2d6a4f';
+  for (const nx of [x - r*0.18, x + r*0.18]) {
+    ctx.beginPath();
+    ctx.ellipse(nx, y - r*0.05, r*0.07, r*0.05, 0, 0, Math.PI*2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+// Draw trail behind each note
+function drawTrail(ctx, x, y, r, col, lane) {
+  const trailLen = r * 4;
+  const trail = ctx.createLinearGradient(x, y - trailLen, x, y - r);
+  trail.addColorStop(0, 'transparent');
+  trail.addColorStop(1, col + '44');
+  ctx.save();
+  ctx.fillStyle = trail;
+  if (lane === 0) {
+    // Narrow for droplet
+    ctx.fillRect(x - r*0.35, y - trailLen, r*0.7, trailLen);
+  } else if (lane === 1) {
+    // Wide for cloud
+    ctx.fillRect(x - r, y - trailLen, r*2, trailLen);
+  } else if (lane === 2) {
+    // Zigzag for lightning (just use rect)
+    ctx.fillRect(x - r*0.4, y - trailLen, r*0.8, trailLen);
+  } else {
+    // Round dots trail for frog
+    for (let i = 1; i <= 4; i++) {
+      ctx.globalAlpha = (1 - i/5) * 0.3;
+      ctx.fillStyle = col;
+      ctx.beginPath();
+      ctx.arc(x, y - r*1.2 - i*r*0.7, r*(0.5-i*0.08), 0, Math.PI*2);
+      ctx.fill();
+    }
+  }
+  ctx.restore();
+}
+
+// Hit detection
+function tapLane(lane) {
+  if (!state.running) return;
+  if (AC.state === 'suspended') AC.resume();
+  const tapBtn = document.getElementById(`btn${lane}`);
+  tapBtn.classList.add('pressed');
+  setTimeout(() => tapBtn.classList.remove('pressed'), 100);
+
+  const hitZone = HIT_ZONE_Y;
+  const win = HIT_WINDOW + (state.level < 3 ? 0.02 : 0);
+  let bestNote = null, bestDist = 999;
+  for (const n of state.notes) {
+    if (n.lane === lane && !n.hit && !n.missed) {
+      const dist = Math.abs(n.y - hitZone);
+      if (dist < win && dist < bestDist) { bestNote = n; bestDist = dist; }
+    }
+  }
+  if (bestNote) {
+    bestNote.hit = true;
+    const isPerfect = bestDist < HIT_WINDOW * 0.4;
+    const pts = isPerfect ? 150 : 100;
+    state.score += pts * state.combo; state.scoreAccum += pts;
+    state.hits++; if (isPerfect) state.perfects++;
+    state.combo = Math.min(state.combo + 1, 16);
+    state.maxCombo = Math.max(state.maxCombo, state.combo);
+    state.health = Math.min(100, state.health + 3);
+    state.riverLevel = Math.min(1, state.riverLevel + 0.04);
+    state.forestDensity = Math.min(1, state.forestDensity + 0.02);
+    state.droughtFactor = Math.min(1, state.droughtFactor + 0.03);
+    playRainDrop(lane);
+    spawnParticles(lane, laneCanvas.width, laneCanvas.height, isPerfect);
+    showFeedback(isPerfect ? 'PERFECT! 💧' : 'GOOD! 🌧️', isPerfect ? '#00e5ff' : '#1de9b6');
+    updateHUD();
+  } else {
+    state.combo = 1; state.health = Math.max(0, state.health - 2); updateHUD();
+  }
+}
+
+function missNote(note) {
+  note.missed = true; state.misses++; state.combo = 1;
+  state.health = Math.max(0, state.health - 8);
+  state.droughtFactor = Math.max(0, state.droughtFactor - 0.06);
+  state.riverLevel = Math.max(0, state.riverLevel - 0.025);
+  playMiss();
+  showFeedback('MISS! 🌵', '#ff5252'); updateHUD();
+  if (state.health <= 0) endGame(false);
+}
+
+// Particles
+function spawnParticles(lane, W, H, isPerfect) {
+  const laneW = W / NUM_LANES;
+  const x = (lane + 0.5) * laneW, y = H * HIT_ZONE_Y;
+  const n = isPerfect ? 20 : 10;
+  for (let i = 0; i < n; i++) {
+    const angle = Math.random() * Math.PI * 2, speed = 2 + Math.random() * 5;
+    state.particles.push({
+      x, y, vx: Math.cos(angle)*speed, vy: Math.sin(angle)*speed - 3,
+      life: 1, col: isPerfect ? '#ffab40' : LANE_COLORS[lane], size: 3 + Math.random() * 4,
+    });
+  }
+}
+
+let fbTimer = null;
+function showFeedback(text, color) {
+  const el = document.getElementById('feedback');
+  el.textContent = text; el.style.color = color; el.style.opacity = '1';
+  if (fbTimer) clearTimeout(fbTimer);
+  fbTimer = setTimeout(() => el.style.opacity = '0', 600);
+}
+
+function updateHUD() {
+  document.getElementById('hud-score-val').textContent = state.score.toLocaleString();
+  document.getElementById('hud-combo-val').textContent = '×' + state.combo;
+  document.getElementById('hud-level-val').textContent = state.level;
+  document.getElementById('hud-perfect-val').textContent = state.perfects;
+  const hf = document.getElementById('health-fill');
+  hf.style.width = state.health + '%';
+  if (state.health > 60) hf.style.background = 'linear-gradient(90deg,#1de9b6,#00e5ff)';
+  else if (state.health > 30) hf.style.background = 'linear-gradient(90deg,#ffab40,#ff6d00)';
+  else hf.style.background = 'linear-gradient(90deg,#ff5252,#c62828)';
+}
+
+function checkLevelUp() {
+  if (state.scoreAccum >= state.nextLevelScore) {
+    state.scoreAccum = 0; state.level++;
+    state.nextLevelScore = 200 + state.level * 150;
+    state.beatPattern = generatePattern(state.level); state.patternIdx = 0;
+    state.spawnInterval = Math.max(32, 100 - state.level * 8);
+    if (state.level >= 3) playThunder();
+    playLevelUp(); showLevelUpBanner(); updateHUD();
+  }
+}
+
+function showLevelUpBanner() {
+  const b = document.getElementById('levelup-banner');
+  document.getElementById('lu-sub-text').textContent =
+    `Level ${state.level} — ${state.level < 3 ? 'Rain intensifying' : state.level < 5 ? 'Storm approaching!' : '⚡ Lightning speed!'}`;
+  b.style.opacity = '1';
+  setTimeout(() => b.style.opacity = '0', 2000);
+}
+
+function updateSoundName() {
+  const idx = Math.min(state.level - 1, SOUND_NAMES.length - 1);
+  document.getElementById('sound-name').textContent = SOUND_NAMES[idx];
+}
+
+// Background rain
+let bgRain = Array.from({length: 120}, () => ({
+  x: Math.random(), y: Math.random(),
+  speed: 0.003 + Math.random() * 0.007,
+  alpha: 0.05 + Math.random() * 0.2,
+  len: 8 + Math.random() * 20,
+}));
+
+function drawBG() {
+  const W = bgCanvas.width, H = bgCanvas.height;
+  bgCtx.clearRect(0, 0, W, H);
+  const d = state.droughtFactor;
+  const grd = bgCtx.createLinearGradient(0,0,0,H);
+  grd.addColorStop(0, `rgb(${Math.floor(5+(1-d)*15)},${Math.floor(10+d*5)},${Math.floor(20+d*5)})`);
+  grd.addColorStop(1, `rgb(${Math.floor(10+(1-d)*20)},${Math.floor(22+d*10)},${Math.floor(40+d*15)})`);
+  bgCtx.fillStyle = grd; bgCtx.fillRect(0, 0, W, H);
+  for (const r of bgRain) {
+    r.y += r.speed * (0.5 + state.level * 0.12);
+    if (r.y > 1) { r.y = -0.05; r.x = Math.random(); }
+    bgCtx.save(); bgCtx.globalAlpha = r.alpha * (0.3 + d * 0.7);
+    bgCtx.strokeStyle = '#4fc3f7'; bgCtx.lineWidth = 1;
+    bgCtx.beginPath(); bgCtx.moveTo(r.x * W, r.y * H); bgCtx.lineTo(r.x * W - 1, r.y * H + r.len);
+    bgCtx.stroke(); bgCtx.restore();
+  }
+}
+
+let treePhase = 0;
+function drawWorld() {
+  const W = worldCanvas.width, H = worldCanvas.height;
+  if (!W || !H) return;
+  wCtx.clearRect(0,0,W,H);
+  wCtx.fillStyle = 'rgba(5,15,35,0.85)'; wCtx.fillRect(0,0,W,H);
+  const rl = state.riverLevel, fd = state.forestDensity;
+  treePhase += 0.01;
+  const riverH = Math.max(4, Math.floor(H * 0.4 * rl));
+  const gy = wCtx.createLinearGradient(0, H-riverH, 0, H);
+  gy.addColorStop(0, `rgba(79,195,247,${0.3+rl*0.5})`);
+  gy.addColorStop(1, `rgba(2,136,209,${0.5+rl*0.3})`);
+  wCtx.fillStyle = gy; wCtx.fillRect(0, H-riverH, W, riverH);
+  wCtx.save(); wCtx.globalAlpha = 0.35;
+  for (let i=0;i<8;i++) {
+    const sx = ((i*113+treePhase*35)%(W+30))-15;
+    wCtx.fillStyle='#b3e5fc'; wCtx.fillRect(sx,H-riverH+3,15+Math.sin(treePhase*2+i)*8,2);
+  }
+  wCtx.restore();
+  const treeCount = Math.max(6, Math.floor(8+fd*14));
+  const groundY = H-riverH;
+  for (let i=0;i<treeCount;i++) {
+    const tx=(i+0.5)*(W/treeCount);
+    const th=Math.max(12,14+fd*32+Math.sin(treePhase+i*1.3)*4);
+    const greenVal=Math.floor(60+fd*140);
+    wCtx.fillStyle='#5d4037';
+    const trunkW=Math.max(3,th*0.12);
+    wCtx.fillRect(tx-trunkW/2,groundY-th*0.45,trunkW,th*0.45);
+    const cr=Math.max(8,th*0.42);
+    wCtx.fillStyle=`rgb(0,${greenVal},30)`;
+    wCtx.shadowColor=`rgba(0,${greenVal},30,0.4)`; wCtx.shadowBlur=6;
+    wCtx.beginPath(); wCtx.arc(tx,groundY-th*0.45,cr,0,Math.PI*2); wCtx.fill();
+    wCtx.shadowBlur=0;
+    wCtx.save(); wCtx.globalAlpha=fd*0.35; wCtx.fillStyle='rgba(100,240,100,1)';
+    wCtx.beginPath(); wCtx.arc(tx-cr*0.2,groundY-th*0.52,cr*0.3,0,Math.PI*2); wCtx.fill();
+    wCtx.restore();
+  }
+  if (state.droughtFactor < 0.4) {
+    wCtx.fillStyle=`rgba(140,70,0,${(0.4-state.droughtFactor)*0.6})`; wCtx.fillRect(0,0,W,H);
+  }
+  wCtx.shadowBlur=0; wCtx.fillStyle='rgba(100,210,255,0.7)';
+  wCtx.font='bold 11px Oxanium, monospace';
+  wCtx.fillText(`River ${Math.round(rl*100)}%`,10,H-6);
+  wCtx.textAlign='right'; wCtx.fillText(`Forest ${Math.round(fd*100)}%`,W-10,H-6);
+  wCtx.textAlign='left';
+}
+
+// ── Lane canvas with custom shapes ─────────────
+let globalFrame = 0;
+
+function drawLanes() {
+  const W = laneCanvas.width, H = laneCanvas.height;
+  if (!W || !H) return;
+  lCtx.clearRect(0, 0, W, H);
+  globalFrame++;
+  const laneW = W / NUM_LANES;
+
+  // Lane backgrounds
+  for (let i = 0; i < NUM_LANES; i++) {
+    lCtx.fillStyle = i % 2 === 0 ? 'rgba(255,255,255,0.015)' : 'rgba(0,0,0,0.01)';
+    lCtx.fillRect(i * laneW, 0, laneW, H);
+  }
+  // Lane dividers
+  for (let i = 1; i < NUM_LANES; i++) {
+    lCtx.strokeStyle = 'rgba(100,180,255,0.1)'; lCtx.lineWidth = 1;
+    lCtx.beginPath(); lCtx.moveTo(i * laneW, 0); lCtx.lineTo(i * laneW, H); lCtx.stroke();
+  }
+
+  // Hit zone line
+  const hitY = H * HIT_ZONE_Y;
+  const hg = lCtx.createLinearGradient(0, hitY, W, hitY);
+  hg.addColorStop(0,   'rgba(79,195,247,0)');
+  hg.addColorStop(0.15,'rgba(79,195,247,0.6)');
+  hg.addColorStop(0.5, 'rgba(0,229,255,1)');
+  hg.addColorStop(0.85,'rgba(79,195,247,0.6)');
+  hg.addColorStop(1,   'rgba(79,195,247,0)');
+  lCtx.strokeStyle = hg; lCtx.lineWidth = 2.5;
+  lCtx.beginPath(); lCtx.moveTo(0, hitY); lCtx.lineTo(W, hitY); lCtx.stroke();
+
+  lCtx.save(); lCtx.globalAlpha = 0.07; lCtx.fillStyle = '#00e5ff';
+  lCtx.fillRect(0, hitY - 14, W, 28); lCtx.restore();
+
+  // Draw notes with custom shapes
+  for (const n of state.notes) {
+    if (n.hit || n.missed) continue;
+    const x = (n.lane + 0.5) * laneW;
+    const y = n.y * H;
+    const col = LANE_COLORS[n.lane];
+    const glow = LANE_GLOW[n.lane];
+    const r = Math.min(laneW * 0.33, 28);
+
+    // Wobble for animation
+    n.wobble = (n.wobble || 0) + 0.08;
+
+    // Draw trail
+    drawTrail(lCtx, x, y, r, col, n.lane);
+
+    // Draw shape based on lane
+    if (n.lane === 0) {
+      drawDroplet(lCtx, x, y, r, col, glow);
+    } else if (n.lane === 1) {
+      drawCloud(lCtx, x, y, r, col, glow);
+    } else if (n.lane === 2) {
+      drawLightning(lCtx, x, y, r, col, glow);
+    } else {
+      drawFrog(lCtx, x, y, r, col, glow, 1, n.wobble);
+    }
+  }
+
+  // Particles
+  for (let i = state.particles.length - 1; i >= 0; i--) {
+    const p = state.particles[i];
+    p.x += p.vx; p.y += p.vy; p.vy += 0.14; p.life -= 0.033;
+    if (p.life <= 0) { state.particles.splice(i,1); continue; }
+    lCtx.save(); lCtx.globalAlpha = p.life;
+    lCtx.fillStyle = p.col; lCtx.shadowColor = p.col; lCtx.shadowBlur = 8;
+    lCtx.beginPath(); lCtx.arc(p.x, p.y, p.size * p.life, 0, Math.PI*2);
+    lCtx.fill(); lCtx.restore();
+  }
+}
+
+// ── Main loop ─────────────────────────────────
+let lastTime = 0;
+function loop(ts) {
+  if (!state.running) return;
+  lastTime = ts; state.frameCount++;
+  state.spawnTimer++;
+  if (state.spawnTimer >= state.spawnInterval) { state.spawnTimer = 0; spawnNote(); }
+  for (const n of state.notes) {
+    if (!n.hit && !n.missed) {
+      n.y += n.speed;
+      if (n.y > HIT_ZONE_Y + HIT_WINDOW * 1.5) missNote(n);
+    }
+  }
+  state.notes = state.notes.filter(n => n.y < 1.4);
+  state.thunderTimer++;
+  if (state.level >= 3 && state.thunderTimer > 300 && Math.random() < 0.002) {
+    playThunder(); state.thunderTimer = 0;
+  }
+  state.riverLevel    = Math.max(0.05, state.riverLevel - 0.0002);
+  state.forestDensity = Math.max(0.05, state.forestDensity - 0.0001);
+  state.droughtFactor = Math.max(0,    state.droughtFactor - 0.0003);
+  checkLevelUp(); updateSoundName();
+  drawBG(); drawWorld(); drawLanes();
+  requestAnimationFrame(loop);
+}
+
+// ── Game start/end ────────────────────────────
+function startGame() {
+  if (AC.state === 'suspended') AC.resume();
+  state = {
+    running: true, score: 0, combo: 1, maxCombo: 1,
+    health: 100, level: 1, hits: 0, misses: 0, perfects: 0,
+    notes: [], particles: [],
+    riverLevel: 0.2, forestDensity: 0.2, droughtFactor: 0.6,
+    spawnTimer: 0, spawnInterval: 100,
+    beatPattern: generatePattern(1), patternIdx: 0, frameCount: 0,
+    nextLevelScore: 300, thunderTimer: 0, scoreAccum: 0, ambientOsc: null,
+  };
+  document.getElementById('title-screen').classList.add('hidden');
+  document.getElementById('result-screen').classList.add('hidden');
+  document.getElementById('game-screen').classList.remove('hidden');
+  requestAnimationFrame(() => {
+    resizeCanvases(); updateHUD(); updateSoundName();
+    showCountdown(() => {
+      lastTime = performance.now();
+      requestAnimationFrame(loop);
+      if (state.ambientOsc) { try{state.ambientOsc.stop();}catch(e){} }
+      state.ambientOsc = playAmbience();
+    });
+  });
+}
+
+function showCountdown(cb) {
+  const el = document.getElementById('countdown');
+  const steps = ['3','2','1','GO!'];
+  let i = 0;
+  function next() {
+    if (i >= steps.length) { el.style.opacity = '0'; cb(); return; }
+    el.textContent = steps[i++]; el.style.opacity = '1';
+    el.style.color = i === steps.length ? '#69f0ae' : '#00e5ff';
+    playNote(i === steps.length ? 880 : 440 + i*110, 'sine', 0.3, 0.3);
+    setTimeout(() => { el.style.opacity = '0'; setTimeout(next, 200); }, 700);
+  }
+  next();
+}
+
+function endGame(win) {
+  state.running = false;
+  if (state.ambientOsc) { try{state.ambientOsc.stop();}catch(e){} }
+  const total = state.hits + state.misses;
+  const acc = total > 0 ? Math.round(state.hits / total * 100) : 0;
+  let newBest = false;
+  if (state.score > hs.score) { hs.score = state.score; newBest = true; }
+  if (state.level > hs.level) hs.level = state.level;
+  if (state.maxCombo > hs.combo) hs.combo = state.maxCombo;
+  saveHS(); updateHSDisplay();
+  document.getElementById('game-screen').classList.add('hidden');
+  document.getElementById('result-screen').classList.remove('hidden');
+  const title = state.score > 500 ? '🌿 GREAT!' : state.score > 200 ? '🌧️ NOT BAD!' : '🌵 DROUGHT!';
+  document.getElementById('result-title').textContent = title;
+  document.getElementById('result-sub').textContent = win ? `Level ${state.level} — Keep growing!` : 'The land dried up...';
+  document.getElementById('res-score').innerHTML = state.score.toLocaleString() + (newBest ? ' <span class="new-best">★ BEST!</span>' : '');
+  document.getElementById('res-level').textContent = state.level;
+  document.getElementById('res-combo').textContent = '×' + state.maxCombo;
+  document.getElementById('res-acc').textContent = acc + '%';
+  document.getElementById('eco-fact').textContent = ECO_FACTS[Math.floor(Math.random() * ECO_FACTS.length)];
+}
+
+function updateHSDisplay() {
+  document.getElementById('hs-score').textContent = hs.score.toLocaleString();
+  document.getElementById('hs-level').textContent = hs.level;
+  document.getElementById('hs-combo').textContent = '×' + hs.combo;
+}
+updateHSDisplay();
+
+let tipIdx = 0;
+function rotateTip() {
+  document.getElementById('eco-tip-text').textContent = ECO_TIPS[tipIdx % ECO_TIPS.length]; tipIdx++;
+}
+rotateTip(); setInterval(rotateTip, 5000);
+
+// Controls
+document.addEventListener('keydown', e => {
+  if (!state.running) return;
+  const map = {'a':0,'s':1,'d':2,'f':3,'arrowleft':0,'arrowdown':1,'arrowright':2,'arrowup':3};
+  const k = e.key.toLowerCase();
+  if (k === ' ') { [0,1,2,3].forEach(tapLane); e.preventDefault(); }
+  else if (map[k] !== undefined) { tapLane(map[k]); e.preventDefault(); }
+});
+for (let i = 0; i < 4; i++) {
+  document.getElementById(`btn${i}`).addEventListener('pointerdown', e => { e.preventDefault(); tapLane(i); });
+}
+document.getElementById('start-btn').addEventListener('click', startGame);
+document.getElementById('retry-btn').addEventListener('click', startGame);
+document.getElementById('menu-btn').addEventListener('click', () => {
+  state.running = false;
+  if (state.ambientOsc) { try{state.ambientOsc.stop();}catch(e){} }
+  document.getElementById('result-screen').classList.add('hidden');
+  document.getElementById('title-screen').classList.remove('hidden');
+  updateHSDisplay();
+  requestAnimationFrame(function bgloop() {
+    if (document.getElementById('title-screen').classList.contains('hidden')) return;
+    drawBG(); requestAnimationFrame(bgloop);
+  });
+});
+
+resizeCanvases();
+(function titleBGLoop() {
+  if (document.getElementById('title-screen').classList.contains('hidden')) return;
+  drawBG(); requestAnimationFrame(titleBGLoop);
+})();
+</script>
+</body>
+</html>

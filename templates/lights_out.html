@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Lights Out Detective</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg0: #03070f;
+  --bg1: #070e1c;
+  --bg2: #0b1528;
+  --amber: #ffb300;
+  --amber2: #ff8c00;
+  --amber-glow: rgba(255,179,0,0.4);
+  --amber-soft: rgba(255,179,0,0.1);
+  --teal: #00e5cc;
+  --teal-soft: rgba(0,229,204,0.1);
+  --red: #ff3860;
+  --green: #00e676;
+  --panel: rgba(255,255,255,0.04);
+  --border: rgba(255,255,255,0.09);
+  --text: #ddeeff;
+  --text-dim: rgba(221,238,255,0.45);
+  --cell-size: 72px;
+}
+
+*,*::before,*::after { box-sizing: border-box; margin:0; padding:0; }
+
+html, body {
+  min-height: 100vh;
+  height: 100%;
+}
+
+body {
+  background: var(--bg0);
+  color: var(--text);
+  font-family: 'Rajdhani', sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ── SCANLINE ── */
+body::before {
+  content:'';
+  position:fixed; inset:0;
+  background: repeating-linear-gradient(
+    0deg, transparent, transparent 3px,
+    rgba(0,0,0,0.06) 3px, rgba(0,0,0,0.06) 4px
+  );
+  pointer-events:none; z-index:999;
+}
+
+/* ── AMBIENT ── */
+body::after {
+  content:'';
+  position:fixed; inset:0;
+  background:
+    radial-gradient(ellipse 60% 50% at 20% 20%, rgba(0,229,204,0.06) 0%, transparent 65%),
+    radial-gradient(ellipse 50% 55% at 80% 85%, rgba(255,179,0,0.06) 0%, transparent 60%);
+  pointer-events:none; z-index:0;
+}
+
+/* ── WRAPPER ── */
+.wrapper {
+  position: relative; z-index: 1;
+  width: 100%; max-width: 500px;
+  display: flex; flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+/* ── HEADER ── */
+.header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.back-btn {
+  width: 40px; height: 40px;
+  border-radius: 11px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--teal);
+  font-size: 26px;
+  display: flex; align-items: center; justify-content: center;
+  text-decoration: none; cursor: pointer; flex-shrink: 0;
+  transition: background .2s, border-color .2s, transform .15s;
+  line-height: 1;
+}
+.back-btn:hover { background: var(--teal-soft); border-color: var(--teal); transform: translateX(-2px); }
+.back-btn:active { transform: translateX(-4px) scale(.92); }
+
+.title-block { flex: 1; }
+.title-block h1 {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(15px, 4.5vw, 21px);
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  color: var(--teal);
+  text-shadow: 0 0 20px rgba(0,229,204,.5);
+  line-height: 1.1;
+}
+.title-block p {
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+/* ── STATS ROW ── */
+.stats-row {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.stat-chip {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 9px 8px;
+  text-align: center;
+}
+.stat-chip .lbl {
+  display: block;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text-dim);
+  margin-bottom: 3px;
+}
+.stat-chip .val {
+  display: block;
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(14px, 3.5vw, 18px);
+  font-weight: 700;
+  color: var(--amber);
+}
+.stat-chip .val.teal { color: var(--teal); }
+.stat-chip .val.green { color: var(--green); }
+
+/* ── DIFFICULTY SELECTOR ── */
+.controls {
+  width: 100%;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.diff-btn {
+  flex: 1;
+  padding: 10px 6px;
+  border-radius: 11px;
+  border: 1.5px solid var(--border);
+  background: var(--panel);
+  color: var(--text-dim);
+  font-family: 'Orbitron', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .2s, border-color .2s, color .2s, box-shadow .2s, transform .12s;
+  text-align: center;
+  letter-spacing: 0.5px;
+}
+.diff-btn:hover { background: var(--teal-soft); border-color: rgba(0,229,204,.4); color: var(--teal); }
+.diff-btn:active { transform: scale(.95); }
+.diff-btn.active {
+  background: var(--teal-soft);
+  border-color: var(--teal);
+  color: var(--teal);
+  box-shadow: 0 0 14px rgba(0,229,204,.25);
+}
+
+.start-btn {
+  padding: 10px 18px;
+  border-radius: 11px;
+  border: none;
+  background: linear-gradient(135deg, var(--teal), #00b8a0);
+  color: #030810;
+  font-family: 'Orbitron', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 1px;
+  white-space: nowrap;
+  transition: filter .2s, transform .12s, box-shadow .2s;
+  box-shadow: 0 0 16px rgba(0,229,204,.3);
+}
+.start-btn:hover { filter: brightness(1.1); transform: translateY(-2px); box-shadow: 0 0 24px rgba(0,229,204,.5); }
+.start-btn:active { transform: scale(.95); }
+
+/* ── CHARACTER STRIP ── */
+.char-strip {
+  width: 100%;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+  overflow: hidden;
+}
+.char-strip::before {
+  content:'';
+  position:absolute; top:0; left:0; right:0; height:2px;
+  background: linear-gradient(90deg, transparent, var(--teal), transparent);
+  opacity:.6;
+}
+.char-avatar {
+  font-size: 36px;
+  flex-shrink: 0;
+  animation: floatY 3s ease-in-out infinite;
+}
+@keyframes floatY {
+  0%,100% { transform: translateY(0); }
+  50%      { transform: translateY(-4px); }
+}
+.char-info { flex: 1; min-width: 0; }
+.char-name {
+  font-family: 'Orbitron', monospace;
+  font-size: 11px;
+  color: var(--teal);
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+.char-speech {
+  font-size: 12px;
+  color: var(--text-dim);
+  line-height: 1.5;
+  font-style: italic;
+}
+
+/* ── GOAL BADGE ── */
+.goal-badge {
+  width: 100%;
+  background: var(--amber-soft);
+  border: 1px solid rgba(255,179,0,.22);
+  border-radius: 11px;
+  padding: 9px 14px;
+  font-size: 12px;
+  color: rgba(255,179,0,.9);
+  line-height: 1.5;
+  text-align: center;
+}
+.goal-badge strong { color: var(--amber); letter-spacing: 1px; }
+
+/* ── BOARD CARD ── */
+.board-card {
+  width: 100%;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  min-height: 260px;
+}
+.board-card::after {
+  content:'';
+  position:absolute; inset:0;
+  background: radial-gradient(ellipse 70% 60% at 50% 50%, rgba(255,179,0,.03) 0%, transparent 70%);
+  pointer-events:none;
+}
+.board {
+  display: grid;
+  gap: 10px;
+  z-index: 1;
+}
+
+/* ── CELLS ── */
+.cell {
+  width: var(--cell-size);
+  height: var(--cell-size);
+  border-radius: 14px;
+  cursor: pointer;
+  position: relative;
+  border: none;
+  outline: none;
+  transition: transform .12s;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.cell:active { transform: scale(.88); }
+
+.cell.on {
+  background: radial-gradient(ellipse at 38% 32%, #ffe566, var(--amber) 55%, #cc7700);
+  box-shadow:
+    0 0 10px var(--amber-glow),
+    0 0 26px rgba(255,179,0,.3),
+    inset 0 1px 0 rgba(255,255,200,.45);
+}
+.cell.on::after {
+  content:'';
+  position:absolute; inset:0; border-radius:inherit;
+  background: radial-gradient(ellipse at 32% 28%, rgba(255,255,210,.55), transparent 52%);
+  pointer-events:none;
+}
+
+.cell.off {
+  background: radial-gradient(ellipse at 50% 50%, #0e1e34, #06101c);
+  box-shadow: inset 0 0 14px rgba(0,0,0,.7), inset 0 1px 2px rgba(0,0,0,.5);
+  border: 1px solid rgba(255,255,255,.07);
+}
+.cell.off::after {
+  content:'';
+  position:absolute; inset:0; border-radius:inherit;
+  background: radial-gradient(circle at 34% 30%, rgba(255,255,255,.04), transparent 48%);
+  pointer-events:none;
+}
+
+/* Last remaining lit cell pulses */
+.cell.last-one.on {
+  animation: lastPulse .65s ease-in-out infinite alternate;
+}
+@keyframes lastPulse {
+  from { box-shadow: 0 0 10px var(--amber-glow), 0 0 26px rgba(255,179,0,.3); }
+  to   { box-shadow: 0 0 24px rgba(255,179,0,.9), 0 0 55px rgba(255,179,0,.5), 0 0 90px rgba(255,179,0,.2); }
+}
+
+.cell.flash { animation: cellFlash .22s ease; }
+@keyframes cellFlash {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(.85); }
+  100% { transform: scale(1); }
+}
+
+.cell.hint-ring {
+  animation: hintRing .9s ease 3;
+  z-index: 2;
+}
+@keyframes hintRing {
+  0%,100% { box-shadow: 0 0 0 3px var(--teal), 0 0 12px rgba(0,229,204,.4); }
+  50%      { box-shadow: 0 0 0 5px var(--teal), 0 0 30px rgba(0,229,204,.7); }
+}
+
+/* ── ACTION BUTTONS ── */
+.action-row {
+  width: 100%;
+  display: flex;
+  gap: 8px;
+}
+.act-btn {
+  flex: 1;
+  padding: 11px 10px;
+  border-radius: 11px;
+  border: 1.5px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background .2s, border-color .2s, transform .12s, box-shadow .2s;
+}
+.act-btn:hover { transform: translateY(-2px); }
+.act-btn:active { transform: scale(.95); }
+.act-btn.red  { border-color: rgba(255,56,96,.3); color: var(--red); }
+.act-btn.red:hover  { background: rgba(255,56,96,.1); border-color: var(--red); box-shadow: 0 0 12px rgba(255,56,96,.2); }
+.act-btn.gold { border-color: rgba(255,179,0,.3); color: var(--amber); }
+.act-btn.gold:hover { background: var(--amber-soft); border-color: var(--amber); }
+
+/* ── OVERLAY / POPUP ── */
+.overlay {
+  position: fixed; inset: 0;
+  background: rgba(3,7,15,.88);
+  backdrop-filter: blur(8px);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 500;
+  padding: 20px;
+}
+.overlay.show { display: flex; }
+
+.pop-card {
+  background: linear-gradient(145deg, #0b1528, #070e1c);
+  border: 1.5px solid rgba(0,229,204,.35);
+  border-radius: 22px;
+  padding: 30px 26px;
+  max-width: 340px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 0 60px rgba(0,229,204,.15), 0 20px 60px rgba(0,0,0,.7);
+  animation: popIn .4s cubic-bezier(.175,.885,.32,1.275);
+}
+@keyframes popIn {
+  from { transform: scale(.5) translateY(28px); opacity: 0; }
+  to   { transform: scale(1)  translateY(0);    opacity: 1; }
+}
+
+.pop-emoji {
+  font-size: 58px;
+  display: block;
+  margin-bottom: 10px;
+  animation: emojiPop .5s .1s both cubic-bezier(.175,.885,.32,1.275);
+}
+@keyframes emojiPop {
+  from { transform: scale(0) rotate(-30deg); opacity: 0; }
+  to   { transform: scale(1) rotate(0);      opacity: 1; }
+}
+
+.pop-card h2 {
+  font-family: 'Orbitron', monospace;
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--teal);
+  letter-spacing: 1px;
+  margin-bottom: 16px;
+}
+
+.pop-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+.pop-stat {
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 10px;
+  padding: 10px 6px;
+}
+.pop-stat .sl { font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-dim); display:block; margin-bottom:4px; }
+.pop-stat .sv { font-family: 'Orbitron', monospace; font-size: 17px; color: var(--amber); }
+
+.pop-msg {
+  font-size: 13px;
+  color: var(--text-dim);
+  line-height: 1.6;
+  margin-bottom: 18px;
+  font-style: italic;
+}
+
+.pop-btn {
+  width: 100%;
+  padding: 13px;
+  border: none;
+  border-radius: 13px;
+  background: linear-gradient(135deg, var(--teal), #00b8a0);
+  color: #030810;
+  font-family: 'Orbitron', monospace;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 1px;
+  box-shadow: 0 0 22px rgba(0,229,204,.4);
+  transition: filter .2s, transform .15s;
+}
+.pop-btn:hover { filter: brightness(1.1); transform: translateY(-2px); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 480px) {
+  .board-card { padding: 14px; min-height: 220px; }
+  .board { gap: 8px; }
+  .cell { border-radius: 11px; }
+}
+@media (max-width: 380px) {
+  .board { gap: 7px; }
+}
+</style>
+</head>
+<body>
+
+<div class="wrapper">
+
+  <!-- HEADER -->
+  <div class="header">
+    <a href="map.html" class="back-btn" title="Back">&#8249;</a>
+    <div class="title-block">
+      <h1>🕵️ LIGHTS OUT</h1>
+      <p>Detective · Case Files</p>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-chip">
+      <span class="lbl">⏱ Time</span>
+      <span class="val teal" id="statTime">0s</span>
+    </div>
+    <div class="stat-chip">
+      <span class="lbl">🎯 Moves</span>
+      <span class="val" id="statMoves">0</span>
+    </div>
+    <div class="stat-chip">
+      <span class="lbl">💡 Lit</span>
+      <span class="val green" id="statLights">0</span>
+    </div>
+  </div>
+
+  <!-- DIFFICULTY + START -->
+  <div class="controls">
+    <button class="diff-btn active" id="d3" onclick="setDiff(3)">3×3</button>
+    <button class="diff-btn"        id="d4" onclick="setDiff(4)">4×4</button>
+    <button class="diff-btn"        id="d5" onclick="setDiff(5)">5×5</button>
+    <button class="start-btn" onclick="startGame()">▶ START</button>
+  </div>
+
+  <!-- CHARACTER STRIP -->
+  <div class="char-strip">
+    <span class="char-avatar" id="charFace">👩‍🏫</span>
+    <div class="char-info">
+      <div class="char-name" id="charName">Principal Mira</div>
+      <div class="char-speech" id="charSpeech">"Reduce the grid to just ONE glowing bulb to seal the case."</div>
+    </div>
+  </div>
+
+  <!-- GOAL -->
+  <div class="goal-badge">
+    💡 Click any cell to toggle it <strong>&amp;</strong> its neighbours &nbsp;·&nbsp; Leave exactly <strong>1 light ON</strong> to win!
+  </div>
+
+  <!-- BOARD -->
+  <div class="board-card">
+    <div class="board" id="board"></div>
+  </div>
+
+  <!-- ACTIONS -->
+  <div class="action-row">
+    <button class="act-btn red"  onclick="restartGame()">🔄 Restart</button>
+    <button class="act-btn gold" onclick="doHint()">💡 Hint</button>
+  </div>
+
+</div>
+
+<!-- VICTORY POPUP -->
+<div class="overlay" id="overlay">
+  <div class="pop-card">
+    <span class="pop-emoji" id="popEmoji">🏆</span>
+    <h2 id="popTitle">CASE CLOSED!</h2>
+    <div class="pop-grid">
+      <div class="pop-stat"><span class="sl">Moves</span><span class="sv" id="popMoves">—</span></div>
+      <div class="pop-stat"><span class="sl">Time</span> <span class="sv" id="popTime">—</span></div>
+      <div class="pop-stat"><span class="sl">Grid</span> <span class="sv" id="popGrid">—</span></div>
+      <div class="pop-stat"><span class="sl">Lit Left</span><span class="sv" id="popLeft">—</span></div>
+    </div>
+    <p class="pop-msg" id="popMsg"></p>
+    <button class="pop-btn" onclick="closePopup()">Play Again 🔄</button>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════
+   AUDIO ENGINE  (Web Audio API)
+══════════════════════════════════════ */
+let AC;
+function ac() { if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)(); return AC; }
+
+function tone(freq, type, dur, vol, rampTo, delay) {
+  const c = ac();
+  const t = c.currentTime + (delay || 0);
+  const osc = c.createOscillator();
+  const g   = c.createGain();
+  osc.connect(g); g.connect(c.destination);
+  osc.type = type || 'sine';
+  osc.frequency.setValueAtTime(freq, t);
+  if (rampTo) osc.frequency.exponentialRampToValueAtTime(rampTo, t + dur * 0.75);
+  g.gain.setValueAtTime(vol || 0.08, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  osc.start(t); osc.stop(t + dur + 0.01);
+}
+
+// Cell turned ON
+function sndOn() { tone(520, 'triangle', 0.13, 0.1, 740); }
+
+// Cell turned OFF
+function sndOff() { tone(310, 'sine', 0.12, 0.09, 200); }
+
+// Mixed (equal on/off)
+function sndMix() {
+  tone(420, 'sine', 0.08, 0.06);
+  tone(560, 'sine', 0.08, 0.04, null, 0.04);
+}
+
+// Only 1 light left — dramatic pulse
+function sndLastLight() {
+  tone(850,  'sine', 0.18, 0.12, null, 0);
+  tone(1050, 'sine', 0.18, 0.11, null, 0.14);
+  tone(1300, 'sine', 0.22, 0.13, null, 0.28);
+}
+
+// Hint chime
+function sndHint() {
+  tone(880,  'sine', 0.1, 0.07, 1100);
+  tone(1100, 'sine', 0.1, 0.05, null, 0.13);
+}
+
+// Restart woosh
+function sndRestart() {
+  [440, 330, 220].forEach((f, i) => tone(f, 'triangle', 0.12, 0.07, null, i * 0.07));
+}
+
+// Victory fanfare
+function sndWin() {
+  const melody = [523, 659, 784, 1047, 1319, 1047, 1319, 1568];
+  melody.forEach((f, i) => {
+    tone(f, 'sine',     0.26, 0.11, null, i * 0.1);
+    if (i % 2 === 0)
+      tone(f * 1.5, 'triangle', 0.15, 0.04, null, i * 0.1 + 0.02);
+  });
+}
+
+/* ══════════════════════════════════════
+   CHARACTER DATA
+══════════════════════════════════════ */
+const CHARS = [
+  { face:'👩‍🏫', name:'Principal Mira',
+    speech:'"Classrooms are burning power after hours. Get that grid to a single bulb!"',
+    win:'"Brilliant! One light stands — the truth is exposed. Case closed."' },
+  { face:'🤖',   name:'Volt-7',
+    speech:'"Linked circuits: one tap ripples to all neighbours. Think before you click."',
+    win:'"Impressive logic. Volt-7 acknowledges your superior processing power."' },
+  { face:'🕶️',   name:'Shadow AI',
+    speech:'"5×5... You think one lonely light is easy to find? My grid will break you."',
+    win:'"…Impossible. Shadow AI is rebooting. You win this round, detective."' },
+];
+
+/* ══════════════════════════════════════
+   STATE
+══════════════════════════════════════ */
+let size    = 3;
+let moves   = 0;
+let elapsed = 0;
+let ticker  = null;
+let locked  = false;
+let charIdx = 0;
+
+const $    = id => document.getElementById(id);
+const all  = ()  => [...document.querySelectorAll('.cell')];
+const litN = ()  => all().filter(c => c.classList.contains('on')).length;
+
+/* ══════════════════════════════════════
+   DIFFICULTY
+══════════════════════════════════════ */
+function setDiff(n) {
+  size = n;
+  charIdx = n - 3; // 3→0, 4→1, 5→2
+  [3, 4, 5].forEach(x => $('d' + x).classList.toggle('active', x === n));
+  applyChar(false);
+}
+
+function applyChar(winMode) {
+  const ch = CHARS[charIdx];
+  $('charFace').textContent   = ch.face;
+  $('charName').textContent   = ch.name;
+  $('charSpeech').textContent = winMode ? ch.win : ch.speech;
+}
+
+/* ══════════════════════════════════════
+   BOARD
+══════════════════════════════════════ */
+function cellSize() {
+  const vw = window.innerWidth;
+  if (size === 5) return Math.min(60, Math.floor((vw - 80) / 5));
+  if (size === 4) return Math.min(70, Math.floor((vw - 80) / 4));
+  return Math.min(76, Math.floor((vw - 80) / 3));
+}
+
+function buildBoard() {
+  const board = $('board');
+  board.innerHTML = '';
+
+  const cs = cellSize();
+  document.documentElement.style.setProperty('--cell-size', cs + 'px');
+  board.style.gridTemplateColumns = `repeat(${size}, ${cs}px)`;
+
+  for (let i = 0; i < size * size; i++) {
+    const el = document.createElement('div');
+    el.className = 'cell off';
+    el.addEventListener('click', () => tapCell(i));
+    board.appendChild(el);
+  }
+}
+
+/* ── silent toggle ── */
+function toggleIdx(i) {
+  const c = all();
+  if (i < 0 || i >= c.length) return;
+  const on = c[i].classList.contains('on');
+  c[i].classList.toggle('on',  !on);
+  c[i].classList.toggle('off',  on);
+}
+
+/* ── silent spread ── */
+function spreadSilent(i) {
+  const x = i % size, y = Math.floor(i / size);
+  toggleIdx(i);
+  if (x > 0)       toggleIdx(i - 1);
+  if (x < size-1)  toggleIdx(i + 1);
+  if (y > 0)       toggleIdx(i - size);
+  if (y < size-1)  toggleIdx(i + size);
+}
+
+/* ── generate puzzle ── */
+function shuffle(a) {
+  for (let i = a.length-1; i>0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function generatePuzzle() {
+  all().forEach(c => { c.className = 'cell off'; });
+  let tries = 0;
+  do {
+    all().forEach(c => { c.className = 'cell off'; });
+    const taps = 6 + size * 2;
+    shuffle([...Array(size * size).keys()]).slice(0, taps).forEach(spreadSilent);
+    tries++;
+  } while ((litN() < 3 || litN() >= size * size - 1) && tries < 60);
+}
+
+/* ══════════════════════════════════════
+   GAME CONTROL
+══════════════════════════════════════ */
+function startGame() {
+  clearInterval(ticker);
+  locked  = false;
+  moves   = 0;
+  elapsed = 0;
+
+  $('overlay').classList.remove('show');
+  $('statTime').textContent   = '0s';
+  $('statMoves').textContent  = '0';
+
+  applyChar(false);
+  buildBoard();
+  generatePuzzle();
+  updateLightStat();
+
+  ticker = setInterval(() => {
+    elapsed++;
+    $('statTime').textContent = elapsed + 's';
+  }, 1000);
+}
+
+function restartGame() {
+  sndRestart();
+  startGame();
+}
+
+function updateLightStat() {
+  const n = litN();
+  $('statLights').textContent = n;
+  $('statLights').style.color = n === 1 ? 'var(--amber)' : 'var(--green)';
+
+  // Pulse last lit cell
+  all().forEach(c => c.classList.remove('last-one'));
+  if (n === 1) {
+    const last = all().find(c => c.classList.contains('on'));
+    if (last) last.classList.add('last-one');
+  }
+}
+
+/* ══════════════════════════════════════
+   CELL CLICK
+══════════════════════════════════════ */
+function tapCell(i) {
+  if (locked) return;
+
+  const x = i % size, y = Math.floor(i / size);
+  const affected = [i];
+  if (x > 0)       affected.push(i - 1);
+  if (x < size-1)  affected.push(i + 1);
+  if (y > 0)       affected.push(i - size);
+  if (y < size-1)  affected.push(i + size);
+
+  const c = all();
+  let willOn = 0, willOff = 0;
+  affected.forEach(idx => {
+    if (c[idx].classList.contains('on')) willOff++;
+    else willOn++;
+  });
+
+  // Apply toggles + flash
+  affected.forEach(idx => {
+    const el = c[idx];
+    const wasOn = el.classList.contains('on');
+    el.classList.toggle('on',  !wasOn);
+    el.classList.toggle('off',  wasOn);
+    el.classList.remove('last-one');
+    el.classList.add('flash');
+    setTimeout(() => el.classList.remove('flash'), 240);
+  });
+
+  moves++;
+  $('statMoves').textContent = moves;
+
+  // Sound
+  if      (willOff > willOn) sndOff();
+  else if (willOn > willOff) sndOn();
+  else                        sndMix();
+
+  updateLightStat();
+
+  // ── WIN CONDITION: exactly 1 light left ──
+  if (litN() === 1) {
+    locked = true;
+    sndLastLight();
+    setTimeout(triggerWin, 600);
+  }
+}
+
+/* ══════════════════════════════════════
+   WIN
+══════════════════════════════════════ */
+function triggerWin() {
+  clearInterval(ticker);
+  locked = true;
+
+  $('popEmoji').textContent = '🏆';
+  $('popTitle').textContent = 'CASE CLOSED!';
+  $('popMoves').textContent = moves;
+  $('popTime').textContent  = elapsed + 's';
+  $('popGrid').textContent  = size + '×' + size;
+  $('popLeft').textContent  = '1 💡';
+  $('popMsg').textContent   = CHARS[charIdx].win;
+
+  applyChar(true);
+  sndWin();
+  setTimeout(() => $('overlay').classList.add('show'), 250);
+}
+
+function closePopup() {
+  $('overlay').classList.remove('show');
+  startGame();
+}
+
+/* ══════════════════════════════════════
+   HINT  — highlight cell with max net OFF
+══════════════════════════════════════ */
+function doHint() {
+  if (locked) return;
+  sndHint();
+
+  const c = all();
+  let bestIdx = -1, bestScore = -Infinity;
+
+  c.forEach((_, i) => {
+    const x = i % size, y = Math.floor(i / size);
+    const affected = [i];
+    if (x > 0)       affected.push(i-1);
+    if (x < size-1)  affected.push(i+1);
+    if (y > 0)       affected.push(i-size);
+    if (y < size-1)  affected.push(i+size);
+
+    // net = (#ON that would turn off) − (#OFF that would turn on)
+    let net = 0;
+    affected.forEach(idx => net += c[idx].classList.contains('on') ? 1 : -1);
+    if (net > bestScore) { bestScore = net; bestIdx = i; }
+  });
+
+  if (bestIdx >= 0) {
+    const el = c[bestIdx];
+    el.classList.add('hint-ring');
+    setTimeout(() => el.classList.remove('hint-ring'), 2700);
+    $('charSpeech').textContent = '"Try the glowing cell — it turns off the most lights at once."';
+  }
+}
+
+/* ══════════════════════════════════════
+   INIT
+══════════════════════════════════════ */
+applyChar(false);
+startGame();
+</script>
+</body>
+</html>

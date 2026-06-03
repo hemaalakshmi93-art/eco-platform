@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>Cycle to School 🚴</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
+<style>
+:root{
+  --road:#4a4a5a;
+  --road-dark:#3a3a4a;
+  --hud-bg:rgba(255,255,255,0.18);
+  --hud-border:rgba(255,255,255,0.5);
+  --card-bg:rgba(255,255,255,0.97);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{
+  width:100%;height:100%;overflow:hidden;
+  background:linear-gradient(160deg,#d0f0ff 0%,#a8ddf5 50%,#7ec8e3 100%);
+  display:flex;justify-content:center;align-items:center;
+  font-family:'Nunito',sans-serif;
+}
+.game-wrap{position:relative;width:min(420px,100vw);height:min(760px,100svh);}
+#scene{
+  width:100%;height:100%;position:relative;overflow:hidden;
+  border-radius:clamp(0px,3vw,28px);
+  box-shadow:0 20px 60px rgba(0,0,0,.35),0 0 0 3px rgba(255,255,255,.4);
+  background:linear-gradient(180deg,#74c8f5 0%,#a8ddf5 30%,#c5efc8 48%,#5bb84b 48%,#4da83f 100%);
+}
+.cloud{position:absolute;background:rgba(255,255,255,.8);border-radius:50px;pointer-events:none;filter:blur(1px);}
+.cloud::before,.cloud::after{content:'';position:absolute;background:inherit;border-radius:50%;}
+.cloud::before{width:55%;height:140%;top:-40%;left:15%;}
+.cloud::after{width:45%;height:120%;top:-30%;right:15%;}
+.road-strip{
+  position:absolute;top:0;bottom:0;left:22%;right:22%;
+  background:repeating-linear-gradient(180deg,var(--road) 0 40px,var(--road-dark) 40px 42px);
+  box-shadow:inset 0 0 30px rgba(0,0,0,.2);
+}
+.sidewalk-l,.sidewalk-r{
+  position:absolute;top:0;bottom:0;width:22%;
+  background:repeating-linear-gradient(45deg,#c9c9c9 0 12px,#b5b5b5 12px 24px);
+}
+.sidewalk-l{left:0;border-right:3px solid rgba(255,255,255,.4);}
+.sidewalk-r{right:0;border-left:3px solid rgba(255,255,255,.4);}
+.dash-line{
+  position:absolute;width:6px;height:44px;
+  background:rgba(255,255,255,.55);border-radius:4px;
+  left:50%;transform:translateX(-50%);
+}
+.obj{
+  position:absolute;width:52px;height:52px;
+  display:flex;justify-content:center;align-items:center;
+  font-size:34px;z-index:4;
+  filter:drop-shadow(0 3px 6px rgba(0,0,0,.3));
+}
+.animal{
+  position:absolute;width:62px;height:54px;
+  display:flex;justify-content:center;align-items:center;
+  font-size:42px;z-index:7;
+  filter:drop-shadow(0 4px 10px rgba(0,0,0,.35));
+}
+.warn-arrow{
+  position:absolute;z-index:8;font-size:28px;
+  animation:pulse-warn .3s infinite alternate;
+  pointer-events:none;
+}
+@keyframes pulse-warn{0%{opacity:.4;transform:scale(1);}100%{opacity:1;transform:scale(1.35);}}
+#player{
+  position:absolute;bottom:80px;width:58px;height:58px;
+  display:flex;justify-content:center;align-items:center;
+  font-size:42px;z-index:6;
+  filter:drop-shadow(0 4px 8px rgba(0,0,0,.3));
+  transition:left .1s cubic-bezier(.25,.8,.25,1);
+  animation:pedal .3s infinite alternate;
+}
+@keyframes pedal{0%{transform:translateY(0) rotate(-1.5deg);}100%{transform:translateY(-4px) rotate(1.5deg);}}
+.school-goal{
+  position:absolute;top:10px;left:50%;transform:translateX(-50%);
+  font-size:40px;z-index:3;
+  filter:drop-shadow(0 3px 10px rgba(0,0,0,.25));
+  animation:pulse-goal 2.5s ease-in-out infinite;
+}
+@keyframes pulse-goal{0%,100%{transform:translateX(-50%) scale(1);}50%{transform:translateX(-50%) scale(1.1);}}
+.hud{
+  position:absolute;top:10px;left:58px;right:10px;
+  display:flex;justify-content:space-between;gap:5px;z-index:20;
+}
+.hud-pill{
+  flex:1;background:var(--hud-bg);border:1.5px solid var(--hud-border);
+  backdrop-filter:blur(8px);border-radius:50px;padding:6px 8px;
+  display:flex;align-items:center;justify-content:center;gap:4px;
+  font-weight:900;color:#1a1a2e;box-shadow:0 2px 10px rgba(0,0,0,.1);white-space:nowrap;
+}
+.hud-pill .icon{font-size:15px;}
+.hud-pill .val{font-family:'Fredoka One',sans-serif;font-size:16px;}
+#speedBadge{
+  position:absolute;top:10px;left:10px;z-index:21;
+  border-radius:50px;padding:5px 9px;
+  font-size:11px;font-family:'Fredoka One',sans-serif;color:#fff;
+  box-shadow:0 2px 8px rgba(0,0,0,.2);transition:background .4s;
+  background:rgba(100,180,255,.9);
+}
+.bottom-bar{
+  position:absolute;bottom:10px;left:10px;right:10px;
+  display:flex;align-items:center;gap:8px;z-index:20;
+}
+.progress-track{
+  flex:1;height:11px;background:rgba(0,0,0,.25);
+  border-radius:50px;overflow:hidden;box-shadow:inset 0 2px 4px rgba(0,0,0,.2);
+}
+.progress-fill{
+  height:100%;border-radius:50px;width:0%;
+  background:linear-gradient(90deg,#2ecc71,#27ae60,#f1c40f);
+  transition:width .25s ease;position:relative;overflow:hidden;
+}
+.progress-fill::after{
+  content:'';position:absolute;top:0;left:-40%;
+  width:30%;height:100%;background:rgba(255,255,255,.35);
+  transform:skewX(-20deg);animation:shimmer 1.5s ease-in-out infinite;
+}
+@keyframes shimmer{0%{left:-40%}100%{left:130%}}
+.dist-label{
+  font-family:'Fredoka One',sans-serif;font-size:13px;
+  color:rgba(255,255,255,.9);white-space:nowrap;
+  text-shadow:0 1px 4px rgba(0,0,0,.3);min-width:40px;text-align:right;
+}
+.float-txt{
+  position:absolute;font-size:20px;font-weight:900;
+  font-family:'Fredoka One',sans-serif;
+  pointer-events:none;z-index:25;
+  animation:float-up .9s forwards;text-shadow:0 2px 6px rgba(0,0,0,.2);
+}
+@keyframes float-up{0%{opacity:1;transform:translateY(0) scale(1);}30%{transform:translateY(-15px) scale(1.25);}100%{opacity:0;transform:translateY(-45px) scale(.9);}}
+#warnBanner{
+  position:absolute;top:58px;left:0;right:0;text-align:center;z-index:22;
+  pointer-events:none;font-family:'Fredoka One',sans-serif;font-size:15px;
+  color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.5);
+  background:linear-gradient(90deg,rgba(200,40,40,.0),rgba(200,40,40,.82),rgba(200,40,40,.0));
+  padding:6px 0;opacity:0;transition:opacity .2s;
+}
+.popup{
+  position:absolute;inset:0;background:rgba(15,15,30,.72);
+  backdrop-filter:blur(6px);display:none;
+  justify-content:center;align-items:center;z-index:50;padding:20px;
+}
+.card{
+  background:var(--card-bg);border-radius:28px;width:320px;max-width:90%;
+  padding:28px 24px 22px;text-align:center;
+  box-shadow:0 24px 60px rgba(0,0,0,.35);
+  animation:card-pop .35s cubic-bezier(.175,.885,.32,1.275) forwards;
+  border:3px solid rgba(255,255,255,.8);
+}
+@keyframes card-pop{from{transform:scale(.6) translateY(30px);opacity:0;}to{transform:scale(1);opacity:1;}}
+.result-emoji{font-size:58px;display:block;margin-bottom:8px;animation:bounce-in .6s .2s cubic-bezier(.175,.885,.32,1.275) both;}
+@keyframes bounce-in{from{transform:scale(0);}to{transform:scale(1);}}
+.card h2{font-family:'Fredoka One',sans-serif;font-size:24px;margin-bottom:6px;color:#1a1a2e;}
+.card .sub{font-size:13px;color:#555;margin-bottom:14px;line-height:1.5;}
+.score-big{font-family:'Fredoka One',sans-serif;font-size:46px;background:linear-gradient(135deg,#2ecc71,#27ae60);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:2px;}
+.score-label{font-size:11px;color:#aaa;margin-bottom:3px;text-transform:uppercase;letter-spacing:1px;}
+.best-label{font-size:13px;color:#e67e22;font-weight:800;margin-bottom:14px;}
+.stat-row{display:flex;gap:8px;justify-content:center;margin-bottom:16px;}
+.stat-chip{background:#f5f5f5;border-radius:12px;padding:7px 12px;font-size:11px;color:#555;font-weight:700;text-align:center;}
+.stat-chip strong{display:block;font-family:'Fredoka One',sans-serif;font-size:17px;color:#222;}
+.btn-play{
+  border:none;padding:12px 26px;border-radius:50px;
+  font-size:17px;font-family:'Fredoka One',sans-serif;cursor:pointer;
+  background:linear-gradient(135deg,#2ecc71,#27ae60);color:#fff;
+  box-shadow:0 6px 20px rgba(46,204,113,.4);
+  transition:transform .15s,box-shadow .15s;letter-spacing:.5px;
+}
+.btn-play:hover{transform:translateY(-2px);}
+.btn-play:active{transform:scale(.96);}
+.btn-back{
+  position:absolute;top:14px;left:14px;z-index:30;
+  width:36px;height:36px;border-radius:50%;
+  background:rgba(255,255,255,.85);backdrop-filter:blur(6px);
+  border:1.5px solid rgba(255,255,255,.7);
+  box-shadow:0 3px 14px rgba(0,0,0,.15);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:20px;color:#1a1a2e;font-weight:900;
+  transition:transform .15s;text-decoration:none;line-height:1;
+}
+.btn-back:hover{transform:scale(1.1);}
+.btn-back:active{transform:scale(.93);}
+.mobile-controls{
+  position:absolute;bottom:28px;left:0;right:0;
+  display:flex;justify-content:space-between;padding:0 14px;
+  z-index:20;pointer-events:none;
+}
+.m-btn{
+  width:66px;height:66px;border-radius:50%;
+  background:rgba(255,255,255,.2);border:2.5px solid rgba(255,255,255,.5);
+  backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;
+  font-size:24px;cursor:pointer;pointer-events:all;
+  user-select:none;-webkit-user-select:none;
+  transition:transform .1s;box-shadow:0 4px 16px rgba(0,0,0,.15);color:#fff;
+}
+.m-btn:active{transform:scale(.9);background:rgba(255,255,255,.38);}
+.start-screen{
+  position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  z-index:40;background:rgba(10,20,50,.65);backdrop-filter:blur(4px);
+  border-radius:clamp(0px,3vw,28px);
+}
+.start-title{font-family:'Fredoka One',sans-serif;font-size:clamp(26px,7vw,38px);color:#fff;text-shadow:0 3px 14px rgba(0,0,0,.35);margin-bottom:4px;letter-spacing:1px;}
+.start-sub{font-size:13px;color:rgba(255,255,255,.75);margin-bottom:20px;text-align:center;padding:0 22px;}
+.start-emoji{font-size:66px;margin-bottom:14px;animation:pedal .4s infinite alternate;}
+.controls-hint{margin-bottom:16px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
+.hint-chip{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:50px;padding:5px 12px;font-size:11px;color:rgba(255,255,255,.9);}
+.legend{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;margin-bottom:22px;padding:0 12px;}
+.legend-item{font-size:11px;color:rgba(255,255,255,.85);background:rgba(255,255,255,.1);border-radius:8px;padding:4px 9px;}
+.hit-flash{animation:flash .35s ease-in-out;}
+@keyframes flash{0%,100%{filter:brightness(1);}50%{filter:brightness(2.2) saturate(0);}}
+.milestone{
+  position:absolute;left:50%;transform:translateX(-50%);top:108px;z-index:26;
+  background:linear-gradient(135deg,#f39c12,#e67e22);color:#fff;
+  font-family:'Fredoka One',sans-serif;font-size:17px;
+  padding:9px 20px;border-radius:50px;
+  box-shadow:0 6px 24px rgba(230,126,34,.45);white-space:nowrap;
+  animation:toast-pop .5s cubic-bezier(.175,.885,.32,1.275) forwards;pointer-events:none;
+}
+@keyframes toast-pop{0%{opacity:0;transform:translateX(-50%) scale(.5);}70%{transform:translateX(-50%) scale(1.08);}100%{opacity:1;transform:translateX(-50%) scale(1);}}
+</style>
+</head>
+<body>
+<div class="game-wrap">
+<div id="scene">
+  <div class="cloud" style="width:88px;height:27px;top:7%;left:8%;opacity:.7"></div>
+  <div class="cloud" style="width:112px;height:31px;top:12%;right:6%;opacity:.6"></div>
+  <div class="cloud" style="width:66px;height:21px;top:5%;left:50%;opacity:.5"></div>
+  <div class="sidewalk-l"></div>
+  <div class="sidewalk-r"></div>
+  <div class="road-strip" id="road"></div>
+  <div class="school-goal">🏫</div>
+  <div id="speedBadge">🚀 x1.0</div>
+  <div class="hud">
+    <div class="hud-pill"><span class="icon">🌿</span><span class="val" id="score">0</span></div>
+    <div class="hud-pill"><span class="icon">❤️</span><span class="val" id="life">3</span></div>
+    <div class="hud-pill"><span class="icon">⏱</span><span class="val" id="timeEl">0s</span></div>
+  </div>
+  <div id="warnBanner">⚠️ Animal on the road!</div>
+  <div class="bottom-bar">
+    <div class="progress-track"><div class="progress-fill" id="progFill"></div></div>
+    <div class="dist-label" id="distLabel">0m</div>
+  </div>
+  <div id="player">🚴</div>
+  <div class="mobile-controls">
+    <div class="m-btn" id="btnLeft">◀</div>
+    <div class="m-btn" id="btnRight">▶</div>
+  </div>
+  <!-- START SCREEN -->
+  <div class="start-screen" id="startScreen">
+    <div class="start-emoji">🚴</div>
+    <div class="start-title">Cycle to School!</div>
+    <div class="start-sub">Endless ride — dodge everything, collect points. How far can you go?</div>
+    <div class="controls-hint">
+      <span class="hint-chip">⌨️ Arrow Keys / A·D</span>
+      <span class="hint-chip">📱 Tap ◀ ▶ buttons</span>
+    </div>
+    <div class="legend">
+      <span class="legend-item">🌿 +2 pts</span>
+      <span class="legend-item">⭐ +3 pts</span>
+      <span class="legend-item">💊 +❤️</span>
+      <span class="legend-item">💨 -❤️</span>
+      <span class="legend-item">🚧 -❤️</span>
+      <span class="legend-item">🐕 INSTANT DEATH</span>
+      <span class="legend-item">🐈 INSTANT DEATH</span>
+    </div>
+    <button class="btn-play" onclick="startGame()">🚴 Start Riding!</button>
+  </div>
+  <!-- POPUP -->
+  <div class="popup" id="popup">
+    <div class="card">
+      <span class="result-emoji" id="resultEmoji">💥</span>
+      <h2 id="popTitle">Game Over!</h2>
+      <p class="sub" id="popSub">You crashed out!</p>
+      <div class="score-big" id="popScore">0</div>
+      <div class="score-label">Points Collected</div>
+      <div class="best-label" id="bestLabel">🏅 Best: 0 pts</div>
+      <div class="stat-row">
+        <div class="stat-chip"><strong id="statDist">0m</strong>Distance</div>
+        <div class="stat-chip"><strong id="statTime">0s</strong>Time</div>
+        <div class="stat-chip"><strong id="statSpeed">x1.0</strong>Max Speed</div>
+      </div>
+      <button class="btn-play" onclick="restartGame()">🔁 Play Again</button>
+    </div>
+  </div>
+</div><!-- /scene -->
+<a class="btn-back" id="btnBack" href="map.html" title="Back to Map">&#8249;</a>
+</div>
+
+<script>
+/* ── CONFIG ── */
+const LANE_COUNT     = 4;
+const BASE_SPEED     = 4.5;
+const SPEED_RAMP     = 0.22;   // px/s gain per second
+const MAX_SPEED      = 20;
+const ROAD_L         = 0.22;
+const ROAD_R         = 0.22;
+const ANIM_WARN_MS   = 1500;   // warning before animal rushes in
+const ANIMAL_MIN_S   = 9;
+const ANIMAL_MAX_S   = 17;
+
+/* ── DOM ── */
+const sceneEl   = document.getElementById('scene');
+const roadEl    = document.getElementById('road');
+const playerEl  = document.getElementById('player');
+const scoreEl   = document.getElementById('score');
+const lifeEl    = document.getElementById('life');
+const timeEl    = document.getElementById('timeEl');
+const progFill  = document.getElementById('progFill');
+const distLabel = document.getElementById('distLabel');
+const speedBadge= document.getElementById('speedBadge');
+const popup     = document.getElementById('popup');
+const warnBanner= document.getElementById('warnBanner');
+
+/* ── STATE ── */
+let W,H,laneXArr;
+let lane,score,life,dist,speed,elapsed,maxSpeed;
+let playing=false;
+let objs=[],dashLines=[];
+let rafId,lastTs=0;
+let spawnCd=0;
+let animalActive=false,nextAnimalIn=0;
+let bestScore=0;
+let milestones=new Set();
+let gameFrame=0;
+
+/* ── RESIZE ── */
+function resize(){
+  W=sceneEl.offsetWidth; H=sceneEl.offsetHeight;
+  const rl=Math.round(W*ROAD_L), rr=Math.round(W*ROAD_R);
+  const rw=W-rl-rr, seg=rw/LANE_COUNT;
+  laneXArr=Array.from({length:LANE_COUNT},(_,i)=>rl+seg*i+seg/2-27);
+  setPlayer();
+}
+
+/* ── PLAYER ── */
+function setPlayer(){ if(laneXArr) playerEl.style.left=laneXArr[lane]+'px'; }
+
+/* ── DASH LINES ── */
+function createLines(){
+  dashLines.forEach(d=>d.remove()); dashLines=[];
+  const n=Math.ceil(H/70)+2;
+  for(let i=0;i<n;i++){
+    const d=document.createElement('div');
+    d.className='dash-line'; d.style.top=(i*70)+'px';
+    roadEl.appendChild(d); dashLines.push(d);
+  }
+}
+function moveLines(){
+  dashLines.forEach(d=>{
+    let y=parseFloat(d.style.top)+speed;
+    if(y>H+60)y=-60;
+    d.style.top=y+'px';
+  });
+}
+
+/* ── OBJECT POOL ── */
+const POOL=[
+  {icon:'💨',good:false,w:8},{icon:'🚧',good:false,w:7},{icon:'🕳️',good:false,w:5},
+  {icon:'🌿',good:true,pts:2,w:11},{icon:'⭐',good:true,pts:3,w:6},{icon:'💊',heal:true,good:true,w:3},
+];
+const POOL_W=POOL.reduce((s,t)=>s+t.w,0);
+function pickType(){let r=Math.random()*POOL_W;for(const t of POOL){r-=t.w;if(r<=0)return t;}return POOL[0];}
+
+function spawnObj(){
+  if(spawnCd>0){spawnCd--;return;}
+  if(Math.random()<0.024+speed*0.0008){
+    const t=pickType();
+    const ln=Math.floor(Math.random()*LANE_COUNT);
+    const el=document.createElement('div');
+    el.className='obj'; el.innerText=t.icon;
+    el.dataset.good=!!t.good; el.dataset.pts=t.pts||0; el.dataset.heal=!!t.heal;
+    el.style.left=laneXArr[ln]+'px'; el.style.top='-60px';
+    sceneEl.appendChild(el); objs.push(el);
+    spawnCd=Math.max(3,Math.round(16-speed*0.55));
+  }
+}
+
+/* ── ANIMALS ── */
+const ANIMALS=['🐕','🐈','🐕','🐈‍⬛','🐩','🐇'];
+function scheduleAnimal(){ nextAnimalIn=ANIMAL_MIN_S+Math.random()*(ANIMAL_MAX_S-ANIMAL_MIN_S); }
+
+function triggerAnimal(){
+  animalActive=true;
+  const icon=ANIMALS[Math.floor(Math.random()*ANIMALS.length)];
+  const fromLeft=Math.random()<0.5;
+  const animalY=H*0.32+Math.random()*H*0.35;
+
+  warnBanner.innerText='⚠️  '+icon+'  Dashing across the road!';
+  warnBanner.style.opacity='1';
+
+  // arrow indicator
+  const arrow=document.createElement('div');
+  arrow.className='warn-arrow';
+  arrow.innerText=fromLeft?'👉':'👈';
+  arrow.style.top=(animalY-14)+'px';
+  arrow.style.left=fromLeft?'3px':(W-32)+'px';
+  sceneEl.appendChild(arrow);
+
+  setTimeout(()=>{
+    arrow.remove();
+    warnBanner.style.opacity='0';
+    if(!playing)return;
+
+    const el=document.createElement('div');
+    el.className='animal'; el.innerText=icon;
+    el.dataset.animal='true';
+    el.style.top=(animalY-27)+'px';
+    el.style.left=(fromLeft?-65:W+10)+'px';
+    sceneEl.appendChild(el); objs.push(el);
+
+    const dashV=3.8+speed*0.2;
+    const dir=fromLeft?1:-1;
+
+    (function moveA(){
+      if(!playing){el.remove();return;}
+      const cx=parseFloat(el.style.left)+dir*dashV;
+      el.style.left=cx+'px';
+      const gone=fromLeft?cx>W+10:cx<-65;
+      if(gone){
+        el.remove(); const i=objs.indexOf(el); if(i>-1)objs.splice(i,1);
+        animalActive=false; scheduleAnimal(); return;
+      }
+      requestAnimationFrame(moveA);
+    })();
+  }, ANIM_WARN_MS);
+}
+
+/* ── COLLISION ── */
+function overlaps(a,b){
+  const ra=a.getBoundingClientRect(), rb=b.getBoundingClientRect(), s=11;
+  return !(ra.right-s<rb.left+s||ra.left+s>rb.right-s||ra.bottom-s<rb.top+s||ra.top+s>rb.bottom-s);
+}
+
+function updateObjs(){
+  for(let i=objs.length-1;i>=0;i--){
+    const obj=objs[i];
+    const isAnimal=obj.dataset.animal==='true';
+    if(!isAnimal){ let y=parseFloat(obj.style.top)+speed; obj.style.top=y+'px'; }
+
+    if(overlaps(playerEl,obj)){
+      const ox=parseInt(obj.style.left)+6, oy=parseInt(obj.style.top);
+      if(isAnimal){
+        obj.remove(); objs.splice(i,1);
+        floatText('💀 WATCH OUT!',W/2-70,H/2-50,'#e74c3c');
+        setTimeout(()=>endGame('animal'),600);
+        return;
+      }
+      if(obj.dataset.good==='true'){
+        if(obj.dataset.heal==='true'){ life=Math.min(5,life+1); floatText('+1 ❤️',ox,oy,'#e74c3c'); }
+        else { const p=parseInt(obj.dataset.pts)||0; score+=p; floatText('+'+p+'🌿',ox,oy,'#2ecc71'); }
+      } else {
+        life--;
+        floatText('-1 ❤️',ox,oy,'#e74c3c');
+        playerEl.classList.remove('hit-flash'); void playerEl.offsetWidth; playerEl.classList.add('hit-flash');
+      }
+      obj.remove(); objs.splice(i,1); updateHUD(); continue;
+    }
+    if(!isAnimal && parseFloat(obj.style.top)>H+60){ obj.remove(); objs.splice(i,1); }
+  }
+}
+
+/* ── FLOAT TEXT ── */
+function floatText(msg,x,y,color){
+  const f=document.createElement('div');
+  f.className='float-txt'; f.innerText=msg;
+  f.style.left=Math.max(4,x)+'px'; f.style.top=y+'px'; f.style.color=color||'#2ecc71';
+  sceneEl.appendChild(f); setTimeout(()=>f.remove(),950);
+}
+
+/* ── MILESTONES ── */
+const DIST_MS=[100,250,500,1000,2000,3500,5000,10000];
+const SCORE_MS=[10,25,50,100,200,500];
+function checkMilestones(){
+  for(const m of DIST_MS) if(dist>=m&&!milestones.has('d'+m)){ milestones.add('d'+m); showToast('🏅 '+m+'m reached!'); }
+  for(const s of SCORE_MS) if(score>=s&&!milestones.has('s'+s)){ milestones.add('s'+s); showToast('⭐ '+s+' points!'); }
+}
+function showToast(txt){
+  const el=document.createElement('div'); el.className='milestone'; el.innerText=txt;
+  sceneEl.appendChild(el); setTimeout(()=>el.remove(),2200);
+}
+
+/* ── HUD ── */
+function updateHUD(){
+  scoreEl.innerText=score;
+  lifeEl.innerText=Math.max(0,life);
+  const s=Math.floor(elapsed);
+  timeEl.innerText=s>59?Math.floor(s/60)+'m'+(s%60)+'s':s+'s';
+  const cyc=200, pct=((dist%cyc)/cyc)*100;
+  progFill.style.width=pct+'%';
+  distLabel.innerText=dist>=1000?(dist/1000).toFixed(1)+'km':Math.floor(dist)+'m';
+  const mult=(speed/BASE_SPEED).toFixed(1);
+  speedBadge.innerText='🚀 x'+mult;
+  const t=Math.min(1,(speed-BASE_SPEED)/(MAX_SPEED-BASE_SPEED));
+  const r=Math.round(60+195*t), g=Math.round(180-150*t);
+  speedBadge.style.background=`rgba(${r},${g},20,0.92)`;
+}
+
+/* ── GAME LOOP ── */
+function loop(ts){
+  if(!playing)return;
+  const dt=Math.min((ts-lastTs)/1000,0.05); lastTs=ts;
+  elapsed+=dt; gameFrame++;
+
+  speed=Math.min(MAX_SPEED, BASE_SPEED+elapsed*SPEED_RAMP);
+  if(speed>maxSpeed)maxSpeed=speed;
+
+  // pedal animation speed
+  playerEl.style.animationDuration=Math.max(0.08,0.32-speed*0.01)+'s';
+
+  moveLines(); spawnObj(); updateObjs();
+  dist+=speed*0.08;
+  checkMilestones();
+
+  if(!animalActive){ nextAnimalIn-=dt; if(nextAnimalIn<=0) triggerAnimal(); }
+
+  updateHUD();
+  if(life<=0){ endGame('crash'); return; }
+  rafId=requestAnimationFrame(loop);
+}
+
+/* ── END GAME ── */
+function endGame(reason){
+  playing=false; cancelAnimationFrame(rafId);
+  warnBanner.style.opacity='0';
+  if(score>bestScore)bestScore=score;
+
+  const info={
+    crash:['💥','Crashed Out!','Too many obstacles brought you down. Try again!'],
+    animal:['🐾','Animal Collision!','A furry friend ran you off the road!'],
+  }[reason]||['💥','Game Over!',''];
+
+  document.getElementById('resultEmoji').innerText=info[0];
+  document.getElementById('popTitle').innerText=info[1];
+  document.getElementById('popSub').innerText=info[2];
+  document.getElementById('popScore').innerText=score;
+  document.getElementById('bestLabel').innerText='🏅 Best: '+bestScore+' pts';
+  const ds=Math.floor(dist);
+  document.getElementById('statDist').innerText=ds>=1000?(ds/1000).toFixed(2)+'km':ds+'m';
+  const se=Math.floor(elapsed);
+  document.getElementById('statTime').innerText=se>59?Math.floor(se/60)+'m'+(se%60)+'s':se+'s';
+  document.getElementById('statSpeed').innerText='x'+(maxSpeed/BASE_SPEED).toFixed(1);
+  popup.style.display='flex';
+}
+
+/* ── RESET ── */
+function resetState(){
+  objs.forEach(o=>o.remove()); objs=[];
+  lane=2; score=0; life=3; dist=0; speed=BASE_SPEED;
+  elapsed=0; maxSpeed=BASE_SPEED; spawnCd=0;
+  animalActive=false; milestones=new Set(); gameFrame=0;
+  scheduleAnimal();
+  warnBanner.style.opacity='0';
+}
+
+function startGame(){
+  document.getElementById('startScreen').style.display='none';
+  resetState(); playing=true;
+  resize(); createLines(); updateHUD(); setPlayer();
+  lastTs=performance.now(); rafId=requestAnimationFrame(loop);
+}
+
+function restartGame(){
+  cancelAnimationFrame(rafId); popup.style.display='none';
+  resetState(); playing=true;
+  updateHUD(); setPlayer();
+  lastTs=performance.now(); rafId=requestAnimationFrame(loop);
+}
+
+/* ── INPUT ── */
+function moveLeft(){ if(!playing)return; lane=Math.max(0,lane-1); setPlayer(); }
+function moveRight(){ if(!playing)return; lane=Math.min(LANE_COUNT-1,lane+1); setPlayer(); }
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowLeft'||e.key==='a'||e.key==='A'){e.preventDefault();moveLeft();}
+  if(e.key==='ArrowRight'||e.key==='d'||e.key==='D'){e.preventDefault();moveRight();}
+});
+document.getElementById('btnLeft').addEventListener('touchstart',e=>{e.preventDefault();moveLeft();},{passive:false});
+document.getElementById('btnRight').addEventListener('touchstart',e=>{e.preventDefault();moveRight();},{passive:false});
+document.getElementById('btnLeft').addEventListener('mousedown',moveLeft);
+document.getElementById('btnRight').addEventListener('mousedown',moveRight);
+
+document.getElementById('btnBack').addEventListener('click',function(){
+  if(document.referrer) history.back(); else window.location.href='map.html';
+});
+
+/* ── INIT ── */
+window.addEventListener('resize',()=>{resize();createLines();});
+resize(); createLines(); updateHUD();
+</script>
+</body>
+</html>

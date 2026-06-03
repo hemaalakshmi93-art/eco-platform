@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Eco Detective</title>
+</head>
+<body style="font-family: Arial; text-align: center;">
+
+    <h1>🕵️ Eco Detective Game 🌍</h1>
+
+    <form method="POST">
+
+        {% for q in game_data %}
+            <div style="margin:20px;">
+                <h3>{{ q.question }}</h3>
+
+                {% for opt in q.options %}
+                    <input type="radio" name="q{{ loop.parent.index0 }}" value="{{ opt }}" required>
+                    {{ opt }} <br>
+                {% endfor %}
+            </div>
+        {% endfor %}
+
+        <button type="submit">Submit</button>
+    </form>
+
+    <h2>{{ result }}</h2>
+
+</body>
+</html>

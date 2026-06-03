@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Zephyra — Eco Adventure</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700;900&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --forest: #051a0d;
+            --deep: #081f11;
+            --green: #1db954;
+            --green-glow: #34d368;
+            --teal: #0bab8f;
+            --teal-light: #0fd4b0;
+            --mist: #a8e6c1;
+            --white: #f4fef7;
+            --dim: rgba(168,230,193,0.55);
+            --card-bg: rgba(255,255,255,0.035);
+            --border: rgba(29,185,84,0.13);
+        }
+
+        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--forest);
+            color: var(--white);
+            overflow-x: hidden;
+        }
+
+        /* scrollbar */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: var(--forest); }
+        ::-webkit-scrollbar-thumb { background: var(--green); border-radius: 10px; }
+
+        /* ── CANVAS ── */
+        #bg-canvas {
+            position: fixed; inset: 0;
+            z-index: 0; pointer-events: none;
+        }
+
+        /* ── NAV ── */
+        nav {
+            position: fixed; top: 0; left: 0; right: 0;
+            z-index: 200;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 16px 56px;
+            background: rgba(5,26,13,0.75);
+            backdrop-filter: blur(24px);
+            border-bottom: 1px solid var(--border);
+            transition: padding 0.3s;
+        }
+
+        .nav-logo {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.55rem; font-weight: 900;
+            letter-spacing: 1px; color: var(--white);
+            display: flex; align-items: center; gap: 8px;
+        }
+        .nav-logo .z { color: var(--green); font-size: 2rem; line-height: 1; }
+
+        .nav-links { display: flex; gap: 32px; list-style: none; }
+        .nav-links a {
+            text-decoration: none; color: var(--dim);
+            font-size: 0.82rem; font-weight: 500;
+            letter-spacing: 1px; text-transform: uppercase;
+            transition: color 0.25s;
+        }
+        .nav-links a:hover { color: var(--white); }
+
+        .nav-cta { display: flex; gap: 10px; }
+        .nbtn {
+            padding: 9px 22px; border-radius: 50px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.82rem; font-weight: 600;
+            cursor: pointer; text-decoration: none;
+            transition: all 0.3s; border: none;
+        }
+        .nbtn.ghost {
+            background: transparent;
+            border: 1px solid rgba(29,185,84,0.4);
+            color: var(--green);
+        }
+        .nbtn.ghost:hover { background: rgba(29,185,84,0.1); }
+        .nbtn.fill {
+            background: var(--green); color: var(--forest); font-weight: 700;
+        }
+        .nbtn.fill:hover { background: var(--green-glow); transform: translateY(-2px); }
+
+        /* ── HERO ── */
+        .hero {
+            position: relative; z-index: 1;
+            min-height: 100vh;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            text-align: center;
+            padding: 130px 24px 80px;
+            overflow: hidden;
+        }
+
+        /* mesh orbs */
+        .orb {
+            position: absolute; border-radius: 50%;
+            filter: blur(80px); pointer-events: none;
+        }
+        .orb1 { width: 560px; height: 560px; background: radial-gradient(circle, rgba(29,185,84,0.16), transparent 70%); top: -120px; left: -80px; animation: driftA 14s ease-in-out infinite alternate; }
+        .orb2 { width: 440px; height: 440px; background: radial-gradient(circle, rgba(11,171,143,0.16), transparent 70%); bottom: -80px; right: -60px; animation: driftB 16s ease-in-out infinite alternate; }
+        .orb3 { width: 300px; height: 300px; background: radial-gradient(circle, rgba(29,185,84,0.08), transparent 70%); top: 40%; left: 55%; animation: driftA 18s ease-in-out infinite alternate; }
+
+        @keyframes driftA { to { transform: translate(40px, 30px); } }
+        @keyframes driftB { to { transform: translate(-40px, -30px); } }
+
+        .hero-grid {
+            position: absolute; inset: 0;
+            background-image:
+                linear-gradient(rgba(29,185,84,0.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(29,185,84,0.035) 1px, transparent 1px);
+            background-size: 55px 55px;
+            mask-image: radial-gradient(ellipse 75% 75% at 50% 50%, black 30%, transparent 100%);
+        }
+
+        .eyebrow {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: rgba(29,185,84,0.1);
+            border: 1px solid rgba(29,185,84,0.28);
+            padding: 6px 20px; border-radius: 50px;
+            font-size: 0.72rem; font-weight: 600;
+            letter-spacing: 2px; text-transform: uppercase;
+            color: var(--green); margin-bottom: 30px;
+            animation: fadeUp 0.7s ease both;
+        }
+
+        .pulse-dot {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: var(--green);
+            animation: blink 2s infinite;
+        }
+        @keyframes blink { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.3;transform:scale(0.6)} }
+
+        .hero h1 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(4rem, 9vw, 8.5rem);
+            font-weight: 900; line-height: 0.95;
+            letter-spacing: -3px; color: var(--white);
+            margin-bottom: 10px;
+            animation: fadeUp 0.7s 0.1s ease both;
+        }
+
+        .hero h1 .accent { color: var(--green); }
+
+        .hero-sub {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(1rem, 2.5vw, 1.6rem);
+            font-weight: 400; font-style: italic;
+            color: var(--mist); letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            animation: fadeUp 0.7s 0.18s ease both;
+        }
+
+        .hero-quote {
+            font-size: 0.92rem; font-style: italic;
+            color: rgba(168,230,193,0.45);
+            margin-bottom: 30px;
+            animation: fadeUp 0.7s 0.24s ease both;
+        }
+
+        .hero-desc {
+            max-width: 600px; font-size: 1rem;
+            line-height: 1.85; color: rgba(244,254,247,0.65);
+            margin-bottom: 44px;
+            animation: fadeUp 0.7s 0.3s ease both;
+        }
+
+        /* college tag */
+        .college-tag {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: rgba(11,171,143,0.1);
+            border: 1px solid rgba(11,171,143,0.25);
+            padding: 5px 14px; border-radius: 50px;
+            font-size: 0.75rem; font-weight: 500;
+            color: var(--teal-light); margin-bottom: 44px;
+            animation: fadeUp 0.7s 0.36s ease both;
+        }
+
+        .hero-btns {
+            display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;
+            animation: fadeUp 0.7s 0.42s ease both;
+            margin-bottom: 80px;
+        }
+
+        .btn {
+            padding: 15px 38px; border-radius: 50px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem; font-weight: 600;
+            cursor: pointer; text-decoration: none; border: none;
+            display: inline-flex; align-items: center; gap: 8px;
+            transition: all 0.3s; letter-spacing: 0.2px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--green), var(--teal));
+            color: var(--forest);
+            box-shadow: 0 0 40px rgba(29,185,84,0.3);
+        }
+        .btn-primary:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 0 60px rgba(29,185,84,0.5); }
+
+        .btn-secondary {
+            background: transparent;
+            border: 1.5px solid rgba(29,185,84,0.35);
+            color: var(--green);
+            backdrop-filter: blur(8px);
+        }
+        .btn-secondary:hover { background: rgba(29,185,84,0.08); transform: translateY(-3px); }
+
+        /* ── STATS ── */
+        .stats-row {
+            position: relative; z-index: 1;
+            display: flex; justify-content: center; flex-wrap: wrap;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            animation: fadeUp 0.7s 0.5s ease both;
+        }
+
+        .stat {
+            padding: 28px 52px; text-align: center;
+            border-right: 1px solid var(--border);
+        }
+        .stat:last-child { border-right: none; }
+
+        .stat-val {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2.4rem; font-weight: 900;
+            color: var(--green); line-height: 1; margin-bottom: 5px;
+        }
+        .stat-lbl {
+            font-size: 0.72rem; font-weight: 500;
+            letter-spacing: 1.2px; text-transform: uppercase;
+            color: var(--dim);
+        }
+
+        /* ── TICKER ── */
+        .ticker {
+            position: relative; z-index: 1;
+            overflow: hidden; padding: 13px 0;
+            background: rgba(29,185,84,0.04);
+            border-bottom: 1px solid var(--border);
+        }
+        .ticker-track {
+            display: flex; gap: 64px; white-space: nowrap;
+            animation: roll 30s linear infinite;
+        }
+        .tick-item {
+            display: inline-flex; align-items: center; gap: 10px;
+            font-size: 0.8rem; font-weight: 400; color: var(--dim);
+            flex-shrink: 0;
+        }
+        .tick-item strong { color: var(--green); font-weight: 600; }
+        @keyframes roll { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+
+        /* ── SECTION COMMONS ── */
+        .section { position: relative; z-index: 1; padding: 100px 60px; max-width: 1140px; margin: 0 auto; }
+
+        .s-label {
+            display: inline-flex; align-items: center; gap: 10px;
+            font-size: 0.72rem; font-weight: 600;
+            letter-spacing: 2.5px; text-transform: uppercase;
+            color: var(--green); margin-bottom: 14px;
+        }
+        .s-label::before { content:""; width:24px; height:1px; background:var(--green); }
+
+        .s-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(2rem, 4vw, 3.4rem);
+            font-weight: 900; color: var(--white);
+            line-height: 1.1; margin-bottom: 56px;
+        }
+        .s-title em { font-style: normal; color: var(--green); }
+
+        /* ── FEATURES GRID ── */
+        .feat-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .feat-card {
+            position: relative;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 18px; padding: 32px 26px;
+            overflow: hidden; transition: all 0.45s cubic-bezier(0.23,1,0.32,1);
+        }
+        .feat-card::before {
+            content: ""; position: absolute; inset: 0;
+            background: radial-gradient(circle at top left, rgba(29,185,84,0.07), transparent 60%);
+            opacity: 0; transition: opacity 0.4s;
+        }
+        .feat-card::after {
+            content: ""; position: absolute;
+            top: 0; left: -70%; width: 45%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+            transform: skewX(-18deg); transition: left 0.65s ease;
+        }
+        .feat-card:hover { transform: translateY(-7px); border-color: rgba(29,185,84,0.28); box-shadow: 0 20px 55px rgba(0,0,0,0.38), 0 0 25px rgba(29,185,84,0.07); }
+        .feat-card:hover::before { opacity: 1; }
+        .feat-card:hover::after { left: 135%; }
+
+        .feat-icon {
+            width: 48px; height: 48px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.4rem; margin-bottom: 18px;
+            background: rgba(29,185,84,0.1);
+            border: 1px solid rgba(29,185,84,0.18);
+        }
+        .feat-card h3 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.25rem; font-weight: 700;
+            color: var(--white); margin-bottom: 10px;
+        }
+        .feat-card p { font-size: 0.87rem; color: var(--dim); line-height: 1.75; }
+
+        .feat-badge {
+            position: absolute; top: 18px; right: 18px;
+            background: rgba(29,185,84,0.1);
+            border: 1px solid rgba(29,185,84,0.22);
+            color: var(--green); font-size: 0.64rem;
+            font-weight: 700; letter-spacing: 1px;
+            text-transform: uppercase; padding: 3px 10px;
+            border-radius: 50px;
+        }
+
+        /* ── HOW IT WORKS ── */
+        .how-grid {
+            display: grid; grid-template-columns: repeat(4,1fr);
+            gap: 0; position: relative;
+        }
+        .how-grid::before {
+            content: ""; position: absolute;
+            top: 27px; left: 12%; right: 12%; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(29,185,84,0.3), transparent);
+        }
+        .step { text-align: center; padding: 20px 16px; }
+        .step-num {
+            width: 54px; height: 54px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 20px;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.5rem; font-weight: 900; color: var(--green);
+            background: rgba(29,185,84,0.07);
+            border: 1px solid rgba(29,185,84,0.3);
+            position: relative; z-index: 1;
+        }
+        .step h4 { font-weight: 600; font-size: 0.92rem; color: var(--white); margin-bottom: 8px; }
+        .step p { font-size: 0.8rem; color: var(--dim); line-height: 1.65; }
+
+        /* ── NGO PARTNERS ── */
+        .ngo-grid {
+            display: grid; grid-template-columns: repeat(3,1fr); gap: 18px;
+        }
+        .ngo-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px; padding: 26px 22px;
+            transition: all 0.35s;
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .ngo-card:hover { border-color: rgba(29,185,84,0.28); transform: translateY(-4px); }
+        .ngo-top { display: flex; align-items: center; gap: 12px; }
+        .ngo-icon {
+            width: 42px; height: 42px; border-radius: 10px;
+            background: rgba(29,185,84,0.1); border: 1px solid rgba(29,185,84,0.2);
+            display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+        .ngo-name { font-weight: 600; font-size: 0.92rem; color: var(--white); }
+        .ngo-region { font-size: 0.72rem; color: var(--green); font-weight: 500; letter-spacing: 0.5px; }
+        .ngo-desc { font-size: 0.8rem; color: var(--dim); line-height: 1.65; }
+        .ngo-tag {
+            display: inline-block;
+            background: rgba(11,171,143,0.1); border: 1px solid rgba(11,171,143,0.22);
+            color: var(--teal-light); font-size: 0.65rem; font-weight: 600;
+            letter-spacing: 0.8px; text-transform: uppercase;
+            padding: 3px 10px; border-radius: 50px; width: fit-content;
+        }
+
+        /* ── ABOUT ── */
+        .about-wrap {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center;
+        }
+        .about-left {}
+        .about-left p {
+            font-size: 0.95rem; color: rgba(244,254,247,0.68);
+            line-height: 1.9; margin-bottom: 16px;
+        }
+        .about-left p strong { color: var(--green); font-weight: 600; }
+        .about-right {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+        }
+        .about-pill {
+            background: var(--card-bg); border: 1px solid var(--border);
+            border-radius: 14px; padding: 20px 18px;
+            text-align: center; transition: all 0.3s;
+        }
+        .about-pill:hover { border-color: rgba(29,185,84,0.28); background: rgba(29,185,84,0.05); }
+        .about-pill .ap-icon { font-size: 1.8rem; margin-bottom: 8px; }
+        .about-pill .ap-label { font-size: 0.78rem; color: var(--dim); font-weight: 500; }
+
+        /* ── IMPACT CTA ── */
+        .cta-banner {
+            position: relative; z-index: 1;
+            margin: 0 40px 80px; border-radius: 22px;
+            background: linear-gradient(135deg, rgba(29,185,84,0.1) 0%, rgba(11,171,143,0.1) 100%);
+            border: 1px solid rgba(29,185,84,0.18);
+            padding: 60px 70px;
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 40px; flex-wrap: wrap; overflow: hidden;
+        }
+        .cta-banner::before { content:"🌿"; position:absolute; right:-10px; top:-30px; font-size:220px; opacity:0.04; line-height:1; }
+        .cta-text h2 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2.4rem; font-weight: 900; color: var(--white);
+            line-height: 1.2; margin-bottom: 12px;
+        }
+        .cta-text p { font-size: 0.95rem; color: var(--dim); max-width: 460px; line-height: 1.8; }
+        .cta-btns { display: flex; gap: 14px; flex-wrap: wrap; flex-shrink: 0; }
+
+        /* ── CONTACT ── */
+        .contact-wrap {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start;
+        }
+        .contact-info {}
+        .contact-info p { font-size: 0.93rem; color: var(--dim); line-height: 1.8; margin-bottom: 28px; }
+        .c-item {
+            display: flex; align-items: flex-start; gap: 14px; margin-bottom: 20px;
+        }
+        .c-icon {
+            width: 38px; height: 38px; border-radius: 10px;
+            background: rgba(29,185,84,0.1); border: 1px solid rgba(29,185,84,0.2);
+            display: flex; align-items: center; justify-content: center; font-size: 1rem;
+            flex-shrink: 0; margin-top: 2px;
+        }
+        .c-detail label { display: block; font-size: 0.7rem; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; color: var(--green); margin-bottom: 3px; }
+        .c-detail span { font-size: 0.88rem; color: rgba(244,254,247,0.7); }
+        .c-detail a { color: var(--teal-light); text-decoration: none; }
+        .c-detail a:hover { text-decoration: underline; }
+
+        .contact-form { display: flex; flex-direction: column; gap: 14px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group label { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; color: var(--green); }
+        .form-group input, .form-group textarea, .form-group select {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--border); border-radius: 10px;
+            padding: 12px 16px; color: var(--white);
+            font-family: 'Outfit', sans-serif; font-size: 0.88rem;
+            transition: border-color 0.25s; outline: none;
+            resize: none;
+        }
+        .form-group input::placeholder, .form-group textarea::placeholder { color: rgba(168,230,193,0.3); }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+            border-color: rgba(29,185,84,0.5);
+            background: rgba(29,185,84,0.04);
+        }
+        .form-group select option { background: #0a1f12; color: var(--white); }
+        .form-group textarea { min-height: 120px; }
+        .submit-btn {
+            padding: 14px 34px; border-radius: 50px;
+            background: linear-gradient(135deg, var(--green), var(--teal));
+            color: var(--forest); font-family: 'Outfit', sans-serif;
+            font-size: 0.9rem; font-weight: 700; cursor: pointer; border: none;
+            transition: all 0.3s; align-self: flex-start;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 0 40px rgba(29,185,84,0.35); }
+
+        /* ── LEGAL ── */
+        .legal-section {
+            position: relative; z-index: 1;
+            padding: 80px 60px 60px; max-width: 1140px; margin: 0 auto;
+        }
+        .legal-tabs {
+            display: flex; gap: 12px; margin-bottom: 32px; flex-wrap: wrap;
+        }
+        .ltab {
+            padding: 8px 20px; border-radius: 50px; cursor: pointer;
+            font-size: 0.8rem; font-weight: 600; letter-spacing: 0.5px;
+            background: var(--card-bg); border: 1px solid var(--border);
+            color: var(--dim); transition: all 0.25s;
+        }
+        .ltab.active, .ltab:hover {
+            background: rgba(29,185,84,0.1); border-color: rgba(29,185,84,0.3); color: var(--green);
+        }
+        .legal-content {
+            background: var(--card-bg); border: 1px solid var(--border);
+            border-radius: 18px; padding: 36px; display: none;
+        }
+        .legal-content.active { display: block; }
+        .legal-content h3 {
+            font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; font-weight: 700;
+            color: var(--white); margin-bottom: 16px;
+        }
+        .legal-content p, .legal-content li {
+            font-size: 0.85rem; color: var(--dim); line-height: 1.85; margin-bottom: 12px;
+        }
+        .legal-content ul { padding-left: 20px; }
+        .legal-content li { margin-bottom: 6px; }
+        .legal-content h4 { font-size: 0.95rem; color: var(--mist); margin: 20px 0 8px; font-weight: 600; }
+
+        /* ── FOOTER ── */
+        footer {
+            position: relative; z-index: 1;
+            padding: 60px 60px 30px;
+            border-top: 1px solid var(--border);
+            display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 50px;
+        }
+        .f-brand {}
+        .f-logo {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.5rem; font-weight: 900; color: var(--white);
+            margin-bottom: 12px; display: flex; align-items: center; gap: 6px;
+        }
+        .f-logo .z { color: var(--green); }
+        .f-brand p { font-size: 0.83rem; color: rgba(168,230,193,0.45); line-height: 1.75; max-width: 280px; }
+        .f-brand .made-by {
+            display: inline-flex; align-items: center; gap: 6px;
+            margin-top: 16px; background: rgba(11,171,143,0.1);
+            border: 1px solid rgba(11,171,143,0.22); color: var(--teal-light);
+            font-size: 0.72rem; font-weight: 600; letter-spacing: 0.5px;
+            padding: 5px 14px; border-radius: 50px;
+        }
+
+        .f-col h5 {
+            font-size: 0.7rem; font-weight: 700; letter-spacing: 2px;
+            text-transform: uppercase; color: var(--green); margin-bottom: 18px;
+        }
+        .f-col ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+        .f-col a { font-size: 0.83rem; color: rgba(168,230,193,0.45); text-decoration: none; transition: color 0.2s; }
+        .f-col a:hover { color: var(--white); }
+
+        .footer-bottom {
+            position: relative; z-index: 1;
+            text-align: center; padding: 22px 0;
+            border-top: 1px solid rgba(29,185,84,0.07);
+            font-size: 0.75rem; color: rgba(168,230,193,0.28);
+        }
+
+        /* ── REVEAL ── */
+        .reveal { opacity: 0; transform: translateY(28px); transition: all 0.7s cubic-bezier(0.23,1,0.32,1); }
+        .reveal.visible { opacity: 1; transform: none; }
+
+        @keyframes fadeUp { from{opacity:0;transform:translateY(22px)} to{opacity:1;transform:none} }
+
+        /* ── RESPONSIVE ── */
+        @media(max-width:900px){
+            nav { padding: 14px 22px; }
+            .nav-links { display: none; }
+            .section { padding: 60px 22px; }
+            .feat-grid { grid-template-columns: 1fr 1fr; }
+            .ngo-grid { grid-template-columns: 1fr 1fr; }
+            .how-grid { grid-template-columns: 1fr 1fr; }
+            .about-wrap, .contact-wrap { grid-template-columns: 1fr; }
+            footer { grid-template-columns: 1fr; gap: 32px; padding: 44px 22px 26px; }
+            .cta-banner { padding: 38px 26px; margin: 0 18px 60px; }
+            .legal-section { padding: 60px 22px 40px; }
+            .stat { padding: 20px 28px; }
+            .how-grid::before { display: none; }
+        }
+        @media(max-width:600px){
+            .feat-grid, .ngo-grid { grid-template-columns: 1fr; }
+            .how-grid { grid-template-columns: 1fr 1fr; }
+            .about-right { grid-template-columns: 1fr 1fr; }
+            .form-row { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+
+<!-- ── NAV ── -->
+<nav>
+    <div class="nav-logo"><span class="z">Z</span>ephyra</div>
+    <ul class="nav-links">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#how">How It Works</a></li>
+        <li><a href="#partners">Partners</a></li>
+        <li><a href="#about">About</a></li>
+        <li><a href="#contact">Contact</a></li>
+        <li><a href="#legal">Legal</a></li>
+    </ul>
+    <div class="nav-cta">
+        <a href="/login" class="nbtn ghost">Login</a>
+        <a href="/register" class="nbtn fill">Get Started</a>
+    </div>
+</nav>
+
+<!-- ── HERO ── -->
+<section class="hero">
+    <div class="orb orb1"></div>
+    <div class="orb orb2"></div>
+    <div class="orb orb3"></div>
+    <div class="hero-grid"></div>
+
+    <div class="eyebrow"><div class="pulse-dot"></div> Eco Adventure Platform</div>
+
+    <h1>🌏 <span class="accent">Zephyra</span></h1>
+
+    <p class="hero-sub">Learn. Act. Earn. Save the Planet.</p>
+    <p class="hero-quote">"Small steps today create a greener tomorrow."</p>
+
+    <p class="hero-desc">
+        Zephyra is a gamified environmental learning platform designed for students.
+        Complete eco-friendly challenges, earn points, and track your contribution to a sustainable future.
+        Learning about the environment has never been this fun and interactive!
+    </p>
+
+    <div class="college-tag">🎓 Built by college students, for the next generation of changemakers</div>
+
+    <div class="hero-btns">
+        <a href="/login"><button class="btn btn-primary">🚀 Login to Dashboard</button></a>
+        <a href="/register"><button class="btn btn-secondary">✨ Register Free</button></a>
+    </div>
+
+    <div class="stats-row">
+        <div class="stat">
+            <div class="stat-val" data-target="47" data-suffix="K+">0</div>
+            <div class="stat-lbl">Trees Planted</div>
+        </div>
+        <div class="stat">
+            <div class="stat-val" data-target="6" data-suffix=" NGOs">0</div>
+            <div class="stat-lbl">Partner Organisations</div>
+        </div>
+        <div class="stat">
+            <div class="stat-val" data-target="18" data-suffix=" States">0</div>
+            <div class="stat-lbl">Reach Across India</div>
+        </div>
+        <div class="stat">
+            <div class="stat-val" data-target="100" data-suffix="% Free">0</div>
+            <div class="stat-lbl">Always Free for Students</div>
+        </div>
+    </div>
+</section>
+
+<!-- ── TICKER ── -->
+<div class="ticker">
+    <div class="ticker-track">
+        <span class="tick-item">🌿 <strong>Did you know?</strong> Recycling one aluminium can saves enough energy to power a TV for 3 hours</span>
+        <span class="tick-item">🌊 <strong>Ocean Fact:</strong> Over 8 million tonnes of plastic enter our oceans every year</span>
+        <span class="tick-item">🌳 <strong>Green Tip:</strong> Planting trees is one of the most effective ways to combat climate change</span>
+        <span class="tick-item">☀️ <strong>Solar Power:</strong> The sun provides enough energy in one hour to power Earth for a year</span>
+        <span class="tick-item">♻️ <strong>Eco Action:</strong> Switching to reusables eliminates up to 170 plastic bags per person annually</span>
+        <span class="tick-item">🌿 <strong>Did you know?</strong> Recycling one aluminium can saves enough energy to power a TV for 3 hours</span>
+        <span class="tick-item">🌊 <strong>Ocean Fact:</strong> Over 8 million tonnes of plastic enter our oceans every year</span>
+        <span class="tick-item">🌳 <strong>Green Tip:</strong> Planting trees is one of the most effective ways to combat climate change</span>
+        <span class="tick-item">☀️ <strong>Solar Power:</strong> The sun provides enough energy in one hour to power Earth for a year</span>
+        <span class="tick-item">♻️ <strong>Eco Action:</strong> Switching to reusables eliminates up to 170 plastic bags per person annually</span>
+    </div>
+</div>
+
+<!-- ── FEATURES ── -->
+<section class="section" id="features">
+    <div class="s-label">What We Offer</div>
+    <h2 class="s-title">Everything you need to <em>go green</em></h2>
+
+    <div class="feat-grid">
+        <div class="feat-card reveal">
+            <span class="feat-badge">Core</span>
+            <div class="feat-icon">🌍</div>
+            <h3>Eco Challenges</h3>
+            <p>Take part in fun environmental challenges and build sustainable habits — one mission at a time.</p>
+        </div>
+        <div class="feat-card reveal">
+            <span class="feat-badge">Core</span>
+            <div class="feat-icon">🏆</div>
+            <h3>Earn Points</h3>
+            <p>Complete tasks and earn points to track your progress. Rise up the leaderboard and collect eco badges.</p>
+        </div>
+        <div class="feat-card reveal">
+            <span class="feat-badge">Core</span>
+            <div class="feat-icon">📊</div>
+            <h3>Track Impact</h3>
+            <p>Monitor your eco contributions and see your real-world impact through beautiful live dashboards.</p>
+        </div>
+        <div class="feat-card reveal">
+            <div class="feat-icon">🌱</div>
+            <h3>Plant a Tree</h3>
+            <p>Every milestone hit on Zephyra triggers a real-world tree planting through our NGO partners across India.</p>
+        </div>
+        <div class="feat-card reveal">
+            <div class="feat-icon">👥</div>
+            <h3>Team Missions</h3>
+            <p>Form eco squads with your classmates and tackle large-scale environmental missions together.</p>
+        </div>
+        <div class="feat-card reveal">
+            <div class="feat-icon">📚</div>
+            <h3>Eco Learning Hub</h3>
+            <p>Access bite-sized lessons on climate science, biodiversity, and sustainable living — curriculum-aligned.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ── HOW IT WORKS ── -->
+<section class="section" id="how" style="padding-top:0">
+    <div class="s-label">The Journey</div>
+    <h2 class="s-title">How <em>Zephyra</em> works</h2>
+
+    <div class="how-grid">
+        <div class="step reveal">
+            <div class="step-num">1</div>
+            <h4>Create Your Account</h4>
+            <p>Sign up free and set up your eco profile with your institution and grade.</p>
+        </div>
+        <div class="step reveal">
+            <div class="step-num">2</div>
+            <h4>Pick Challenges</h4>
+            <p>Browse daily, weekly and seasonal eco missions tailored to your level.</p>
+        </div>
+        <div class="step reveal">
+            <div class="step-num">3</div>
+            <h4>Complete & Log</h4>
+            <p>Take real-world actions and log them with photos or notes as proof.</p>
+        </div>
+        <div class="step reveal">
+            <div class="step-num">4</div>
+            <h4>Earn & Impact</h4>
+            <p>Collect points, badges, and watch your real planetary impact grow.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ── NGO PARTNERS ── -->
+<section class="section" id="partners" style="padding-top:0">
+    <div class="s-label">Verified Partners</div>
+    <h2 class="s-title">NGOs we <em>work with</em></h2>
+
+    <div class="ngo-grid">
+        <div class="ngo-card reveal">
+            <div class="ngo-top">
+                <div class="ngo-icon">🌳</div>
+                <div>
+                    <div class="ngo-name">Sankalp Taru Foundation</div>
+                    <div class="ngo-region">Pan-India · Est. 2009</div>
+                </div>
+            </div>
+            <p class="ngo-desc">India's largest tree-planting NGO. Every Zephyra milestone directly plants a verified, geo-tagged sapling through their network.</p>
+            <span class="ngo-tag">Tree Planting</span>
+        </div>
+        <div class="ngo-card reveal">
+            <div class="ngo-top">
+                <div class="ngo-icon">🌊</div>
+                <div>
+                    <div class="ngo-name">Reap Benefit</div>
+                    <div class="ngo-region">Bengaluru · Est. 2011</div>
+                </div>
+            </div>
+            <p class="ngo-desc">Youth-led civic environment organisation. Partners with Zephyra on water-body clean-up and urban eco challenges for students.</p>
+            <span class="ngo-tag">Youth Action</span>
+        </div>
+        <div class="ngo-card reveal">
+            <div class="ngo-top">
+                <div class="ngo-icon">♻️</div>
+                <div>
+                    <div class="ngo-name">Chintan Environmental Research</div>
+                    <div class="ngo-region">Delhi · Est. 1999</div>
+                </div>
+            </div>
+            <p class="ngo-desc">Works on waste management and recycling education. Co-creates Zephyra's waste-reduction learning modules.</p>
+            <span class="ngo-tag">Waste Management</span>
+        </div>
+        <div class="ngo-card reveal">
+            <div class="ngo-top">
+                <div class="ngo-icon">🌿</div>
+                <div>
+                    <div class="ngo-name">WWF India</div>
+                    <div class="ngo-region">Pan-India · Est. 1969</div>
+                </div>
+            </div>
+            <p class="ngo-desc">World Wildlife Fund India validates Zephyra's biodiversity content and supports our wildlife conservation challenge tracks.</p>
+            <span class="ngo-tag">Biodiversity</span>
+        </div>
+        <div class="ngo-card reveal">
+            <div class="ngo-top">
+                <div class="ngo-icon">☀️</div>
+                <div>
+                    <div class="ngo-name">TERI — The Energy & Resources Institute</div>
+                    <div class="ngo-region">New Delhi · Est. 1974</div>
+                </div>
+            </div>
+            <p class="ngo-desc">India's premier energy research body. Provides Zephyra's clean energy curriculum and expert-reviewed learning content.</p>
+            <span class="ngo-tag">Clean Energy</span>
+        </div>
+        <div class="ngo-card reveal">
+            <div class="ngo-top">
+                <div class="ngo-icon">💧</div>
+                <div>
+                    <div class="ngo-name">Environics Trust</div>
+                    <div class="ngo-region">Pan-India · Est. 2002</div>
+                </div>
+            </div>
+            <p class="ngo-desc">Works on natural resource rights and eco-justice. Collaborates with Zephyra to bring ground-level environmental awareness to students.</p>
+            <span class="ngo-tag">Eco Justice</span>
+        </div>
+    </div>
+</section>
+
+<!-- ── ABOUT ── -->
+<section class="section" id="about" style="padding-top:0">
+    <div class="s-label">Our Story</div>
+    <h2 class="s-title">Built by students, <em>for change</em></h2>
+    <div class="about-wrap">
+        <div class="about-left">
+            <p>Zephyra was born inside a college classroom — not a corporate boardroom. We are a team of AIML undergraduate students who looked at the world around us and decided we didn't want to wait for someone else to fix it.</p>
+            <p>We built this platform because we believe <strong>young people are not the problem — they are the solution.</strong> Zephyra is our attempt to channel that energy, curiosity, and urgency into real, measurable action.</p>
+            <p>From coding late into the night to cold-emailing NGOs and designing challenges around real environmental issues — every bit of Zephyra was put together by people who genuinely care. We are not a startup. We are not funded. <strong>We are just students who wanted to make a difference among young minds.</strong></p>
+            <p>And we're just getting started. 🌱</p>
+        </div>
+        <div class="about-right">
+            <div class="about-pill reveal">
+                <div class="ap-icon">🎓</div>
+                <div class="ap-label">College-built Project</div>
+            </div>
+            <div class="about-pill reveal">
+                <div class="ap-icon">💚</div>
+                <div class="ap-label">Passion-driven</div>
+            </div>
+            <div class="about-pill reveal">
+                <div class="ap-icon">🤝</div>
+                <div class="ap-label">NGO Verified</div>
+            </div>
+            <div class="about-pill reveal">
+                <div class="ap-icon">🌍</div>
+                <div class="ap-label">Real-world Impact</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── CTA BANNER ── -->
+<div class="cta-banner reveal">
+    <div class="cta-text">
+        <h2>Ready to make a real<br>difference? 🌿</h2>
+        <p>Join the movement of young people across India who are taking action, completing challenges, and building a greener future — one step at a time. Your journey starts today.</p>
+    </div>
+    <div class="cta-btns">
+        <a href="/register"><button class="btn btn-primary">Join the Movement</button></a>
+        <a href="/login"><button class="btn btn-secondary">Sign In</button></a>
+    </div>
+</div>
+
+<!-- ── CONTACT ── -->
+<section class="section" id="contact">
+    <div class="s-label">Get In Touch</div>
+    <h2 class="s-title">We'd love to <em>hear from you</em></h2>
+    <div class="contact-wrap">
+        <div class="contact-info">
+            <p>Whether you're a student, teacher, NGO, or just someone who cares about the planet — reach out. We're a small team and we read every message personally.</p>
+            <div class="c-item">
+                <div class="c-icon">📧</div>
+                <div class="c-detail">
+                    <label>Email</label>
+                    <span><a href="mailto:zephyrarespawn@gmail.com">zephyrarespawn@gmail.com</a></span>
+                </div>
+            </div>
+            <div class="c-item">
+                <div class="c-icon">🎓</div>
+                <div class="c-detail">
+                    <label>Institution</label>
+                    <span>Rathinam Technical Campus — India</span>
+                </div>
+            </div>
+            <div class="c-item">
+                <div class="c-icon">🤝</div>
+                <div class="c-detail">
+                    <label>NGO / Partnership Enquiries</label>
+                    <span><a href="mailto:zephyrarespawn@gmail.com">zephyrarespawn@gmail.com</a></span>
+                </div>
+            </div>
+            <div class="c-item">
+                <div class="c-icon">⏱️</div>
+                <div class="c-detail">
+                    <label>Response Time</label>
+                    <span>Usually within 24–48 hours</span>
+                </div>
+            </div>
+        </div>
+
+        <form class="contact-form" onsubmit="handleSubmit(event)">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Your Name</label>
+                    <input type="text" placeholder="e.g. baasha" required />
+                </div>
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" placeholder="antony@email.com" required />
+                </div>
+            </div>
+            <div class="form-group">
+                <label>I am a...</label>
+                <select>
+                    <option value="">Select your role</option>
+                    <option>Student</option>
+                    <option>Teacher / Educator</option>
+                    <option>NGO Representative</option>
+                    <option>Institution / College</option>
+                    <option>Just a curious human 🌿</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Subject</label>
+                <input type="text" placeholder="What's it about?" required />
+            </div>
+            <div class="form-group">
+                <label>Message</label>
+                <textarea placeholder="Tell us what's on your mind..." required></textarea>
+            </div>
+            <button type="submit" class="submit-btn" id="submit-btn">
+                <span id="btn-text">Send Message 🌱</span>
+            </button>
+            <p id="form-success" style="display:none; color:var(--green); font-size:0.88rem; margin-top:4px;">✅ Message sent! We'll get back to you soon.</p>
+        </form>
+    </div>
+</section>
+
+<!-- ── LEGAL ── -->
+<section class="legal-section" id="legal">
+    <div class="s-label">Legal</div>
+    <h2 class="s-title" style="margin-bottom:32px">Our <em>policies</em></h2>
+
+    <div class="legal-tabs">
+        <div class="ltab active" onclick="showLegal('privacy', this)">Privacy Policy</div>
+        <div class="ltab" onclick="showLegal('terms', this)">Terms of Service</div>
+        <div class="ltab" onclick="showLegal('cookies', this)">Cookie Policy</div>
+    </div>
+
+    <div id="legal-privacy" class="legal-content active">
+        <h3>Privacy Policy</h3>
+        <p><em>Last updated: January 2026</em></p>
+        <p>Zephyra is a student-built project. We are committed to being transparent about the data we collect and how we use it.</p>
+        <h4>What We Collect</h4>
+        <ul>
+            <li>Basic account information: name, email address, institution name, and grade.</li>
+            <li>Activity data: challenges completed, points earned, and eco logs submitted.</li>
+            <li>Usage data: pages visited, time spent on the platform (anonymous analytics only).</li>
+        </ul>
+        <h4>How We Use Your Data</h4>
+        <ul>
+            <li>To operate your account and display your progress.</li>
+            <li>To calculate and display leaderboard rankings.</li>
+            <li>To send platform-related notifications (no marketing spam).</li>
+        </ul>
+        <h4>What We Don't Do</h4>
+        <ul>
+            <li>We do not sell your personal data to any third party.</li>
+            <li>We do not share your data with advertisers.</li>
+            <li>We do not store payment information — Zephyra is free.</li>
+        </ul>
+        <p>For questions, write to us at <a href="mailto:hello@zephyra.in" style="color:var(--teal-light)">hello@zephyra.in</a>.</p>
+    </div>
+
+    <div id="legal-terms" class="legal-content">
+        <h3>Terms of Service</h3>
+        <p><em>Last updated: January 2026</em></p>
+        <p>By using Zephyra, you agree to these terms. Please read them — they're short, we promise.</p>
+        <h4>Eligibility</h4>
+        <ul>
+            <li>Zephyra is intended for students aged 13 and above.</li>
+            <li>Users under 18 should have parental or guardian awareness of their participation.</li>
+        </ul>
+        <h4>User Conduct</h4>
+        <ul>
+            <li>You agree to submit honest eco logs — don't fake challenge completions.</li>
+            <li>You will not upload offensive, harmful, or misleading content.</li>
+            <li>You will treat other users and the community with respect.</li>
+        </ul>
+        <h4>Our Rights</h4>
+        <ul>
+            <li>We reserve the right to suspend or remove accounts that violate these terms.</li>
+            <li>Zephyra content (challenges, lessons, design) is the intellectual property of the Zephyra team.</li>
+        </ul>
+        <p>This is a student project provided in good faith. We are not legally liable for technical downtime or data errors, though we will always do our best to resolve issues promptly.</p>
+    </div>
+
+    <div id="legal-cookies" class="legal-content">
+        <h3>Cookie Policy</h3>
+        <p><em>Last updated: January 2026</em></p>
+        <p>Zephyra uses a minimal number of cookies to keep the platform functional and improve your experience.</p>
+        <h4>Cookies We Use</h4>
+        <ul>
+            <li><strong>Session cookies:</strong> Keep you logged in during your visit. These expire when you close your browser.</li>
+            <li><strong>Preference cookies:</strong> Remember your settings (e.g. dark mode, language). Stored for up to 30 days.</li>
+            <li><strong>Analytics cookies:</strong> Anonymous usage data via a privacy-respecting analytics tool. No personal identifiers are tracked.</li>
+        </ul>
+        <h4>What We Don't Use</h4>
+        <ul>
+            <li>No third-party advertising cookies.</li>
+            <li>No social media tracking pixels.</li>
+            <li>No cross-site tracking of any kind.</li>
+        </ul>
+        <p>You can disable cookies in your browser settings, though some features may not work as expected.</p>
+    </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer>
+    <div class="f-brand">
+        <div class="f-logo"><span class="z">Z</span>ephyra</div>
+        <p>A gamified environmental platform helping students take real action and build a sustainable future — built by college students who believe young minds can change the world.</p>
+        <div class="made-by">🎓 Made by college students · India</div>
+    </div>
+
+    <div class="f-col">
+        <h5>Platform</h5>
+        <ul>
+            <li><a href="#features">Eco Challenges</a></li>
+            <li><a href="#features">Leaderboard</a></li>
+            <li><a href="#features">Learning Hub</a></li>
+            <li><a href="/login">My Dashboard</a></li>
+        </ul>
+    </div>
+
+    <div class="f-col">
+        <h5>Organisation</h5>
+        <ul>
+            <li><a href="#about">About Us</a></li>
+            <li><a href="#partners">NGO Partners</a></li>
+            <li><a href="#contact">Contact</a></li>
+            <li><a href="#legal">Privacy Policy</a></li>
+            <li><a href="#legal">Terms of Service</a></li>
+        </ul>
+    </div>
+</footer>
+
+<div class="footer-bottom">
+    © 2026 Zephyra — Eco Adventure. Made with 💚 by college students, for a greener planet.
+</div>
+
+<script>
+// ── PARTICLE CANVAS ──
+const canvas = document.getElementById('bg-canvas');
+const ctx = canvas.getContext('2d');
+let W, H, particles = [];
+
+function resize() { W = canvas.width = innerWidth; H = canvas.height = innerHeight; }
+resize(); window.addEventListener('resize', resize);
+
+class P {
+    constructor() { this.init(); }
+    init() {
+        this.x = Math.random() * W;
+        this.y = Math.random() * H;
+        this.r = Math.random() * 2 + 0.4;
+        this.sx = (Math.random() - 0.5) * 0.25;
+        this.sy = -(Math.random() * 0.35 + 0.08);
+        this.o = Math.random() * 0.45 + 0.08;
+        this.c = Math.random() > 0.5 ? '29,185,84' : '11,171,143';
+    }
+    update() { this.x += this.sx; this.y += this.sy; if (this.y < -4) this.init(); }
+    draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${this.c},${this.o})`;
+        ctx.fill();
+    }
+}
+
+for (let i = 0; i < 90; i++) particles.push(new P());
+
+(function loop() {
+    ctx.clearRect(0, 0, W, H);
+    particles.forEach(p => { p.update(); p.draw(); });
+    requestAnimationFrame(loop);
+})();
+
+// ── SCROLL REVEAL ──
+const obs = new IntersectionObserver(entries => {
+    entries.forEach((e, i) => {
+        if (e.isIntersecting) {
+            setTimeout(() => e.target.classList.add('visible'), i * 70);
+            obs.unobserve(e.target);
+        }
+    });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+// ── COUNTER ANIMATION ──
+const statsObs = new IntersectionObserver(entries => {
+    if (!entries[0].isIntersecting) return;
+    document.querySelectorAll('.stat-val[data-target]').forEach(el => {
+        const target = parseFloat(el.dataset.target);
+        const suffix = el.dataset.suffix;
+        let cur = 0, steps = 60;
+        const inc = target / steps;
+        const t = setInterval(() => {
+            cur += inc;
+            if (cur >= target) { el.textContent = target + suffix; clearInterval(t); return; }
+            el.textContent = (Number.isInteger(target) ? Math.floor(cur) : cur.toFixed(1)) + suffix;
+        }, 22);
+    });
+    statsObs.disconnect();
+}, { threshold: 0.5 });
+const statsEl = document.querySelector('.stats-row');
+if (statsEl) statsObs.observe(statsEl);
+
+// ── LEGAL TABS ──
+function showLegal(id, el) {
+    document.querySelectorAll('.legal-content').forEach(c => c.classList.remove('active'));
+    document.querySelectorAll('.ltab').forEach(t => t.classList.remove('active'));
+    document.getElementById('legal-' + id).classList.add('active');
+    el.classList.add('active');
+}
+
+// ── CONTACT FORM ──
+function handleSubmit(e) {
+    e.preventDefault();
+    const btn = document.getElementById('submit-btn');
+    const txt = document.getElementById('btn-text');
+    btn.style.opacity = '0.6'; btn.disabled = true;
+    txt.textContent = 'Sending...';
+    setTimeout(() => {
+        btn.style.display = 'none';
+        document.getElementById('form-success').style.display = 'block';
+    }, 1400);
+}
+</script>
+
+</body>
+</html>

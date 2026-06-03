@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Eco Puzzle</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial;
+    background:linear-gradient(135deg,#eef5f1,#dfeee7);
+}
+
+/* 🔝 TOP BAR */
+.top-bar{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+    margin-top:30px;  /* ⭐ move down */
+}
+
+/* 🔙 BACK BUTTON */
+.back-btn{
+    position:absolute;
+    left:30px;
+    padding:10px 18px;
+    border:none;
+    border-radius:10px;
+    background:#4caf50;
+    color:white;
+    cursor:pointer;
+}
+
+/* 🌿 TITLE */
+h1{
+    margin:0;
+    color:#2e7d32;
+}
+
+/* 📦 CENTER AREA */
+.container{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:70vh;   /* ⭐ perfect vertical center */
+}
+
+/* 🧩 CARDS */
+.cards{
+    display:flex;
+    gap:60px;
+}
+
+/* 🧱 CARD */
+.card{
+    background:white;
+    padding:45px;
+    border-radius:20px;
+    width:260px;
+    text-align:center;
+    cursor:pointer;
+    transition:0.3s;
+    box-shadow:0 10px 25px rgba(0,0,0,0.15);
+}
+
+.card:hover{
+    background:#c8e6c9;
+    transform:translateY(-10px);
+}
+
+.card h3{
+    margin:10px 0;
+    font-size:24px;
+}
+
+.card p{
+    color:#555;
+    font-size:17px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="top-bar">
+    <button class="back-btn" onclick="goBack()">⬅ Back</button>
+    <h1>🌿 Choose Your Level</h1>
+</div>
+
+<div class="container">
+    <div class="cards">
+
+        <div class="card" onclick="go(3)">
+            <h3>Easy</h3>
+            <p>3x3 • 2 mins</p>
+        </div>
+
+        <div class="card" onclick="go(4)">
+            <h3>Medium</h3>
+            <p>4x4 • 7 mins</p>
+        </div>
+
+        <div class="card" onclick="go(5)">
+            <h3>Hard</h3>
+            <p>5x5 • 12 mins</p>
+        </div>
+
+    </div>
+</div>
+
+<script>
+function go(level){
+    window.location.href = "/puzzle?size=" + level + "&name={{ name }}&role={{ role }}";
+}
+
+function goBack(){
+    window.location.href = "/game/{{ name }}/{{ role }}";
+}
+</script>
+
+</body>
+</html>

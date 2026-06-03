@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coral Builder 🪸</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Raleway:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ocean-deep: #020b18;
+    --ocean-mid: #041e36;
+    --ocean-light: #062d52;
+    --coral-red: #ff4d4d;
+    --coral-orange: #ff7a3d;
+    --coral-pink: #ff6b9d;
+    --coral-yellow: #ffd166;
+    --coral-purple: #c77dff;
+    --coral-teal: #06d6a0;
+    --sand: #f4d58d;
+    --water-blue: #48cae4;
+    --glow-cyan: #00f5ff;
+    --text-light: #e0f7fa;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--ocean-deep);
+    font-family: 'Raleway', sans-serif;
+    color: var(--text-light);
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+    user-select: none;
+  }
+  #ocean-bg {
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(180deg,#020b18 0%,#041e36 30%,#062d52 60%,#0a3f6e 80%,#1a5276 100%);
+    z-index: 0;
+  }
+  .bubble {
+    position: fixed;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, rgba(72,202,228,0.4), rgba(72,202,228,0.05));
+    border: 1px solid rgba(72,202,228,0.3);
+    animation: floatUp linear infinite;
+    z-index: 1;
+    pointer-events: none;
+  }
+  @keyframes floatUp {
+    0% { transform: translateY(100vh) scale(1); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 0.6; }
+    100% { transform: translateY(-100px) scale(1.2); opacity: 0; }
+  }
+  .light-ray {
+    position: fixed;
+    top: -100px;
+    width: 3px;
+    height: 70vh;
+    background: linear-gradient(180deg, rgba(72,202,228,0.15), transparent);
+    transform-origin: top center;
+    animation: sway ease-in-out infinite alternate;
+    z-index: 1;
+    pointer-events: none;
+  }
+  @keyframes sway {
+    from { transform: rotate(-5deg) scaleX(1); }
+    to { transform: rotate(5deg) scaleX(3); }
+  }
+  #game-container {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100vw;
+  }
+  #header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 24px;
+    background: rgba(2,11,24,0.7);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(0,245,255,0.2);
+    flex-shrink: 0;
+  }
+  #header h1 {
+    font-family: 'Cinzel', serif;
+    font-size: 1.6rem;
+    font-weight: 900;
+    background: linear-gradient(90deg, var(--glow-cyan), var(--coral-pink), var(--coral-orange));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 2px;
+  }
+  #stats { display: flex; gap: 24px; align-items: center; }
+  .stat-box {
+    text-align: center;
+    background: rgba(0,245,255,0.05);
+    border: 1px solid rgba(0,245,255,0.2);
+    border-radius: 10px;
+    padding: 6px 16px;
+    min-width: 80px;
+  }
+  .stat-label { font-size: 0.6rem; letter-spacing: 2px; text-transform: uppercase; color: var(--glow-cyan); opacity: 0.7; }
+  .stat-value { font-family: 'Cinzel', serif; font-size: 1.1rem; font-weight: 700; color: var(--glow-cyan); }
+  #main-area { display: flex; flex: 1; overflow: hidden; }
+  #tool-panel {
+    width: 110px;
+    background: rgba(2,11,24,0.8);
+    backdrop-filter: blur(10px);
+    border-right: 1px solid rgba(0,245,255,0.15);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px 8px;
+    gap: 10px;
+    overflow-y: auto;
+    flex-shrink: 0;
+  }
+  .panel-label { font-size: 0.55rem; letter-spacing: 2px; text-transform: uppercase; color: rgba(0,245,255,0.5); margin-top: 8px; text-align: center; }
+  .tool-btn {
+    width: 80px; height: 70px;
+    border-radius: 12px;
+    border: 2px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.04);
+    cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+    transition: all 0.2s ease;
+  }
+  .tool-btn:hover { transform: scale(1.05); border-color: rgba(0,245,255,0.4); background: rgba(0,245,255,0.08); }
+  .tool-btn.active { border-color: var(--glow-cyan); background: rgba(0,245,255,0.15); box-shadow: 0 0 15px rgba(0,245,255,0.3); }
+  .tool-btn .tool-icon { font-size: 1.8rem; line-height: 1; }
+  .tool-btn .tool-name { font-size: 0.55rem; letter-spacing: 1px; text-transform: uppercase; opacity: 0.8; text-align: center; }
+  .tool-btn .tool-cost { font-size: 0.6rem; color: var(--coral-yellow); font-weight: 600; }
+  .divider { width: 60px; height: 1px; background: rgba(0,245,255,0.15); margin: 4px 0; }
+  #canvas-area { flex: 1; position: relative; overflow: hidden; }
+  #game-canvas { display: block; cursor: crosshair; }
+  #info-panel {
+    width: 200px;
+    background: rgba(2,11,24,0.8);
+    backdrop-filter: blur(10px);
+    border-left: 1px solid rgba(0,245,255,0.15);
+    padding: 16px 12px;
+    display: flex; flex-direction: column; gap: 12px;
+    overflow-y: auto; flex-shrink: 0;
+  }
+  .info-title { font-family: 'Cinzel', serif; font-size: 0.75rem; letter-spacing: 2px; color: var(--glow-cyan); text-transform: uppercase; border-bottom: 1px solid rgba(0,245,255,0.2); padding-bottom: 6px; }
+  .info-text { font-size: 0.7rem; line-height: 1.6; color: rgba(224,247,250,0.75); }
+  .resource-bar { background: rgba(255,255,255,0.05); border-radius: 8px; padding: 8px; border: 1px solid rgba(255,255,255,0.08); }
+  .resource-name { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; color: rgba(224,247,250,0.6); }
+  .resource-fill-bg { height: 8px; border-radius: 4px; background: rgba(255,255,255,0.08); overflow: hidden; }
+  .resource-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease; }
+  .resource-val { font-size: 0.65rem; text-align: right; margin-top: 2px; font-weight: 600; }
+  #msg-area { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); pointer-events: none; z-index: 50; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .msg { background: rgba(0,245,255,0.15); border: 1px solid rgba(0,245,255,0.4); backdrop-filter: blur(8px); border-radius: 20px; padding: 8px 20px; font-size: 0.8rem; color: var(--glow-cyan); animation: msgFade 2.5s ease forwards; white-space: nowrap; }
+  @keyframes msgFade { 0%{opacity:0;transform:translateY(10px)} 15%{opacity:1;transform:translateY(0)} 70%{opacity:1} 100%{opacity:0;transform:translateY(-10px)} }
+  .overlay { position: fixed; inset: 0; background: rgba(2,11,24,0.92); backdrop-filter: blur(12px); z-index: 100; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 20px; }
+  .overlay h2 { font-family: 'Cinzel', serif; font-size: 2.5rem; background: linear-gradient(90deg, var(--glow-cyan), var(--coral-pink)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-align: center; }
+  .overlay p { font-size: 0.95rem; color: rgba(224,247,250,0.75); text-align: center; max-width: 400px; line-height: 1.8; }
+  .btn-primary { padding: 14px 40px; border-radius: 40px; border: 2px solid var(--glow-cyan); background: rgba(0,245,255,0.1); color: var(--glow-cyan); font-family: 'Cinzel', serif; font-size: 1rem; letter-spacing: 2px; cursor: pointer; transition: all 0.3s ease; margin-top: 8px; }
+  .btn-primary:hover { background: rgba(0,245,255,0.25); box-shadow: 0 0 30px rgba(0,245,255,0.4); transform: scale(1.04); }
+  .score-display { font-family: 'Cinzel', serif; font-size: 3rem; color: var(--coral-yellow); text-shadow: 0 0 30px rgba(255,209,102,0.5); }
+  #wave-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 6px; background: linear-gradient(90deg, var(--coral-teal), var(--water-blue), var(--glow-cyan), var(--coral-teal)); background-size: 200% 100%; animation: waveShift 3s linear infinite; z-index: 5; }
+  @keyframes waveShift { from{background-position:0% 50%} to{background-position:200% 50%} }
+  #tooltip { position: fixed; background: rgba(2,11,24,0.9); border: 1px solid rgba(0,245,255,0.3); border-radius: 8px; padding: 6px 12px; font-size: 0.7rem; color: var(--glow-cyan); pointer-events: none; z-index: 200; display: none; white-space: nowrap; }
+  #timer-bar-bg { width: 100%; height: 5px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; margin-top: 4px; }
+  #timer-bar { height: 100%; background: linear-gradient(90deg, var(--coral-teal), var(--glow-cyan)); border-radius: 3px; transition: width 1s linear; }
+  .btn-secondary { padding: 8px 24px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); color: rgba(224,247,250,0.7); font-family: 'Raleway', sans-serif; font-size: 0.8rem; cursor: pointer; transition: all 0.3s ease; }
+  .btn-secondary:hover { background: rgba(255,255,255,0.1); color: white; }
+  .fish-anim { position: fixed; font-size: 1.4rem; pointer-events: none; z-index: 3; animation: swimFish linear infinite; }
+  @keyframes swimFish { from{transform:translateX(-80px)} to{transform:translateX(calc(100vw + 80px))} }
+</style>
+</head>
+<body>
+<div id="ocean-bg"></div>
+<div id="wave-bar"></div>
+<div id="tooltip"></div>
+
+<!-- START OVERLAY -->
+<div class="overlay" id="start-overlay">
+  <h2>🪸 CORAL BUILDER</h2>
+  <p>Restore the ocean's reef ecosystem! Place corals, attract fish, and build a thriving underwater world. Manage your resources wisely before time runs out.</p>
+  <div style="display:flex;gap:24px;flex-wrap:wrap;justify-content:center;margin-top:8px;">
+    <div style="text-align:center;font-size:0.75rem;color:rgba(224,247,250,0.6);">🪸 Place Corals</div>
+    <div style="text-align:center;font-size:0.75rem;color:rgba(224,247,250,0.6);">🐠 Attract Fish</div>
+    <div style="text-align:center;font-size:0.75rem;color:rgba(224,247,250,0.6);">🌿 Grow Algae</div>
+    <div style="text-align:center;font-size:0.75rem;color:rgba(224,247,250,0.6);">✨ Earn Points</div>
+  </div>
+  <button class="btn-primary" onclick="startGame()">DIVE IN</button>
+</div>
+
+<!-- GAME OVER OVERLAY -->
+<div class="overlay" id="gameover-overlay" style="display:none;">
+  <h2 id="go-title">REEF COMPLETE!</h2>
+  <div class="score-display" id="go-score">0</div>
+  <p id="go-msg">Your reef thrived with life and color!</p>
+  <button class="btn-primary" onclick="restartGame()">DIVE AGAIN</button>
+</div>
+
+<!-- MAIN GAME -->
+<div id="game-container" style="display:none;">
+  <div id="header">
+    <h1>🪸 CORAL BUILDER</h1>
+    <div id="stats">
+      <div class="stat-box"><div class="stat-label">Score</div><div class="stat-value" id="score-disp">0</div></div>
+      <div class="stat-box"><div class="stat-label">Reef Health</div><div class="stat-value" id="health-disp">100%</div></div>
+      <div class="stat-box" style="min-width:120px;">
+        <div class="stat-label">Time Left</div>
+        <div class="stat-value" id="time-disp">3:00</div>
+        <div id="timer-bar-bg"><div id="timer-bar" style="width:100%"></div></div>
+      </div>
+    </div>
+    <button class="btn-secondary" onclick="endGame(false)">Quit</button>
+  </div>
+  <div id="main-area">
+    <div id="tool-panel">
+      <div class="panel-label">BUILD</div>
+      <div class="tool-btn active" id="tool-brain" onclick="selectTool('brain')" onmouseenter="showTip(event,'Brain Coral — 20pts, costs 3 nutrients')" onmouseleave="hideTip()">
+        <span class="tool-icon">🪸</span><span class="tool-name">Brain</span><span class="tool-cost">💧3</span>
+      </div>
+      <div class="tool-btn" id="tool-fan" onclick="selectTool('fan')" onmouseenter="showTip(event,'Sea Fan — 15pts, costs 2 nutrients')" onmouseleave="hideTip()">
+        <span class="tool-icon">🌸</span><span class="tool-name">Sea Fan</span><span class="tool-cost">💧2</span>
+      </div>
+      <div class="tool-btn" id="tool-staghorn" onclick="selectTool('staghorn')" onmouseenter="showTip(event,'Staghorn — 25pts, costs 5 nutrients')" onmouseleave="hideTip()">
+        <span class="tool-icon">🌿</span><span class="tool-name">Staghorn</span><span class="tool-cost">💧5</span>
+      </div>
+      <div class="tool-btn" id="tool-mushroom" onclick="selectTool('mushroom')" onmouseenter="showTip(event,'Mushroom Coral — 18pts, low cost')" onmouseleave="hideTip()">
+        <span class="tool-icon">🍄</span><span class="tool-name">Mushroom</span><span class="tool-cost">💧2</span>
+      </div>
+      <div class="divider"></div>
+      <div class="panel-label">LIFE</div>
+      <div class="tool-btn" id="tool-fish" onclick="selectTool('fish')" onmouseenter="showTip(event,'Clownfish — 30pts near coral')" onmouseleave="hideTip()">
+        <span class="tool-icon">🐠</span><span class="tool-name">Clownfish</span><span class="tool-cost">💧4</span>
+      </div>
+      <div class="tool-btn" id="tool-turtle" onclick="selectTool('turtle')" onmouseenter="showTip(event,'Sea Turtle — 50pts, boosts nearby corals')" onmouseleave="hideTip()">
+        <span class="tool-icon">🐢</span><span class="tool-name">Turtle</span><span class="tool-cost">💧8</span>
+      </div>
+      <div class="tool-btn" id="tool-seahorse" onclick="selectTool('seahorse')" onmouseenter="showTip(event,'Seahorse — 35pts + 5 nutrient bonus')" onmouseleave="hideTip()">
+        <span class="tool-icon">🦄</span><span class="tool-name">Seahorse</span><span class="tool-cost">💧5</span>
+      </div>
+      <div class="divider"></div>
+      <div class="panel-label">CLEAN</div>
+      <div class="tool-btn" id="tool-clean" onclick="selectTool('clean')" onmouseenter="showTip(event,'Clean pollution — restore +3 nutrients')" onmouseleave="hideTip()">
+        <span class="tool-icon">✨</span><span class="tool-name">Clean</span><span class="tool-cost">Free</span>
+      </div>
+      <div class="tool-btn" id="tool-remove" onclick="selectTool('remove')" onmouseenter="showTip(event,'Remove item — refund 50% nutrients')" onmouseleave="hideTip()">
+        <span class="tool-icon">🗑️</span><span class="tool-name">Remove</span><span class="tool-cost">Free</span>
+      </div>
+    </div>
+
+    <div id="canvas-area">
+      <canvas id="game-canvas"></canvas>
+      <div id="msg-area"></div>
+    </div>
+
+    <div id="info-panel">
+      <div class="info-title">Reef Status</div>
+      <div class="resource-bar">
+        <div class="resource-name">💧 Nutrients</div>
+        <div class="resource-fill-bg"><div class="resource-fill" id="nutrient-fill" style="width:50%;background:linear-gradient(90deg,#48cae4,#00f5ff)"></div></div>
+        <div class="resource-val" id="nutrient-val" style="color:#48cae4;">25/50</div>
+      </div>
+      <div class="resource-bar">
+        <div class="resource-name">🌡️ Temperature</div>
+        <div class="resource-fill-bg"><div class="resource-fill" id="temp-fill" style="width:60%;background:linear-gradient(90deg,#06d6a0,#ffd166)"></div></div>
+        <div class="resource-val" id="temp-val" style="color:#06d6a0;">Good</div>
+      </div>
+      <div class="resource-bar">
+        <div class="resource-name">☀️ Sunlight</div>
+        <div class="resource-fill-bg"><div class="resource-fill" id="sun-fill" style="width:70%;background:linear-gradient(90deg,#ffd166,#ffb347)"></div></div>
+        <div class="resource-val" id="sun-val" style="color:#ffd166;">70%</div>
+      </div>
+      <div class="info-title" style="margin-top:8px;">Current Tool</div>
+      <div id="tool-info" style="font-size:0.75rem;color:rgba(224,247,250,0.8);line-height:1.6;">
+        🪸 Brain Coral<br>Cost: 3 nutrients<br>Points: 20<br><br>Click on the seafloor to place!
+      </div>
+      <div class="info-title" style="margin-top:8px;">Tips</div>
+      <div class="info-text">
+        • Place corals close together for synergy bonus<br>
+        • Fish boost nearby coral health<br>
+        • Clean pollution to restore nutrients<br>
+        • Turtles give big point multipliers
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function createAmbient() {
+  for (let i = 0; i < 18; i++) {
+    const b = document.createElement('div');
+    b.className = 'bubble';
+    const s = 4 + Math.random() * 14;
+    b.style.cssText = `width:${s}px;height:${s}px;left:${Math.random()*100}%;animation-duration:${5+Math.random()*10}s;animation-delay:${Math.random()*8}s;`;
+    document.body.appendChild(b);
+  }
+  for (let i = 0; i < 5; i++) {
+    const r = document.createElement('div');
+    r.className = 'light-ray';
+    r.style.cssText = `left:${10+i*18}%;animation-duration:${4+Math.random()*4}s;animation-delay:${Math.random()*3}s;`;
+    document.body.appendChild(r);
+  }
+})();
+
+function spawnFish() {
+  const emojis = ['🐠','🐡','🐟','🦈','🐙','🦑','🦀','🦞'];
+  const f = document.createElement('div');
+  f.className = 'fish-anim';
+  f.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+  f.style.cssText = `top:${40+Math.random()*40}%;animation-duration:${10+Math.random()*15}s;`;
+  document.body.appendChild(f);
+  setTimeout(() => f.remove(), 30000);
+}
+setInterval(spawnFish, 4000);
+
+const GRID_COLS = 20, GRID_ROWS = 12;
+let canvas, ctx, canvasW, canvasH, cellW, cellH;
+
+let G = {};
+
+const TOOLS = {
+  brain:    { icon:'🪸', name:'Brain Coral',   cost:3, points:20, color:'#ff6b9d' },
+  fan:      { icon:'🌸', name:'Sea Fan',        cost:2, points:15, color:'#c77dff' },
+  staghorn: { icon:'🌿', name:'Staghorn Coral', cost:5, points:25, color:'#06d6a0' },
+  mushroom: { icon:'🍄', name:'Mushroom Coral', cost:2, points:18, color:'#ff7a3d' },
+  fish:     { icon:'🐠', name:'Clownfish',       cost:4, points:30, color:'#ffd166' },
+  turtle:   { icon:'🐢', name:'Sea Turtle',      cost:8, points:50, color:'#06d6a0' },
+  seahorse: { icon:'🦄', name:'Seahorse',        cost:5, points:35, color:'#48cae4' },
+  clean:    { icon:'✨', name:'Clean',           cost:0, points:5,  color:'#ffffff' },
+  remove:   { icon:'🗑️', name:'Remove',          cost:0, points:0,  color:'#ff4d4d' }
+};
+
+let nutrientTimer = 0, pollutionTimer = 0, lastTime = 0, animId;
+
+function initGrid() {
+  G.grid = Array.from({length:GRID_ROWS}, () => Array(GRID_COLS).fill(null));
+  G.pollution = [];
+  for (let i = 0; i < 8; i++) spawnPollution();
+}
+
+function spawnPollution() {
+  const c = Math.floor(Math.random()*GRID_COLS);
+  const r = Math.floor(Math.random()*GRID_ROWS);
+  if (!G.grid[r][c] && !G.pollution.some(p=>p.r===r&&p.c===c))
+    G.pollution.push({r,c});
+}
+
+function setupCanvas() {
+  canvas = document.getElementById('game-canvas');
+  ctx = canvas.getContext('2d');
+  const area = document.getElementById('canvas-area');
+  canvasW = area.clientWidth; canvasH = area.clientHeight;
+  canvas.width = canvasW; canvas.height = canvasH;
+  cellW = Math.floor(canvasW/GRID_COLS); cellH = Math.floor(canvasH/GRID_ROWS);
+}
+
+function selectTool(tool) {
+  G.selectedTool = tool;
+  document.querySelectorAll('.tool-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tool-'+tool).classList.add('active');
+  const t = TOOLS[tool];
+  document.getElementById('tool-info').innerHTML =
+    `${t.icon} ${t.name}<br>Cost: ${t.cost||'Free'} nutrients<br>Points: +${t.points}<br><br>Click the reef to place!`;
+}
+
+function showTip(e, text) {
+  const tip = document.getElementById('tooltip');
+  tip.textContent = text; tip.style.display = 'block';
+  tip.style.left = (e.clientX+14)+'px'; tip.style.top = (e.clientY-30)+'px';
+}
+function hideTip() { document.getElementById('tooltip').style.display='none'; }
+
+function showMsg(text) {
+  const area = document.getElementById('msg-area');
+  const m = document.createElement('div');
+  m.className = 'msg'; m.textContent = text;
+  area.appendChild(m);
+  setTimeout(()=>m.remove(), 2600);
+}
+
+function hasPoll(r,c) { return G.pollution.some(p=>p.r===r&&p.c===c); }
+
+function getNeighbors(r,c) {
+  const nb = [];
+  for(let dr=-1;dr<=1;dr++) for(let dc=-1;dc<=1;dc++) {
+    if(dr===0&&dc===0) continue;
+    const nr=r+dr, nc=c+dc;
+    if(nr>=0&&nr<GRID_ROWS&&nc>=0&&nc<GRID_COLS&&G.grid[nr][nc]) nb.push(G.grid[nr][nc]);
+  }
+  return nb;
+}
+
+function render() {
+  if (!ctx) return;
+  ctx.clearRect(0,0,canvasW,canvasH);
+
+  const grad = ctx.createLinearGradient(0,0,0,canvasH);
+  grad.addColorStop(0,'rgba(4,30,54,0)');
+  grad.addColorStop(0.7,'rgba(10,40,70,0.3)');
+  grad.addColorStop(1,'rgba(30,60,40,0.5)');
+  ctx.fillStyle = grad; ctx.fillRect(0,0,canvasW,canvasH);
+
+  const sandGrad = ctx.createLinearGradient(0,canvasH*0.85,0,canvasH);
+  sandGrad.addColorStop(0,'rgba(180,140,80,0.0)');
+  sandGrad.addColorStop(1,'rgba(180,140,80,0.25)');
+  ctx.fillStyle = sandGrad; ctx.fillRect(0,canvasH*0.85,canvasW,canvasH*0.15);
+
+  ctx.strokeStyle='rgba(0,245,255,0.04)'; ctx.lineWidth=1;
+  for(let c=0;c<=GRID_COLS;c++){ctx.beginPath();ctx.moveTo(c*cellW,0);ctx.lineTo(c*cellW,canvasH);ctx.stroke();}
+  for(let r=0;r<=GRID_ROWS;r++){ctx.beginPath();ctx.moveTo(0,r*cellH);ctx.lineTo(canvasW,r*cellH);ctx.stroke();}
+
+  ctx.font=`${Math.min(cellW,cellH)*0.6}px serif`;
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+
+  for(const p of G.pollution) {
+    ctx.fillStyle='rgba(100,0,0,0.25)';
+    ctx.fillRect(p.c*cellW,p.r*cellH,cellW,cellH);
+    ctx.fillText('🧪',p.c*cellW+cellW/2,p.r*cellH+cellH/2);
+  }
+
+  for(let r=0;r<GRID_ROWS;r++) for(let c=0;c<GRID_COLS;c++) {
+    const item = G.grid[r][c]; if(!item) continue;
+    const x=c*cellW+cellW/2, y=r*cellH+cellH/2;
+    const t = TOOLS[item.type];
+    ctx.shadowColor=t.color; ctx.shadowBlur=12;
+    ctx.fillStyle='rgba(255,255,255,0.06)';
+    ctx.fillRect(c*cellW+2,r*cellH+2,cellW-4,cellH-4);
+    ctx.fillText(t.icon,x,y);
+    ctx.shadowBlur=0;
+    if(['brain','fan','staghorn','mushroom'].includes(item.type)) {
+      const hw=(cellW-8)*(item.health/100);
+      ctx.fillStyle='rgba(0,0,0,0.4)'; ctx.fillRect(c*cellW+4,r*cellH+cellH-7,cellW-8,4);
+      ctx.fillStyle=item.health>60?'#06d6a0':item.health>30?'#ffd166':'#ff4d4d';
+      ctx.fillRect(c*cellW+4,r*cellH+cellH-7,hw,4);
+    }
+  }
+
+  if(G.hoverCell) {
+    const {r,c}=G.hoverCell;
+    ctx.fillStyle='rgba(0,245,255,0.1)'; ctx.strokeStyle='rgba(0,245,255,0.5)'; ctx.lineWidth=2;
+    ctx.fillRect(c*cellW,r*cellH,cellW,cellH);
+    ctx.strokeRect(c*cellW+1,r*cellH+1,cellW-2,cellH-2);
+    ctx.globalAlpha=0.5;
+    ctx.fillText(TOOLS[G.selectedTool].icon,c*cellW+cellW/2,r*cellH+cellH/2);
+    ctx.globalAlpha=1;
+  }
+}
+
+function placeItem(r,c) {
+  const tool=G.selectedTool, t=TOOLS[tool];
+  if(tool==='clean') {
+    const idx=G.pollution.findIndex(p=>p.r===r&&p.c===c);
+    if(idx!==-1){G.pollution.splice(idx,1);G.nutrients=Math.min(G.maxNutrients,G.nutrients+3);G.score+=5;showMsg('✨ Cleaned! +3 nutrients');}
+    else showMsg('No pollution here!');
+    return;
+  }
+  if(tool==='remove') {
+    if(G.grid[r][c]){const ref=Math.floor(TOOLS[G.grid[r][c].type].cost*0.5);G.grid[r][c]=null;G.nutrients+=ref;G.totalItems--;showMsg(`🗑️ Removed! +${ref} refund`);}
+    else showMsg('Nothing here!');
+    return;
+  }
+  if(hasPoll(r,c)){showMsg('⚠️ Clean pollution first!');return;}
+  if(G.grid[r][c]){showMsg('⚠️ Already occupied!');return;}
+  if(G.nutrients<t.cost){showMsg(`❌ Need ${t.cost} nutrients! (have ${G.nutrients})`);return;}
+
+  G.nutrients -= t.cost;
+  let pts = t.points;
+  const nb = getNeighbors(r,c);
+  const coralNb = nb.filter(n=>['brain','fan','staghorn','mushroom'].includes(n.type));
+
+  if(coralNb.length>0 && ['fish','turtle','seahorse'].includes(tool)){
+    pts+=coralNb.length*10; showMsg(`🐠 Near coral! +${coralNb.length*10} bonus!`);
+  } else if(coralNb.length>1 && ['brain','fan','staghorn','mushroom'].includes(tool)){
+    pts+=coralNb.length*5; showMsg(`🪸 Synergy! +${coralNb.length*5}pts`);
+  } else if(tool==='turtle' && coralNb.length>0){
+    coralNb.forEach(()=>G.score+=15);
+    showMsg(`🐢 Turtle boosts reef! +${coralNb.length*15}pts`);
+  } else {
+    showMsg(`${t.icon} Placed! +${pts}pts`);
+  }
+
+  if(tool==='seahorse'){G.nutrients=Math.min(G.maxNutrients,G.nutrients+5);showMsg('🦄 +5 nutrients bonus!');}
+
+  G.grid[r][c]={type:tool,health:100,age:0};
+  G.score+=pts; G.totalItems++;
+  updateUI();
+}
+
+function countCoral() {
+  let c=0;
+  for(let r=0;r<GRID_ROWS;r++) for(let cc=0;cc<GRID_COLS;cc++)
+    if(G.grid[r][cc]&&['brain','fan','staghorn','mushroom'].includes(G.grid[r][cc].type)) c++;
+  return c;
+}
+
+function updateUI() {
+  document.getElementById('score-disp').textContent=G.score;
+  document.getElementById('health-disp').textContent=Math.round(G.reefHealth)+'%';
+  const m=Math.floor(G.timeLeft/60), s=Math.floor(G.timeLeft%60);
+  document.getElementById('time-disp').textContent=m+':'+String(s).padStart(2,'0');
+  document.getElementById('timer-bar').style.width=(G.timeLeft/180*100)+'%';
+  document.getElementById('nutrient-fill').style.width=(G.nutrients/G.maxNutrients*100)+'%';
+  document.getElementById('nutrient-val').textContent=G.nutrients+'/'+G.maxNutrients;
+  document.getElementById('temp-fill').style.width=G.temperature+'%';
+  document.getElementById('temp-val').textContent=G.temperature<40?'Cold':G.temperature<70?'Good':'Warm';
+  document.getElementById('sun-fill').style.width=G.sunlight+'%';
+  document.getElementById('sun-val').textContent=Math.round(G.sunlight)+'%';
+}
+
+function gameLoop(ts) {
+  if(!G.running) return;
+  const dt=(ts-lastTime)/1000; lastTime=ts;
+
+  nutrientTimer+=dt;
+  if(nutrientTimer>=3){
+    nutrientTimer=0;
+    G.nutrients=Math.min(G.maxNutrients,G.nutrients+1);
+    for(let r=0;r<GRID_ROWS;r++) for(let c=0;c<GRID_COLS;c++){
+      const item=G.grid[r][c];
+      if(item&&['brain','fan','staghorn','mushroom'].includes(item.type)){
+        item.age++;
+        item.health=hasPoll(r,c)?Math.max(0,item.health-15):Math.min(100,item.health+2);
+        if(item.health<=0){G.grid[r][c]=null;G.totalItems--;G.reefHealth=Math.max(0,G.reefHealth-5);showMsg('💀 A coral died!');}
+      }
+    }
+  }
+
+  pollutionTimer+=dt;
+  if(pollutionTimer>=12){pollutionTimer=0;if(G.pollution.length<20)spawnPollution();}
+
+  const coral=countCoral();
+  if(coral>0) G.reefHealth=Math.min(100,G.reefHealth+0.05);
+  if(G.pollution.length>10) G.reefHealth=Math.max(0,G.reefHealth-0.03);
+  G.sunlight=50+20*Math.sin(Date.now()/8000);
+
+  G.timeLeft-=dt;
+  if(G.timeLeft<=0){G.timeLeft=0;endGame(true);return;}
+
+  updateUI(); render();
+  animId=requestAnimationFrame(gameLoop);
+}
+
+function getCellFromEvent(e) {
+  const rect=canvas.getBoundingClientRect();
+  return {r:Math.floor((e.clientY-rect.top)/cellH), c:Math.floor((e.clientX-rect.left)/cellW)};
+}
+
+function startGame() {
+  document.getElementById('start-overlay').style.display='none';
+  document.getElementById('game-container').style.display='flex';
+  G={grid:[],nutrients:25,maxNutrients:50,score:0,reefHealth:100,sunlight:70,
+     temperature:60,timeLeft:180,running:true,selectedTool:'brain',
+     pollution:[],hoverCell:null,totalItems:0};
+  initGrid(); setupCanvas();
+  canvas.addEventListener('click',e=>{
+    if(!G.running)return;
+    const{r,c}=getCellFromEvent(e);
+    if(r>=0&&r<GRID_ROWS&&c>=0&&c<GRID_COLS) placeItem(r,c);
+  });
+  canvas.addEventListener('mousemove',e=>{
+    const{r,c}=getCellFromEvent(e);
+    G.hoverCell=(r>=0&&r<GRID_ROWS&&c>=0&&c<GRID_COLS)?{r,c}:null;
+  });
+  canvas.addEventListener('mouseleave',()=>{G.hoverCell=null;});
+  lastTime=performance.now();
+  animId=requestAnimationFrame(ts=>{lastTime=ts;animId=requestAnimationFrame(gameLoop);});
+  showMsg('🌊 Welcome! Start building your reef!');
+  updateUI();
+}
+
+function endGame(completed) {
+  G.running=false; cancelAnimationFrame(animId);
+  document.getElementById('gameover-overlay').style.display='flex';
+  document.getElementById('go-score').textContent=G.score;
+  const coral=countCoral();
+  if(completed){
+    if(G.score>500){document.getElementById('go-title').textContent='🌊 REEF MASTER!';document.getElementById('go-msg').textContent=`Amazing! Your reef thrived with ${coral} corals and ${Math.round(G.reefHealth)}% health!`;}
+    else if(G.score>200){document.getElementById('go-title').textContent='🪸 REEF COMPLETE!';document.getElementById('go-msg').textContent=`Well done! You built ${coral} corals. Keep building to master the ocean!`;}
+    else{document.getElementById('go-title').textContent='🐠 DIVE ENDED';document.getElementById('go-msg').textContent='Place more corals and clean pollution to boost your score!';}
+  } else {
+    document.getElementById('go-title').textContent='🌊 DIVE ENDED';
+    document.getElementById('go-msg').textContent='You ended the dive early. Come back and build the reef!';
+  }
+}
+
+function restartGame() {
+  document.getElementById('gameover-overlay').style.display='none';
+  document.getElementById('game-container').style.display='none';
+  document.getElementById('start-overlay').style.display='flex';
+}
+
+window.addEventListener('resize',()=>{if(G.running)setupCanvas();});
+</script>
+</body>
+</html>

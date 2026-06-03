@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oil Spill Rush — Eco Game</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --ocean-deep: #041526;
+    --ocean-mid: #082d4a;
+    --ocean-top: #0d3b5e;
+    --teal: #4ecdc4;
+    --teal-dark: #3dbdb5;
+    --green: #2ecc71;
+    --orange: #f39c12;
+    --red: #e74c3c;
+    --text: #ffffff;
+    --text-muted: rgba(255,255,255,0.6);
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: var(--ocean-deep);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Exo 2', sans-serif;
+    overflow: hidden;
+  }
+
+  #game-wrapper {
+    width: 720px;
+    max-width: 100vw;
+    background: var(--ocean-deep);
+    border: 1px solid rgba(78,205,196,0.25);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 0 60px rgba(78,205,196,0.1), 0 30px 80px rgba(0,0,0,0.7);
+    position: relative;
+  }
+
+  /* ── HUD ── */
+  #hud {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background: rgba(0,0,0,0.5);
+    border-bottom: 1px solid rgba(78,205,196,0.25);
+  }
+  .hud-block { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .hud-label {
+    font-size: 9px;
+    color: var(--teal);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .hud-value {
+    font-family: 'Orbitron', monospace;
+    font-size: 20px;
+    color: var(--text);
+    font-weight: 700;
+    line-height: 1;
+  }
+  .hud-value.green  { color: var(--green); }
+  .hud-value.orange { color: var(--orange); }
+  .hud-value.red    { color: var(--red); }
+
+  #health-bar-wrap {
+    width: 130px;
+    height: 10px;
+    background: #1a3a2a;
+    border-radius: 5px;
+    overflow: hidden;
+    margin-top: 3px;
+  }
+  #health-fill {
+    height: 100%;
+    background: var(--green);
+    border-radius: 5px;
+    transition: width 0.4s, background 0.4s;
+    width: 100%;
+  }
+
+  #lives-row { display: flex; gap: 4px; align-items: center; }
+  .life-icon { font-size: 18px; transition: all 0.3s; }
+  .life-icon.dead { filter: grayscale(1); opacity: 0.4; }
+
+  /* ── CANVAS ── */
+  #ocean-canvas {
+    display: block;
+    width: 100%;
+    cursor: crosshair;
+  }
+
+  /* ── TOOLBAR ── */
+  #toolbar {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    padding: 10px 16px;
+    background: rgba(0,0,0,0.4);
+    border-top: 1px solid rgba(78,205,196,0.2);
+    flex-wrap: wrap;
+  }
+  .tool-btn {
+    background: rgba(78,205,196,0.08);
+    border: 1px solid rgba(78,205,196,0.3);
+    color: var(--teal);
+    border-radius: 8px;
+    padding: 8px 18px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: 'Exo 2', sans-serif;
+    font-weight: 600;
+    letter-spacing: 1px;
+  }
+  .tool-btn:hover  { background: rgba(78,205,196,0.2); }
+  .tool-btn.active { background: var(--teal); color: var(--ocean-deep); border-color: var(--teal); }
+
+  /* ── FLOATING UI ── */
+  #combo-display {
+    position: absolute;
+    top: 58px; right: 18px;
+    font-family: 'Orbitron', monospace;
+    font-size: 13px;
+    color: var(--orange);
+    letter-spacing: 1px;
+    display: none;
+    z-index: 10;
+    text-shadow: 0 0 10px rgba(243,156,18,0.6);
+  }
+
+  #msg-display {
+    position: absolute;
+    bottom: 68px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    pointer-events: none;
+    width: 320px;
+    text-align: center;
+  }
+  .msg-pill {
+    background: rgba(0,0,0,0.75);
+    border-radius: 10px;
+    padding: 8px 18px;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+    animation: fadeUp 0.4s ease forwards;
+    display: inline-block;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── OVERLAY ── */
+  #overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(4,21,38,0.95);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 30;
+    padding: 28px;
+    backdrop-filter: blur(4px);
+  }
+  #overlay.hidden { display: none; }
+
+  .ov-icon  { font-size: 52px; margin-bottom: 10px; }
+  .ov-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 26px;
+    color: var(--teal);
+    font-weight: 900;
+    letter-spacing: 3px;
+    text-align: center;
+    margin-bottom: 6px;
+  }
+  .ov-sub {
+    font-size: 14px;
+    color: var(--text-muted);
+    text-align: center;
+    max-width: 360px;
+    margin-bottom: 22px;
+    line-height: 1.7;
+  }
+  .fact-box {
+    background: rgba(78,205,196,0.08);
+    border: 1px solid rgba(78,205,196,0.3);
+    border-radius: 12px;
+    padding: 14px 20px;
+    font-size: 13px;
+    color: #a8e6cf;
+    text-align: center;
+    max-width: 380px;
+    margin-bottom: 22px;
+    line-height: 1.7;
+  }
+  .fact-label {
+    font-family: 'Orbitron', monospace;
+    font-size: 9px;
+    color: var(--teal);
+    letter-spacing: 2px;
+    display: block;
+    margin-bottom: 7px;
+    text-transform: uppercase;
+  }
+
+  .score-row {
+    display: flex;
+    gap: 28px;
+    margin-bottom: 22px;
+  }
+  .score-chip {
+    background: rgba(78,205,196,0.1);
+    border: 1px solid rgba(78,205,196,0.25);
+    border-radius: 10px;
+    padding: 10px 20px;
+    text-align: center;
+  }
+  .score-chip-label { font-size: 10px; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; }
+  .score-chip-value {
+    font-family: 'Orbitron', monospace;
+    font-size: 22px;
+    color: var(--teal);
+    font-weight: 700;
+  }
+
+  .btn-primary {
+    background: var(--teal);
+    color: var(--ocean-deep);
+    border: none;
+    border-radius: 10px;
+    padding: 14px 40px;
+    font-family: 'Orbitron', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 2px;
+    transition: all 0.2s;
+    box-shadow: 0 6px 24px rgba(78,205,196,0.3);
+  }
+  .btn-primary:hover  { background: var(--teal-dark); transform: scale(1.04); }
+  .btn-primary:active { transform: scale(0.97); }
+
+  /* instructions strip */
+  #how-to {
+    display: flex;
+    gap: 18px;
+    margin-bottom: 22px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .how-chip {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: center;
+  }
+  .how-chip strong { color: var(--text); display: block; font-size: 11px; margin-bottom: 2px; letter-spacing: 1px; }
+
+  /* level badge */
+  #level-badge {
+    position: absolute;
+    top: 58px; left: 18px;
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    color: var(--teal);
+    display: none;
+    z-index: 10;
+    animation: levelPop 0.6s ease forwards;
+  }
+  @keyframes levelPop {
+    0%   { opacity: 0; transform: scale(0.5); }
+    60%  { opacity: 1; transform: scale(1.15); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+</style>
+</head>
+<body>
+<div id="game-wrapper">
+
+  <!-- HUD -->
+  <div id="hud">
+    <div class="hud-block">
+      <span class="hud-label">Score</span>
+      <span class="hud-value" id="score-val">0</span>
+    </div>
+    <div class="hud-block">
+      <span class="hud-label">Ocean Health</span>
+      <div id="health-bar-wrap">
+        <div id="health-fill"></div>
+      </div>
+    </div>
+    <div class="hud-block">
+      <span class="hud-label">Level</span>
+      <span class="hud-value orange" id="level-val">1</span>
+    </div>
+    <div class="hud-block">
+      <span class="hud-label">Lives</span>
+      <div id="lives-row">
+        <span class="life-icon" id="life0">🐟</span>
+        <span class="life-icon" id="life1">🐟</span>
+        <span class="life-icon" id="life2">🐟</span>
+      </div>
+    </div>
+    <div class="hud-block">
+      <span class="hud-label">Cleaned</span>
+      <span class="hud-value green" id="cleaned-val">0</span>
+    </div>
+  </div>
+
+  <!-- Canvas -->
+  <canvas id="ocean-canvas" width="720" height="440"></canvas>
+
+  <!-- Toolbar -->
+  <div id="toolbar">
+    <button class="tool-btn active" data-tool="absorbent" onclick="setTool('absorbent')">🧽 Absorbent Pad</button>
+    <button class="tool-btn" data-tool="boom"      onclick="setTool('boom')">🚧 Oil Boom</button>
+    <button class="tool-btn" data-tool="bacteria"  onclick="setTool('bacteria')">🦠 Bioremediation</button>
+  </div>
+
+  <!-- Floating UI -->
+  <div id="combo-display"></div>
+  <div id="level-badge"></div>
+  <div id="msg-display"></div>
+
+  <!-- Overlay (start / game-over) -->
+  <div id="overlay">
+    <div class="ov-icon">🌊</div>
+    <div class="ov-title">OIL SPILL RUSH</div>
+    <div class="ov-sub">Click oil spills to clean them before they spread and destroy marine life. Choose your cleanup tool wisely!</div>
+
+    <div id="how-to">
+      <div class="how-chip"><strong>🧽 Absorbent Pad</strong>Medium speed, normal range</div>
+      <div class="how-chip"><strong>🚧 Oil Boom</strong>Slow but wide containment</div>
+      <div class="how-chip"><strong>🦠 Bioremediation</strong>Fast bacteria, small radius</div>
+    </div>
+
+    <div class="fact-box" id="start-fact">
+      <span class="fact-label">📚 Eco Fact</span>
+      Oil spills can coat the feathers of seabirds and the fur of marine mammals, causing hypothermia. Even small spills can devastate coastal ecosystems for decades.
+    </div>
+    <button class="btn-primary" id="main-btn" onclick="startGame()">▶ START CLEANUP</button>
+  </div>
+
+</div>
+
+<script>
+// ─── Canvas setup ────────────────────────────────────────────────────────────
+const canvas = document.getElementById('ocean-canvas');
+const ctx    = canvas.getContext('2d');
+const W = canvas.width;   // 720
+const H = canvas.height;  // 440
+
+// ─── Eco facts shown on level-up / game-over ─────────────────────────────────
+const ECO_FACTS = [
+  "🦅 Oil coats bird feathers, destroying their waterproofing and insulation.",
+  "🐠 Oil blocks sunlight from reaching underwater plants and coral reefs.",
+  "🦭 Seals and otters lose their fur insulation when matted with crude oil.",
+  "🌊 One gallon of oil can contaminate up to 1 million gallons of drinking water!",
+  "🌿 Bioremediation uses natural bacteria to break down oil — nature fights back!",
+  "🐢 Sea turtles mistake oil globs for jellyfish food, causing internal injuries.",
+  "🐋 Whale blowholes can get blocked by surface oil slicks, causing suffocation.",
+  "♻️ Oil booms are floating barriers deployed around spills to contain them.",
+  "⏰ Some oil spill effects on ecosystems can persist for over 30 years.",
+  "🦐 Plankton — the base of the ocean food chain — is devastated by oil spills.",
+  "🌍 The 1989 Exxon Valdez spill killed over 250,000 seabirds.",
+  "🔬 Dispersants break oil into droplets, helping bacteria digest it faster.",
+];
+
+// ─── Tool definitions ─────────────────────────────────────────────────────────
+const TOOLS = {
+  absorbent: { emoji: '🧽', hitRadius: 44, name: 'Absorbent Pad' },
+  boom:      { emoji: '🚧', hitRadius: 62, name: 'Oil Boom' },
+  bacteria:  { emoji: '🦠', hitRadius: 30, name: 'Bioremediation' },
+};
+
+// ─── Game state ───────────────────────────────────────────────────────────────
+let activeTool  = 'absorbent';
+let gameState   = 'menu';   // 'menu' | 'playing' | 'over'
+let score       = 0;
+let health      = 100;
+let lives       = 3;
+let level       = 1;
+let cleaned     = 0;
+let combo       = 0;
+let highScore   = 0;
+
+let spills      = [];
+let particles   = [];
+let wildlife    = [];
+let bubbles     = [];
+let floatTexts  = [];   // floating "+pts" texts
+
+let waveOffset  = 0;
+let frameCount  = 0;
+let spawnTimer  = 0;
+let spawnInterval = 100;
+let levelTimer  = 0;
+let msgTimeout  = null;
+let animId      = null;
+
+// ─── Utility ──────────────────────────────────────────────────────────────────
+function rand(min, max) { return min + Math.random() * (max - min); }
+function randInt(min, max) { return Math.floor(rand(min, max + 1)); }
+function dist(ax, ay, bx, by) { return Math.hypot(ax - bx, ay - by); }
+
+// ─── Tool switching ──────────────────────────────────────────────────────────
+function setTool(t) {
+  activeTool = t;
+  document.querySelectorAll('.tool-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.tool === t);
+  });
+}
+
+// ─── Start / Restart ─────────────────────────────────────────────────────────
+function startGame() {
+  document.getElementById('overlay').classList.add('hidden');
+  gameState = 'playing';
+  score = 0; health = 100; lives = 3; level = 1; cleaned = 0; combo = 0;
+  spills = []; particles = []; bubbles = []; floatTexts = [];
+  spawnTimer = 0; spawnInterval = 100; levelTimer = 0; frameCount = 0;
+  wildlife = [];
+  spawnWildlife();
+  updateHUD();
+  if (animId) cancelAnimationFrame(animId);
+  animId = requestAnimationFrame(gameLoop);
+}
+
+// ─── Wildlife ─────────────────────────────────────────────────────────────────
+const ANIMALS = ['🐠','🐡','🐟','🦀','🐬','🦈','🐙','🦑'];
+
+function spawnWildlife() {
+  for (let i = 0; i < 7; i++) {
+    wildlife.push({
+      x:    rand(30, W - 30),
+      y:    rand(60, H - 40),
+      type: ANIMALS[randInt(0, ANIMALS.length - 1)],
+      vx:   rand(-1, 1) || 0.4,
+      vy:   rand(-0.4, 0.4),
+      size: rand(16, 24),
+      wavePhase: rand(0, Math.PI * 2),
+    });
+  }
+}
+
+// ─── Spill spawning ───────────────────────────────────────────────────────────
+function spawnSpill() {
+  // avoid overlapping new spill with existing ones
+  let tries = 0, x, y;
+  do {
+    x = rand(50, W - 50);
+    y = rand(50, H - 50);
+    tries++;
+  } while (tries < 10 && spills.some(s => dist(x, y, s.x, s.y) < 60));
+
+  const maxR = Math.min(15 + level * 5, 80);
+  spills.push({
+    x, y,
+    r: 8,
+    maxR,
+    growSpeed: 0.055 + level * 0.01,
+    opacity: 0.9,
+    age: 0,
+    sheen: rand(0, Math.PI * 2),   // iridescent angle
+  });
+}
+
+// ─── Particle effects ─────────────────────────────────────────────────────────
+function spawnParticles(x, y, color, count = 12) {
+  for (let i = 0; i < count; i++) {
+    const angle = rand(0, Math.PI * 2);
+    const speed = rand(1.5, 4);
+    particles.push({ x, y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      r: rand(3, 7),
+      alpha: 1, color,
+    });
+  }
+}
+
+function spawnBubbles(x, y, count = 8) {
+  for (let i = 0; i < count; i++) {
+    bubbles.push({
+      x: x + rand(-18, 18),
+      y: y + rand(-18, 18),
+      r: rand(2, 6),
+      vy: rand(-1.2, -0.5),
+      alpha: 1,
+    });
+  }
+}
+
+function spawnFloatText(x, y, text, color) {
+  floatTexts.push({ x, y, text, color, alpha: 1, vy: -1.2, age: 0 });
+}
+
+// ─── Message display ──────────────────────────────────────────────────────────
+function showMessage(text, color = '#4ecdc4') {
+  const el = document.getElementById('msg-display');
+  el.innerHTML = `<span class="msg-pill" style="border:1px solid ${color};color:${color};">${text}</span>`;
+  clearTimeout(msgTimeout);
+  msgTimeout = setTimeout(() => { el.innerHTML = ''; }, 2400);
+}
+
+// ─── HUD update ───────────────────────────────────────────────────────────────
+function updateHUD() {
+  document.getElementById('score-val').textContent   = score.toLocaleString();
+  document.getElementById('level-val').textContent   = level;
+  document.getElementById('cleaned-val').textContent = cleaned;
+
+  const h = Math.max(0, Math.min(100, health));
+  const fill = document.getElementById('health-fill');
+  fill.style.width = h + '%';
+  fill.style.background = h > 60 ? '#2ecc71' : h > 30 ? '#f39c12' : '#e74c3c';
+
+  for (let i = 0; i < 3; i++) {
+    const el = document.getElementById('life' + i);
+    el.textContent = i < lives ? '🐟' : '💀';
+    el.classList.toggle('dead', i >= lives);
+  }
+}
+
+// ─── Click handler ────────────────────────────────────────────────────────────
+canvas.addEventListener('click', (e) => {
+  if (gameState !== 'playing') return;
+  const rect  = canvas.getBoundingClientRect();
+  const scaleX = W / rect.width;
+  const scaleY = H / rect.height;
+  const mx = (e.clientX - rect.left) * scaleX;
+  const my = (e.clientY - rect.top)  * scaleY;
+
+  const tool = TOOLS[activeTool];
+  let hit = false;
+
+  for (let i = spills.length - 1; i >= 0; i--) {
+    const s = spills[i];
+    if (dist(mx, my, s.x, s.y) < s.r + tool.hitRadius * 0.55) {
+      // successful clean
+      spawnParticles(s.x, s.y, '#2ecc71');
+      spawnBubbles(s.x, s.y);
+      spills.splice(i, 1);
+      cleaned++;
+      combo++;
+      const multiplier = combo > 2 ? combo : 1;
+      const pts = 10 * level * multiplier;
+      score += pts;
+      health = Math.min(100, health + 4);
+
+      spawnFloatText(mx, my, `+${pts}`, combo > 2 ? '#f39c12' : '#2ecc71');
+
+      const comboEl = document.getElementById('combo-display');
+      if (combo > 1) {
+        comboEl.style.display = 'block';
+        comboEl.textContent = `COMBO ×${combo}`;
+      }
+      showMessage(combo > 2 ? `COMBO ×${combo}! +${pts} pts 🔥` : `Cleaned! +${pts} pts ✅`);
+      updateHUD();
+      hit = true;
+      break;
+    }
+  }
+
+  if (!hit) {
+    combo = 0;
+    document.getElementById('combo-display').style.display = 'none';
+    spawnParticles(mx, my, '#e74c3c', 6);
+    showMessage('Missed! Find the oil slick 🔍', '#e74c3c');
+  }
+});
+
+// ─── Drawing functions ────────────────────────────────────────────────────────
+function drawOcean() {
+  // deep gradient background
+  const grad = ctx.createLinearGradient(0, 0, 0, H);
+  grad.addColorStop(0,   '#0d3b5e');
+  grad.addColorStop(0.5, '#082d4a');
+  grad.addColorStop(1,   '#041526');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, H);
+
+  // caustic light patches
+  ctx.globalAlpha = 0.04;
+  for (let i = 0; i < 6; i++) {
+    const cx = (i * 140 + Math.sin(waveOffset * 0.5 + i) * 30) % W;
+    const cy = 80 + (i * 70) % (H - 100);
+    const rg = ctx.createRadialGradient(cx, cy, 0, cx, cy, 60);
+    rg.addColorStop(0, '#7fdbff');
+    rg.addColorStop(1, 'transparent');
+    ctx.fillStyle = rg;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, 60, 30, waveOffset * 0.2 + i, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  // wave lines
+  ctx.lineWidth = 0.8;
+  for (let i = 0; i < 7; i++) {
+    ctx.strokeStyle = `rgba(78,205,196,${0.03 + i * 0.01})`;
+    ctx.beginPath();
+    const baseY = (H / 7) * i + 20;
+    for (let x = 0; x <= W; x += 4) {
+      const y = baseY + Math.sin((x / 90) + waveOffset + i * 0.8) * 5
+                      + Math.sin((x / 40) + waveOffset * 1.3 + i) * 2;
+      x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  }
+}
+
+function drawSpills() {
+  spills.forEach(s => {
+    const rx = s.r * 1.35;
+    const ry = s.r * 0.75;
+    const angle = Math.sin(s.age * 0.015) * 0.4;
+
+    // outer glow
+    const glow = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, rx * 1.3);
+    glow.addColorStop(0, `rgba(10,10,5,0)`);
+    glow.addColorStop(1, `rgba(30,15,0,0.15)`);
+    ctx.save();
+    ctx.translate(s.x, s.y);
+    ctx.rotate(angle);
+    ctx.beginPath();
+    ctx.ellipse(0, 0, rx * 1.5, ry * 1.5, 0, 0, Math.PI * 2);
+    ctx.fillStyle = glow;
+    ctx.fill();
+
+    // main blob
+    const main = ctx.createRadialGradient(0, 0, 0, 0, 0, rx);
+    main.addColorStop(0,   `rgba(8,6,2,${s.opacity})`);
+    main.addColorStop(0.5, `rgba(20,12,3,${s.opacity * 0.9})`);
+    main.addColorStop(1,   `rgba(40,20,5,0)`);
+    ctx.beginPath();
+    ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+    ctx.fillStyle = main;
+    ctx.fill();
+
+    // iridescent sheen
+    ctx.globalAlpha = 0.18;
+    const sheen = ctx.createLinearGradient(-rx, 0, rx, 0);
+    const hue = (s.sheen * 60 + frameCount * 0.5) % 360;
+    sheen.addColorStop(0, `hsl(${hue},80%,60%)`);
+    sheen.addColorStop(0.5, `hsl(${(hue + 120) % 360},80%,60%)`);
+    sheen.addColorStop(1, `hsl(${(hue + 240) % 360},80%,60%)`);
+    ctx.beginPath();
+    ctx.ellipse(0, 0, rx * 0.7, ry * 0.5, 0, 0, Math.PI * 2);
+    ctx.fillStyle = sheen;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.restore();
+
+    // danger emoji when large
+    if (s.r > 22) {
+      ctx.font = `${Math.min(s.r * 0.55, 22)}px sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('☠️', s.x, s.y);
+    }
+
+    // growth progress arc
+    const pct = s.r / s.maxR;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y - ry - 8, 6, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * pct);
+    ctx.strokeStyle = pct > 0.75 ? '#e74c3c' : pct > 0.45 ? '#f39c12' : '#2ecc71';
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+  });
+}
+
+function drawParticles() {
+  particles.forEach(p => {
+    ctx.globalAlpha = p.alpha;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, Math.max(p.r, 0.5), 0, Math.PI * 2);
+    ctx.fillStyle = p.color;
+    ctx.fill();
+  });
+  ctx.globalAlpha = 1;
+}
+
+function drawBubbles() {
+  bubbles.forEach(b => {
+    ctx.globalAlpha = b.alpha;
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+    ctx.strokeStyle = '#4ecdc4';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  });
+  ctx.globalAlpha = 1;
+}
+
+function drawWildlife() {
+  wildlife.forEach(a => {
+    const nearOil = spills.some(s => dist(a.x, a.y, s.x, s.y) < s.r + 14);
+    ctx.globalAlpha = nearOil ? 0.4 : 1;
+    ctx.font = `${a.size}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(a.type, a.x, a.y);
+
+    if (nearOil) {
+      ctx.globalAlpha = 1;
+      ctx.font = '11px sans-serif';
+      ctx.fillStyle = '#e74c3c';
+      ctx.fillText('!', a.x + a.size * 0.5, a.y - a.size * 0.5);
+    }
+    ctx.globalAlpha = 1;
+  });
+}
+
+function drawFloatTexts() {
+  floatTexts.forEach(ft => {
+    ctx.globalAlpha = ft.alpha;
+    ctx.font = `bold 16px 'Orbitron', monospace`;
+    ctx.fillStyle = ft.color;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(ft.text, ft.x, ft.y);
+  });
+  ctx.globalAlpha = 1;
+}
+
+// ─── Update logic ─────────────────────────────────────────────────────────────
+function updateAll() {
+  waveOffset += 0.018;
+  frameCount++;
+
+  // grow spills
+  spills.forEach(s => {
+    s.age++;
+    if (s.r < s.maxR) s.r += s.growSpeed;
+    s.opacity = 0.5 + (s.r / s.maxR) * 0.4;
+  });
+
+  // move wildlife
+  wildlife.forEach(a => {
+    a.x += a.vx;
+    a.y += a.vy + Math.sin(frameCount * 0.022 + a.wavePhase) * 0.2;
+    if (a.x < -25)  a.x = W + 25;
+    if (a.x > W+25) a.x = -25;
+    if (a.y < 30)   a.vy =  Math.abs(a.vy);
+    if (a.y > H-20) a.vy = -Math.abs(a.vy);
+  });
+
+  // update particles
+  particles = particles.filter(p => p.alpha > 0.05);
+  particles.forEach(p => {
+    p.x += p.vx; p.y += p.vy;
+    p.vx *= 0.91; p.vy *= 0.91;
+    p.alpha -= 0.035; p.r *= 0.96;
+  });
+
+  // update bubbles
+  bubbles = bubbles.filter(b => b.alpha > 0.04);
+  bubbles.forEach(b => {
+    b.y += b.vy; b.alpha -= 0.022;
+  });
+
+  // update float texts
+  floatTexts = floatTexts.filter(ft => ft.alpha > 0.05);
+  floatTexts.forEach(ft => {
+    ft.y += ft.vy; ft.alpha -= 0.025; ft.age++;
+  });
+
+  // spawn spills
+  spawnTimer++;
+  if (spawnTimer >= spawnInterval) {
+    spawnTimer = 0;
+    spawnSpill();
+
+    // penalise spills that maxed out
+    const maxed = spills.filter(s => s.r >= s.maxR);
+    if (maxed.length > 0) {
+      const s = maxed[0];
+      spills.splice(spills.indexOf(s), 1);
+      health -= 9;
+      showMessage('Oil spread unchecked! Health dropping! 🌊', '#e74c3c');
+
+      if (health <= 0) {
+        lives--;
+        health = lives > 0 ? 65 : 0;
+        if (lives > 0) {
+          showMessage(`A sea creature lost! ${lives} lives left 🐟`, '#e74c3c');
+        } else {
+          updateHUD();
+          gameOver();
+          return;
+        }
+      }
+      updateHUD();
+    }
+  }
+
+  // level progression every 10 seconds (600 frames @ 60fps)
+  levelTimer++;
+  if (levelTimer >= 600) {
+    levelTimer = 0;
+    level++;
+    spawnInterval = Math.max(38, 100 - level * 8);
+    score += 50 * level;
+
+    // show level badge
+    const lb = document.getElementById('level-badge');
+    lb.textContent = `LEVEL ${level}`;
+    lb.style.display = 'block';
+    lb.style.animation = 'none';
+    void lb.offsetWidth;
+    lb.style.animation = 'levelPop 0.6s ease forwards';
+    setTimeout(() => { lb.style.display = 'none'; }, 2000);
+
+    // show eco fact
+    const fact = ECO_FACTS[Math.floor(Math.random() * ECO_FACTS.length)];
+    showMessage(fact, '#4ecdc4');
+    updateHUD();
+  }
+}
+
+// ─── Game over ────────────────────────────────────────────────────────────────
+function gameOver() {
+  gameState = 'over';
+  if (score > highScore) highScore = score;
+
+  const ol = document.getElementById('overlay');
+  ol.classList.remove('hidden');
+  const fact = ECO_FACTS[Math.floor(Math.random() * ECO_FACTS.length)];
+
+  ol.innerHTML = `
+    <div class="ov-icon">💀</div>
+    <div class="ov-title">OCEAN LOST</div>
+    <div class="ov-sub">The oil spills overwhelmed the ocean ecosystem. Every cleanup counts!</div>
+    <div class="score-row">
+      <div class="score-chip">
+        <div class="score-chip-label">Score</div>
+        <div class="score-chip-value">${score.toLocaleString()}</div>
+      </div>
+      <div class="score-chip">
+        <div class="score-chip-label">High Score</div>
+        <div class="score-chip-value">${highScore.toLocaleString()}</div>
+      </div>
+      <div class="score-chip">
+        <div class="score-chip-label">Cleaned</div>
+        <div class="score-chip-value">${cleaned}</div>
+      </div>
+      <div class="score-chip">
+        <div class="score-chip-label">Level</div>
+        <div class="score-chip-value">${level}</div>
+      </div>
+    </div>
+    <div class="fact-box"><span class="fact-label">📚 Eco Fact</span>${fact}</div>
+    <button class="btn-primary" onclick="startGame()">▶ TRY AGAIN</button>
+  `;
+}
+
+// ─── Main game loop ───────────────────────────────────────────────────────────
+function gameLoop() {
+  if (gameState !== 'playing') return;
+
+  ctx.clearRect(0, 0, W, H);
+
+  drawOcean();
+  drawSpills();
+  drawBubbles();
+  drawParticles();
+  drawWildlife();
+  drawFloatTexts();
+  updateAll();
+
+  animId = requestAnimationFrame(gameLoop);
+}
+
+// ─── Keyboard shortcuts ───────────────────────────────────────────────────────
+document.addEventListener('keydown', (e) => {
+  if (e.key === '1') setTool('absorbent');
+  if (e.key === '2') setTool('boom');
+  if (e.key === '3') setTool('bacteria');
+});
+
+// ─── Populate start-screen fact ───────────────────────────────────────────────
+document.getElementById('start-fact').innerHTML =
+  `<span class="fact-label">📚 Eco Fact</span>${ECO_FACTS[0]}`;
+</script>
+</body>
+</html>

@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Eco Puzzle</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --gd: #1a3d07; --gm: #2d5c12; --gl: #4a8c1c;
+    --gb: #7ec832; --gp: #e8f5d0; --cream: #f2f8eb;
+    --border: #b8d97a; --gold: #f0a500; --text: #1e2e0e;
+  }
+
+  body {
+    background: var(--cream);
+    font-family: 'Nunito', sans-serif;
+    min-height: 100vh;
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-bottom: 30px;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    width: 100%;
+    background: linear-gradient(135deg, var(--gm), var(--gl));
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.18);
+    position: relative;
+  }
+
+  .back-btn {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.5);
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    font-size: 20px; font-weight: 800;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    text-decoration: none;
+    transition: background .15s, transform .1s;
+    flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .back-btn:hover  { background: rgba(255,255,255,0.28); transform: scale(1.08); }
+  .back-btn:active { transform: scale(0.92); }
+
+  .header-title {
+    flex: 1;
+    color: #fff;
+    font-size: 20px; font-weight: 900;
+    letter-spacing: -0.3px;
+  }
+  .header-title span { font-size: 12px; font-weight: 600; opacity: 0.8; display: block; }
+
+  /* ── TIMER + SCORE ROW ── */
+  .stats-row {
+    display: flex;
+    gap: 10px;
+    padding: 12px 16px 0;
+    width: 100%;
+    max-width: 680px;
+    flex-wrap: wrap;
+  }
+  .stat-pill {
+    background: #fff;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 16px;
+    display: flex; align-items: center; gap: 7px;
+    font-weight: 700; font-size: 14px; color: var(--gd);
+    flex: 1; min-width: 110px;
+  }
+  .stat-pill .icon { font-size: 16px; }
+  .stat-pill .val  { font-size: 16px; font-weight: 800; color: var(--gm); }
+  .stat-pill.gold .val { color: var(--gold); }
+
+  /* ── PREVIEW IMAGE ── */
+  .preview-wrap {
+    margin: 14px 16px 6px;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid var(--border);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+    max-width: 280px;
+    position: relative;
+  }
+  .preview-wrap::after {
+    content: 'Target 🎯';
+    position: absolute; top: 7px; left: 7px;
+    background: rgba(0,0,0,0.55);
+    color: #fff; font-size: 10px; font-weight: 700;
+    padding: 3px 8px; border-radius: 6px;
+    letter-spacing: .04em;
+  }
+  #preview {
+    width: 100%; display: block;
+    max-height: 160px; object-fit: cover;
+  }
+
+  /* ── PUZZLE LABEL ── */
+  .puzzle-label {
+    font-size: 11px; font-weight: 700; color: var(--gl);
+    text-transform: uppercase; letter-spacing: .08em;
+    margin: 4px 0 8px;
+    text-align: center;
+  }
+  .eco-name {
+    font-size: 13px; font-weight: 800; color: var(--gd);
+    margin-bottom: 10px; text-align: center;
+    background: var(--gp); display: inline-block;
+    padding: 4px 14px; border-radius: 20px;
+    border: 1px solid var(--border);
+  }
+
+  /* ── PUZZLE GRID ── */
+  #game {
+    display: grid;
+    gap: 4px;
+    justify-content: center;
+    padding: 0 10px;
+  }
+
+  .tile {
+    border-radius: 8px;
+    cursor: grab;
+    transition: transform .12s, box-shadow .12s, outline .1s;
+    outline: 2px solid transparent;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    touch-action: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .tile:active { transform: scale(0.96); }
+  .tile.dragging {
+    outline: 3px solid var(--gb);
+    transform: scale(1.06);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.28);
+    z-index: 10;
+  }
+  .tile.drag-over {
+    outline: 3px solid var(--gold);
+    transform: scale(1.03);
+  }
+
+  /* ── OVERLAY / POPUP ── */
+  #overlay {
+    position: fixed; inset: 0;
+    background: rgba(5,20,0,0.65);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center; justify-content: center;
+    z-index: 100; padding: 20px;
+  }
+  #overlay.show { display: flex; }
+
+  .popup-box {
+    background: #fff;
+    border-radius: 20px;
+    padding: 32px 28px;
+    text-align: center;
+    max-width: 340px; width: 100%;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.22);
+    animation: popIn .3s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes popIn { from{transform:scale(.7);opacity:0} to{transform:scale(1);opacity:1} }
+
+  .popup-icon   { font-size: 52px; margin-bottom: 10px; }
+  .popup-title  { font-size: 24px; font-weight: 900; color: var(--gd); margin-bottom: 6px; }
+  .popup-sub    { font-size: 13px; color: #555; margin-bottom: 18px; line-height: 1.6; }
+  .popup-best   { font-size: 13px; font-weight: 700; color: var(--gold); margin-bottom: 18px; }
+
+  .popup-btns   { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .pop-btn {
+    padding: 11px 24px; border-radius: 99px; border: none;
+    font-family: 'Nunito', sans-serif; font-size: 14px; font-weight: 800;
+    cursor: pointer; transition: transform .1s, background .15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .pop-btn:active { transform: scale(0.94); }
+  .pop-btn.primary { background: var(--gm); color: #fff; box-shadow: 0 3px 0 var(--gd); }
+  .pop-btn.primary:hover { background: var(--gd); }
+  .pop-btn.secondary { background: var(--gp); color: var(--gd); border: 1.5px solid var(--border); }
+  .pop-btn.secondary:hover { background: var(--border); }
+
+  /* ── ECO TAG ── */
+  .eco-tag {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--gm), var(--gl));
+    color: #fff; font-size: 11px; font-weight: 700;
+    padding: 3px 10px; border-radius: 20px;
+    margin-bottom: 14px; letter-spacing: .05em;
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <a href="#" class="back-btn" title="Back"
+     onclick="event.preventDefault(); goBack();">&#8249;</a>
+  <div class="header-title">
+    🌿 Eco Puzzle
+    <span>Piece together nature</span>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="stats-row">
+  <div class="stat-pill">
+    <span class="icon">⏳</span>
+    <span>Time</span>
+    <span class="val" id="s-timer">—</span>
+  </div>
+  <div class="stat-pill">
+    <span class="icon">🔀</span>
+    <span>Moves</span>
+    <span class="val" id="s-moves">0</span>
+  </div>
+  <div class="stat-pill gold">
+    <span class="icon">🏆</span>
+    <span>Best</span>
+    <span class="val" id="s-best">—</span>
+  </div>
+</div>
+
+<!-- PREVIEW IMAGE -->
+<div style="text-align:center">
+  <div class="preview-wrap">
+    <img id="preview" alt="Eco scene">
+  </div>
+  <div class="eco-name" id="eco-name">🌱 Loading…</div>
+  <div class="puzzle-label">Arrange tiles to match ↑</div>
+</div>
+
+<!-- PUZZLE GRID -->
+<div id="game"></div>
+
+<!-- OVERLAY POPUP -->
+<div id="overlay">
+  <div class="popup-box">
+    <div class="popup-icon" id="pop-icon">🎉</div>
+    <div class="popup-title" id="pop-title">Well Done!</div>
+    <div class="popup-sub"  id="pop-sub"></div>
+    <div class="popup-best" id="pop-best"></div>
+    <div class="popup-btns">
+      <button class="pop-btn primary"   onclick="playAgain()">🔄 Play Again</button>
+      <button class="pop-btn secondary" onclick="goBack()">⬅ Menu</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+//  URL PARAMS
+// ═══════════════════════════════════════
+const params = new URLSearchParams(window.location.search);
+let size = parseInt(params.get('size')) || 3;
+if (isNaN(size) || size < 2 || size > 6) size = 3;
+const name = params.get('name') || '';
+const role = params.get('role') || '';
+
+// ═══════════════════════════════════════
+//  ECO IMAGES — all genuinely eco / nature themed
+//  Using Unsplash with specific eco keywords
+// ═══════════════════════════════════════
+const ECO_IMAGES = [
+  {
+    url: 'https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&q=80',
+    label: '🌲 Ancient Forest'
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=600&q=80',
+    label: '🦋 Wildflower Meadow'
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1459213599465-03ab6a4d5e2a?w=600&q=80',
+    label: '🌿 Tropical Leaves'
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=600&q=80',
+    label: '♻️ Green Earth'
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&q=80',
+    label: '🌱 Young Seedling'
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1530508777238-14544088c3ed?w=600&q=80',
+    label: '🐝 Bee on Flower'
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1497250681960-ef046c08a56e?w=600&q=80',
+    label: '🌺 Rainforest Bloom'
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1473448912268-2022ce9509d8?w=600&q=80',
+    label: '🍂 Autumn Canopy'
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=600&q=80',
+    label: '🌻 Sunflower Field'
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1560493676-04071c5f467b?w=600&q=80',
+    label: '🥬 Organic Garden'
+  },
+];
+
+// ═══════════════════════════════════════
+//  SOUNDS
+// ═══════════════════════════════════════
+const moveSound = new Audio('https://cdn.pixabay.com/audio/2022/03/15/audio_115b9bce2b.mp3');
+const winSound  = new Audio('https://cdn.pixabay.com/audio/2022/10/25/audio_946b7f1b2c.mp3');
+document.body.addEventListener('click', () => {
+  moveSound.play().then(()=>moveSound.pause()).catch(()=>{});
+  winSound.play().then(()=>winSound.pause()).catch(()=>{});
+}, { once: true });
+
+// ═══════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════
+let tiles = [], currentImage = null;
+let timeLeft = 0, totalTime = 0, interval = null;
+let moves = 0;
+let dragIdx = null, touchDragIdx = null;
+
+// ── HIGH SCORE (per grid size, stored in localStorage) ──────
+const HS_KEY = `ecoPuzzle_best_${size}`;
+function getBest() { return localStorage.getItem(HS_KEY) || null; }
+function saveBest(moves, secs) {
+  const cur = getBest();
+  // Store as "moves|secs" — lower moves wins; on tie, lower time wins
+  if (!cur) { localStorage.setItem(HS_KEY, `${moves}|${secs}`); return true; }
+  const [bm, bt] = cur.split('|').map(Number);
+  if (moves < bm || (moves === bm && secs < bt)) {
+    localStorage.setItem(HS_KEY, `${moves}|${secs}`);
+    return true;
+  }
+  return false;
+}
+function bestLabel() {
+  const cur = getBest();
+  if (!cur) return '—';
+  const [bm, bt] = cur.split('|').map(Number);
+  const m = Math.floor(bt/60), s = bt%60;
+  return `${bm} moves · ${m}:${s.toString().padStart(2,'0')}`;
+}
+function updateBestDisplay() {
+  document.getElementById('s-best').textContent = bestLabel();
+}
+
+// ═══════════════════════════════════════
+//  TILE SIZE — responsive
+// ═══════════════════════════════════════
+function tileSize() {
+  const vw = Math.min(window.innerWidth, 640);
+  const avail = vw - 24;
+  const gap = (size - 1) * 4;
+  return Math.floor((avail - gap) / size);
+}
+
+// ═══════════════════════════════════════
+//  TIMER
+// ═══════════════════════════════════════
+function getInitialTime() {
+  if (size <= 3) return 120;
+  if (size === 4) return 300;
+  if (size === 5) return 540;
+  return 720;
+}
+
+function startTimer() {
+  timeLeft = getInitialTime();
+  totalTime = timeLeft;
+  clearInterval(interval);
+  updateTimerDisplay();
+  interval = setInterval(() => {
+    timeLeft--;
+    updateTimerDisplay();
+    if (timeLeft <= 0) {
+      clearInterval(interval);
+      showPopup('⏰', 'Time Up!', "The eco puzzle wasn't solved in time. Try again!", null, false);
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(Math.max(0,timeLeft)/60);
+  const s = Math.max(0,timeLeft) % 60;
+  const el = document.getElementById('s-timer');
+  el.textContent = `${m}:${s.toString().padStart(2,'0')}`;
+  el.style.color = timeLeft <= 20 ? '#D85A30' : '';
+}
+
+// ═══════════════════════════════════════
+//  START GAME
+// ═══════════════════════════════════════
+function startGame() {
+  moves = 0;
+  document.getElementById('s-moves').textContent = '0';
+  updateBestDisplay();
+  dragIdx = null; touchDragIdx = null;
+
+  const pick = ECO_IMAGES[Math.floor(Math.random() * ECO_IMAGES.length)];
+  currentImage = pick.url;
+  document.getElementById('preview').src = currentImage;
+  document.getElementById('eco-name').textContent = pick.label;
+
+  tiles = [...Array(size * size).keys()];
+  // Fisher-Yates shuffle (ensure not already solved)
+  do {
+    for (let i = tiles.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [tiles[i], tiles[j]] = [tiles[j], tiles[i]];
+    }
+  } while (tiles.every((v, i) => v === i));
+
+  startTimer();
+  draw();
+}
+
+// ═══════════════════════════════════════
+//  DRAW GRID
+// ═══════════════════════════════════════
+function draw() {
+  const g   = document.getElementById('game');
+  const ts  = tileSize();
+  const pxW = size * ts;
+
+  g.innerHTML = '';
+  g.style.gridTemplateColumns = `repeat(${size}, ${ts}px)`;
+
+  tiles.forEach((num, i) => {
+    const d = document.createElement('div');
+    d.className = 'tile';
+    d.style.width  = ts + 'px';
+    d.style.height = ts + 'px';
+    d.style.backgroundImage    = `url(${currentImage})`;
+    d.style.backgroundSize     = `${pxW}px ${pxW}px`;
+    const cx = (num % size) * ts;
+    const cy = Math.floor(num / size) * ts;
+    d.style.backgroundPosition = `-${cx}px -${cy}px`;
+
+    // ── Drag & Drop (mouse) ──
+    d.draggable = true;
+    d.addEventListener('dragstart', () => { dragIdx = i; d.classList.add('dragging'); });
+    d.addEventListener('dragend',   () => { d.classList.remove('dragging'); dragIdx = null; draw(); });
+    d.addEventListener('dragover',  e  => { e.preventDefault(); d.classList.add('drag-over'); });
+    d.addEventListener('dragleave', () => d.classList.remove('drag-over'));
+    d.addEventListener('drop', e => {
+      e.preventDefault();
+      d.classList.remove('drag-over');
+      if (dragIdx !== null && dragIdx !== i) swapTiles(dragIdx, i);
+    });
+
+    // ── Touch drag (mobile) ──
+    d.addEventListener('touchstart', e => {
+      e.preventDefault();
+      touchDragIdx = i;
+      d.classList.add('dragging');
+    }, { passive: false });
+
+    d.addEventListener('touchend', e => {
+      e.preventDefault();
+      d.classList.remove('dragging');
+      const touch  = e.changedTouches[0];
+      const target = document.elementFromPoint(touch.clientX, touch.clientY);
+      if (target && target.classList.contains('tile')) {
+        const allTiles = [...document.querySelectorAll('.tile')];
+        const targetIdx = allTiles.indexOf(target);
+        if (touchDragIdx !== null && targetIdx !== -1 && targetIdx !== touchDragIdx) {
+          swapTiles(touchDragIdx, targetIdx);
+        }
+      }
+      touchDragIdx = null;
+    }, { passive: false });
+
+    g.appendChild(d);
+  });
+}
+
+// ═══════════════════════════════════════
+//  SWAP + CHECK
+// ═══════════════════════════════════════
+function swapTiles(a, b) {
+  [tiles[a], tiles[b]] = [tiles[b], tiles[a]];
+  moves++;
+  document.getElementById('s-moves').textContent = moves;
+  moveSound.currentTime = 0;
+  moveSound.play().catch(()=>{});
+  draw();
+  checkWin();
+}
+
+function checkWin() {
+  if (!tiles.every((v, i) => v === i)) return;
+  clearInterval(interval);
+  winSound.play().catch(()=>{});
+
+  const timeTaken = totalTime - timeLeft;
+  const m = Math.floor(timeTaken / 60), s = timeTaken % 60;
+  const isNew = saveBest(moves, timeTaken);
+  updateBestDisplay();
+
+  const bestMsg = isNew
+    ? `🏆 New Best Record! ${moves} moves in ${m}:${s.toString().padStart(2,'0')}`
+    : `Best: ${bestLabel()}`;
+
+  showPopup(
+    '🌿',
+    'Puzzle Complete!',
+    `You solved the ${size}×${size} eco puzzle in ${m}m ${s}s using ${moves} moves.`,
+    bestMsg,
+    true
+  );
+}
+
+// ═══════════════════════════════════════
+//  POPUP
+// ═══════════════════════════════════════
+function showPopup(icon, title, sub, best, isWin) {
+  document.getElementById('pop-icon').textContent  = icon;
+  document.getElementById('pop-title').textContent = title;
+  document.getElementById('pop-sub').textContent   = sub;
+  document.getElementById('pop-best').textContent  = best || '';
+  document.getElementById('overlay').classList.add('show');
+}
+
+function hidePopup() {
+  document.getElementById('overlay').classList.remove('show');
+}
+
+// ═══════════════════════════════════════
+//  BUTTONS
+// ═══════════════════════════════════════
+function playAgain() {
+  hidePopup();
+  startGame();
+}
+
+function goBack() {
+  if (name && role) {
+    window.location.href = '/puzzle_levelpage/' + name + '/' + role;
+  } else if (history.length > 1) {
+    history.back();
+  } else {
+    window.location.href = 'game_menu.html';
+  }
+}
+
+// ── Resize → redraw ──
+window.addEventListener('resize', () => draw());
+
+// ── START ──
+startGame();
+</script>
+</body>
+</html>

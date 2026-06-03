@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Settings</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f0efe9;--surface:#ffffff;--surface2:#f7f6f2;
+  --border:rgba(0,0,0,0.09);--text:#1a1917;--text-muted:#6b6a65;
+  --text-hint:#a09f9a;--icon-bg:#eeede8;--accent:#4CAF50;
+  --radius:14px;--shadow:0 2px 20px rgba(0,0,0,0.06);
+  --fn:'DM Sans',sans-serif;--fs:15px;
+}
+[data-theme="dark"]{
+  --bg:#111110;--surface:#1c1c1a;--surface2:#252523;
+  --border:rgba(255,255,255,0.08);--text:#f2f1ed;--text-muted:#8a8a84;
+  --text-hint:#5a5a55;--icon-bg:#2a2a27;--shadow:0 2px 20px rgba(0,0,0,0.3);
+}
+html{font-size:var(--fs)}
+body{
+  font-family:var(--fn);font-size:1rem;background:var(--bg);color:var(--text);
+  min-height:100vh;display:flex;align-items:flex-start;justify-content:center;
+  padding:2rem 1rem 4rem;transition:background .3s,color .3s;
+}
+.card{
+  background:var(--surface);border:1px solid var(--border);border-radius:20px;
+  width:100%;max-width:480px;overflow:hidden;box-shadow:var(--shadow);
+  transition:background .3s,box-shadow .3s;
+}
+.card-header{
+  display:flex;align-items:center;gap:10px;padding:1rem 1.25rem;
+  border-bottom:1px solid var(--border);position:relative;
+}
+.back-btn{
+  display:flex;align-items:center;gap:4px;background:none;border:none;
+  cursor:pointer;color:var(--accent);font-family:var(--fn);font-size:0.93rem;
+  font-weight:500;padding:4px 0;text-decoration:none;flex-shrink:0;
+}
+.header-title{
+  position:absolute;left:50%;transform:translateX(-50%);
+  font-size:0.93rem;font-weight:600;color:var(--text);pointer-events:none;
+}
+.header-spacer{flex:1}
+.section-label{
+  font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;
+  color:var(--text-hint);padding:.8rem 1.25rem .35rem;font-family:'DM Mono',monospace;
+}
+.row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:.7rem 1.25rem;gap:1rem;border-bottom:1px solid var(--border);
+  transition:padding .2s;
+}
+.row:last-of-type{border-bottom:none}
+.row-left{display:flex;align-items:center;gap:10px;min-width:0}
+.row-icon{
+  width:32px;height:32px;border-radius:8px;background:var(--icon-bg);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.row-label{font-size:0.87rem;font-weight:500;color:var(--text)}
+.row-sub{font-size:0.75rem;color:var(--text-muted);margin-top:2px}
+.tog{position:relative;width:46px;height:27px;flex-shrink:0;cursor:pointer}
+.tog input{display:none}
+.tog-track{position:absolute;inset:0;background:#d1d5db;border-radius:13.5px;transition:background .2s}
+.tog-thumb{
+  position:absolute;top:3px;left:3px;width:21px;height:21px;background:#fff;
+  border-radius:50%;transition:transform .22s cubic-bezier(.34,1.56,.64,1);
+  box-shadow:0 1px 4px rgba(0,0,0,.2);
+}
+.tog input:checked~.tog-track{background:var(--accent)}
+.tog input:checked~.tog-thumb{transform:translateX(19px)}
+[data-theme="dark"] .tog-track{background:#3a3a37}
+select{
+  font-size:0.8rem;font-family:var(--fn);font-weight:500;padding:6px 10px;
+  border-radius:8px;border:1px solid var(--border);background:var(--icon-bg);
+  color:var(--text);cursor:pointer;appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b6a65' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 8px center;padding-right:26px;
+}
+.swatches{display:flex;gap:7px;flex-wrap:wrap}
+.swatch{
+  width:22px;height:22px;border-radius:50%;cursor:pointer;
+  border:2.5px solid transparent;outline:2.5px solid transparent;
+  outline-offset:2px;transition:transform .15s;
+}
+.swatch.active{outline-color:var(--accent);transform:scale(1.15)}
+.font-btns{display:flex;gap:4px}
+.font-btn{
+  border:1px solid var(--border);background:var(--icon-bg);color:var(--text);
+  border-radius:7px;cursor:pointer;padding:4px 13px;font-size:0.8rem;
+  font-family:var(--fn);font-weight:500;transition:background .15s;
+}
+.font-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.section-divider{
+  height:6px;background:var(--surface2);
+  border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+  transition:background .3s;
+}
+.card-footer{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:.85rem 1.25rem;border-top:1px solid var(--border);
+}
+.reset-btn{
+  font-size:0.8rem;font-family:var(--fn);color:#ef4444;
+  background:none;border:none;cursor:pointer;font-weight:500;
+}
+.saved-tag{
+  font-size:0.75rem;font-family:'DM Mono',monospace;color:var(--accent);
+  font-weight:500;opacity:0;transition:opacity .3s;display:flex;align-items:center;gap:4px;
+}
+.saved-tag.show{opacity:1}
+.toast-container{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  display:flex;flex-direction:column;gap:8px;z-index:1000;pointer-events:none;
+}
+.toast{
+  background:var(--text);color:var(--surface);font-family:var(--fn);
+  font-size:0.8rem;font-weight:500;padding:10px 18px;border-radius:20px;
+  box-shadow:0 4px 20px rgba(0,0,0,.2);opacity:0;transform:translateY(10px);
+  transition:opacity .3s,transform .3s;white-space:nowrap;
+}
+.toast.show{opacity:1;transform:translateY(0)}
+.perm-chip{
+  font-size:0.62rem;font-family:'DM Mono',monospace;font-weight:600;
+  padding:2px 7px;border-radius:6px;flex-shrink:0;
+}
+.perm-chip.granted{background:rgba(76,175,80,0.15);color:#3a8f3d}
+.perm-chip.denied{background:rgba(239,68,68,0.12);color:#c53030}
+.perm-chip.default{background:var(--icon-bg);color:var(--text-muted)}
+[data-theme="dark"] .perm-chip.granted{background:rgba(76,175,80,0.2);color:#6fcf74}
+[data-theme="dark"] .perm-chip.denied{background:rgba(239,68,68,0.18);color:#f87171}
+.live-time{
+  font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--text-muted);
+  background:var(--icon-bg);padding:4px 10px;border-radius:7px;
+}
+/* Music bars animation */
+.music-bars{display:flex;align-items:flex-end;gap:2px;height:18px}
+.music-bars span{
+  width:3px;background:var(--accent);border-radius:2px;
+  animation:bar 0.7s ease-in-out infinite alternate;
+}
+.music-bars span:nth-child(1){height:5px;animation-delay:0s}
+.music-bars span:nth-child(2){height:13px;animation-delay:0.12s}
+.music-bars span:nth-child(3){height:8px;animation-delay:0.25s}
+.music-bars span:nth-child(4){height:15px;animation-delay:0.08s}
+.music-bars span:nth-child(5){height:6px;animation-delay:0.2s}
+.music-bars.paused span{animation-play-state:paused;height:4px !important}
+@keyframes bar{from{transform:scaleY(0.3)}to{transform:scaleY(1)}}
+</style>
+</head>
+<body>
+<div class="toast-container" id="toasts"></div>
+<div class="card">
+
+  <!-- HEADER -->
+  <div class="card-header">
+    <button class="back-btn" id="back-btn">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      <span data-i18n="back">Back</span>
+    </button>
+    <span class="header-title" data-i18n="settings_title">Settings</span>
+    <div class="header-spacer"></div>
+  </div>
+
+  <!-- APPEARANCE -->
+  <div class="section-label" data-i18n="appearance">Appearance</div>
+  <div class="row">
+    <div class="row-left">
+      <div class="row-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></div>
+      <div><div class="row-label" data-i18n="dark_mode">Dark mode</div><div class="row-sub" id="theme-sub">Currently: Light</div></div>
+    </div>
+    <label class="tog"><input type="checkbox" id="tog-dark"><span class="tog-track"></span><span class="tog-thumb"></span></label>
+  </div>
+  <div class="row">
+    <div class="row-left">
+      <div class="row-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg></div>
+      <div class="row-label" data-i18n="accent_color">Accent colour</div>
+    </div>
+    <div class="swatches" id="swatches">
+      <div class="swatch active" data-color="#4CAF50" style="background:#4CAF50" title="Green"></div>
+      <div class="swatch" data-color="#378ADD" style="background:#378ADD" title="Blue"></div>
+      <div class="swatch" data-color="#D4537E" style="background:#D4537E" title="Pink"></div>
+      <div class="swatch" data-color="#EF9F27" style="background:#EF9F27" title="Amber"></div>
+      <div class="swatch" data-color="#7F77DD" style="background:#7F77DD" title="Purple"></div>
+      <div class="swatch" data-color="#D85A30" style="background:#D85A30" title="Coral"></div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="row-left">
+      <div class="row-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg></div>
+      <div><div class="row-label" data-i18n="font_size">Font size</div><div class="row-sub" data-i18n="font_sub">Applies to whole page</div></div>
+    </div>
+    <div class="font-btns">
+      <button class="font-btn" data-size="small">S</button>
+      <button class="font-btn active" data-size="medium">M</button>
+      <button class="font-btn" data-size="large">L</button>
+    </div>
+  </div>
+  <div class="row">
+    <div class="row-left">
+      <div class="row-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
+      <div><div class="row-label" data-i18n="compact_layout">Compact layout</div><div class="row-sub" data-i18n="compact_sub">Reduces spacing between items</div></div>
+    </div>
+    <label class="tog"><input type="checkbox" id="tog-compact"><span class="tog-track"></span><span class="tog-thumb"></span></label>
+  </div>
+
+  <!-- SOUND & MUSIC -->
+  <div class="section-divider"></div>
+  <div class="section-label" data-i18n="sound_music_label">Sound &amp; Music</div>
+  <div class="row">
+    <div class="row-left">
+      <div class="row-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14"/></svg></div>
+      <div><div class="row-label" data-i18n="sound_effects">Sound effects</div><div class="row-sub" data-i18n="sound_sub">UI interaction sounds</div></div>
+    </div>
+    <label class="tog"><input type="checkbox" id="tog-sound" checked><span class="tog-track"></span><span class="tog-thumb"></span></label>
+  </div>
+  <div class="row">
+    <div class="row-left">
+      <div class="row-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
+      <div><div class="row-label" data-i18n="bg_music">Background music</div><div class="row-sub" data-i18n="music_sub">Ambient soundtrack</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="music-bars paused" id="music-bars"><span></span><span></span><span></span><span></span><span></span></div>
+      <label class="tog"><input type="checkbox" id="tog-music"><span class="tog-track"></span><span class="tog-thumb"></span></label>
+    </div>
+  </div>
+  <div class="row" style="padding-top:.5rem;padding-bottom:.5rem">
+    <div class="row-left" style="padding-left:42px">
+      <div class="row-label" style="font-size:0.8rem;color:var(--text-muted)" data-i18n="music_theme">Music theme</div>
+    </div>
+    <select id="sel-theme">
+      <option value="lofi">Lo-fi Chill</option>
+      <option value="ambient">Ambient</option>
+      <option value="upbeat">Upbeat</option>
+    </select>
+  </div>
+
+  <!-- NOTIFICATIONS -->
+  <div class="section-divider"></div>
+  <div class="section-label" data-i18n="notifications">Notifications</div>
+  <div class="row">
+    <div class="row-left">
+      <div class="row-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
+      <div><div class="row-label" data-i18n="push_notif">Push notifications</div>
+        <div class="row-sub"><span data-i18n="perm_status">Permission: </span><span class="perm-chip default" id="perm-chip">checking...</span></div>
+      </div>
+    </div>
+    <label class="tog"><input type="checkbox" id="tog-notif" checked><span class="tog-track"></span><span class="tog-thumb"></span></label>
+  </div>
+  <div class="row">
+    <div class="row-left">
+      <div class="row-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 19-7z"/></svg></div>
+      <div class="row-label" data-i18n="test_notif">Send test notification</div>
+    </div>
+    <button id="test-notif-btn" style="font-size:0.8rem;font-family:var(--fn);font-weight:500;padding:5px 14px;border-radius:8px;border:1px solid var(--border);background:var(--icon-bg);color:var(--text);cursor:pointer" data-i18n="send">Send</button>
+  </div>
+  <div class="row">
+    <div class="row-left">
+      <div class="row-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
+      <div><div class="row-label" data-i18n="email_digest">Email digest</div><div class="row-sub" data-i18n="email_sub">Weekly summary email</div></div>
+    </div>
+    <label class="tog"><input type="checkbox" id="tog-email"><span class="tog-track"></span><span class="tog-thumb"></span></label>
+  </div>
+
+  <!-- REGION & LANGUAGE -->
+  <div class="section-divider"></div>
+  <div class="section-label" data-i18n="region_lang">Region &amp; language</div>
+  <div class="row">
+    <div class="row-left">
+      <div class="row-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
+      <div class="row-label" data-i18n="language">Language</div>
+    </div>
+    <select id="sel-lang">
+      <option value="en">🇬🇧 English</option>
+      <option value="ta">🇮🇳 Tamil</option>
+      <option value="hi">🇮🇳 Hindi</option>
+      <option value="te">🇮🇳 Telugu</option>
+      <option value="kn">🇮🇳 Kannada</option>
+      <option value="ml">🇮🇳 Malayalam</option>
+      <option value="fr">🇫🇷 French</option>
+      <option value="de">🇩🇪 German</option>
+      <option value="ja">🇯🇵 Japanese</option>
+    </select>
+  </div>
+  <div class="row">
+    <div class="row-left">
+      <div class="row-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+      <div><div class="row-label" data-i18n="date_format">Date format</div><div class="row-sub" id="date-preview"></div></div>
+    </div>
+    <select id="sel-date">
+      <option value="dmy">DD/MM/YYYY</option>
+      <option value="mdy">MM/DD/YYYY</option>
+      <option value="ymd">YYYY-MM-DD</option>
+    </select>
+  </div>
+  <div class="row">
+    <div class="row-left">
+      <div class="row-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+      <div><div class="row-label" data-i18n="time_format">Time format</div><div class="row-sub" data-i18n="time_sub">12-hour or 24-hour clock</div></div>
+    </div>
+    <span class="live-time" id="live-time">--:--</span>
+  </div>
+  <div class="row" style="padding-top:.5rem;padding-bottom:.5rem">
+    <div class="row-left" style="padding-left:42px">
+      <div class="row-label" style="font-size:0.8rem;color:var(--text-muted)" data-i18n="clock">Clock</div>
+    </div>
+    <select id="sel-time"><option value="12">12-hour (AM/PM)</option><option value="24">24-hour</option></select>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="card-footer">
+    <button class="reset-btn" id="reset-btn" data-i18n="reset">↺ Reset to defaults</button>
+    <span class="saved-tag" id="saved-tag">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>
+      <span data-i18n="saved">Saved</span>
+    </span>
+  </div>
+
+</div><!-- end card -->
+
+<script>
+/* ═══════════════════════════════════════════
+   TRANSLATIONS
+═══════════════════════════════════════════ */
+const TR = {
+  en:{
+    back:'Back',settings_title:'Settings',appearance:'Appearance',
+    dark_mode:'Dark mode',accent_color:'Accent colour',font_size:'Font size',
+    font_sub:'Applies to whole page',compact_layout:'Compact layout',
+    compact_sub:'Reduces spacing between items',sound_music_label:'Sound & Music',
+    sound_effects:'Sound effects',sound_sub:'UI interaction sounds',
+    bg_music:'Background music',music_sub:'Ambient soundtrack',music_theme:'Music theme',
+    notifications:'Notifications',push_notif:'Push notifications',
+    perm_status:'Permission: ',test_notif:'Send test notification',send:'Send',
+    email_digest:'Email digest',email_sub:'Weekly summary email',
+    region_lang:'Region & Language',language:'Language',
+    date_format:'Date format',time_format:'Time format',
+    time_sub:'12-hour or 24-hour clock',clock:'Clock',
+    reset:'↺ Reset to defaults',saved:'Saved',
+    theme_light:'Currently: Light',theme_dark:'Currently: Dark',
+    perm_granted:'Allowed',perm_denied:'Blocked',perm_default:'Not set',
+    reset_done:'Settings reset',
+  },
+  ta:{
+    back:'பின்',settings_title:'அமைப்புகள்',appearance:'தோற்றம்',
+    dark_mode:'இருண்ட முறை',accent_color:'வண்ண சாயல்',font_size:'எழுத்து அளவு',
+    font_sub:'முழு பக்கத்திலும் பயன்படுத்தப்படும்',compact_layout:'சுருக்கமான தளவமைப்பு',
+    compact_sub:'இடைவெளியை குறைக்கிறது',sound_music_label:'ஒலி & இசை',
+    sound_effects:'ஒலி விளைவுகள்',sound_sub:'UI ஒலிகள்',
+    bg_music:'பின்னணி இசை',music_sub:'சூழல் இசைப்பாடல்',music_theme:'இசை தீம்',
+    notifications:'அறிவிப்புகள்',push_notif:'புஷ் அறிவிப்புகள்',
+    perm_status:'அனுமதி: ',test_notif:'சோதனை அறிவிப்பு',send:'அனுப்பு',
+    email_digest:'மின்னஞ்சல் சுருக்கம்',email_sub:'வாராந்திர சுருக்க மின்னஞ்சல்',
+    region_lang:'பிராந்தியம் & மொழி',language:'மொழி',
+    date_format:'தேதி வடிவம்',time_format:'நேர வடிவம்',
+    time_sub:'12 அல்லது 24 மணி நேரம்',clock:'கடிகாரம்',
+    reset:'↺ இயல்புநிலைக்கு மீட்டமை',saved:'சேமிக்கப்பட்டது',
+    theme_light:'தற்போது: வெளிர்',theme_dark:'தற்போது: இருண்ட',
+    perm_granted:'அனுமதிக்கப்பட்டது',perm_denied:'தடுக்கப்பட்டது',perm_default:'அமைக்கப்படவில்லை',
+    reset_done:'அமைப்புகள் மீட்டமைக்கப்பட்டன',
+  },
+  hi:{
+    back:'वापस',settings_title:'सेटिंग्स',appearance:'दिखावट',
+    dark_mode:'डार्क मोड',accent_color:'एक्सेंट रंग',font_size:'फ़ॉन्ट आकार',
+    font_sub:'पूरे पेज पर लागू होता है',compact_layout:'कॉम्पैक्ट लेआउट',
+    compact_sub:'आइटम के बीच स्थान कम करता है',sound_music_label:'ध्वनि और संगीत',
+    sound_effects:'ध्वनि प्रभाव',sound_sub:'UI ध्वनि',
+    bg_music:'पृष्ठभूमि संगीत',music_sub:'परिवेश साउंडट्रैक',music_theme:'संगीत थीम',
+    notifications:'सूचनाएं',push_notif:'पुश सूचनाएं',
+    perm_status:'अनुमति: ',test_notif:'परीक्षण सूचना',send:'भेजें',
+    email_digest:'ईमेल डाइजेस्ट',email_sub:'साप्ताहिक सारांश ईमेल',
+    region_lang:'क्षेत्र और भाषा',language:'भाषा',
+    date_format:'दिनांक प्रारूप',time_format:'समय प्रारूप',
+    time_sub:'12 या 24 घंटे की घड़ी',clock:'घड़ी',
+    reset:'↺ डिफ़ॉल्ट पर रीसेट',saved:'सहेजा गया',
+    theme_light:'वर्तमान: लाइट',theme_dark:'वर्तमान: डार्क',
+    perm_granted:'अनुमति है',perm_denied:'अवरुद्ध',perm_default:'सेट नहीं',
+    reset_done:'सेटिंग्स रीसेट',
+  },
+  te:{
+    back:'వెనుకకు',settings_title:'సెట్టింగ్‌లు',appearance:'రూపం',
+    dark_mode:'డార్క్ మోడ్',accent_color:'యాక్సెంట్ రంగు',font_size:'అక్షర పరిమాణం',
+    font_sub:'మొత్తం పేజీకి వర్తిస్తుంది',compact_layout:'కాంపాక్ట్ లేఅవుట్',
+    compact_sub:'అంశాల మధ్య స్థలాన్ని తగ్గిస్తుంది',sound_music_label:'ధ్వని & సంగీతం',
+    sound_effects:'ధ్వని ప్రభావాలు',sound_sub:'UI ధ్వనులు',
+    bg_music:'నేపథ్య సంగీతం',music_sub:'అంబియంట్ సౌండ్‌ట్రాక్',music_theme:'సంగీత థీమ్',
+    notifications:'నోటిఫికేషన్లు',push_notif:'పుష్ నోటిఫికేషన్లు',
+    perm_status:'అనుమతి: ',test_notif:'పరీక్ష నోటిఫికేషన్',send:'పంపు',
+    email_digest:'ఇమెయిల్ సారాంశం',email_sub:'వారపు సారాంశ ఇమెయిల్',
+    region_lang:'ప్రాంతం & భాష',language:'భాష',
+    date_format:'తేదీ ఆకృతి',time_format:'సమయ ఆకృతి',
+    time_sub:'12 లేదా 24 గంటల గడియారం',clock:'గడియారం',
+    reset:'↺ డిఫాల్ట్‌కు రీసెట్',saved:'సేవ్ చేయబడింది',
+    theme_light:'ప్రస్తుతం: లైట్',theme_dark:'ప్రస్తుతం: డార్క్',
+    perm_granted:'అనుమతించబడింది',perm_denied:'నిరోధించబడింది',perm_default:'సెట్ చేయలేదు',
+    reset_done:'సెట్టింగ్‌లు రీసెట్ చేయబడ్డాయి',
+  },
+  kn:{
+    back:'ಹಿಂದೆ',settings_title:'ಸೆಟ್ಟಿಂಗ್‌ಗಳು',appearance:'ನೋಟ',
+    dark_mode:'ಡಾರ್ಕ್ ಮೋಡ್',accent_color:'ಆಕ್ಸೆಂಟ್ ಬಣ್ಣ',font_size:'ಅಕ್ಷರ ಗಾತ್ರ',
+    font_sub:'ಇಡೀ ಪುಟಕ್ಕೆ ಅನ್ವಯಿಸುತ್ತದೆ',compact_layout:'ಕಾಂಪ್ಯಾಕ್ಟ್ ಲೇಔಟ್',
+    compact_sub:'ಐಟಂಗಳ ನಡುವಿನ ಅಂತರ ಕಡಿಮೆ ಮಾಡುತ್ತದೆ',sound_music_label:'ಧ್ವನಿ & ಸಂಗೀತ',
+    sound_effects:'ಧ್ವನಿ ಪರಿಣಾಮಗಳು',sound_sub:'UI ಧ್ವನಿಗಳು',
+    bg_music:'ಹಿನ್ನೆಲೆ ಸಂಗೀತ',music_sub:'ಅಂಬಿಯಂಟ್ ಸೌಂಡ್‌ಟ್ರ್ಯಾಕ್',music_theme:'ಸಂಗೀತ ಥೀಮ್',
+    notifications:'ಅಧಿಸೂಚನೆಗಳು',push_notif:'ಪುಶ್ ಅಧಿಸೂಚನೆಗಳು',
+    perm_status:'ಅನುಮತಿ: ',test_notif:'ಪರೀಕ್ಷಾ ಅಧಿಸೂಚನೆ',send:'ಕಳುಹಿಸು',
+    email_digest:'ಇಮೇಲ್ ಸಾರಾಂಶ',email_sub:'ವಾರದ ಸಾರಾಂಶ ಇಮೇಲ್',
+    region_lang:'ಪ್ರದೇಶ & ಭಾಷೆ',language:'ಭಾಷೆ',
+    date_format:'ದಿನಾಂಕ ಸ್ವರೂಪ',time_format:'ಸಮಯ ಸ್ವರೂಪ',
+    time_sub:'12 ಅಥವಾ 24 ಗಂಟೆ ಗಡಿಯಾರ',clock:'ಗಡಿಯಾರ',
+    reset:'↺ ಡಿಫಾಲ್ಟ್‌ಗೆ ರೀಸೆಟ್',saved:'ಉಳಿಸಲಾಗಿದೆ',
+    theme_light:'ಪ್ರಸ್ತುತ: ಲೈಟ್',theme_dark:'ಪ್ರಸ್ತುತ: ಡಾರ್ಕ್',
+    perm_granted:'ಅನುಮತಿಸಲಾಗಿದೆ',perm_denied:'ನಿರ್ಬಂಧಿಸಲಾಗಿದೆ',perm_default:'ಹೊಂದಿಸಿಲ್ಲ',
+    reset_done:'ಸೆಟ್ಟಿಂಗ್‌ಗಳು ರೀಸೆಟ್ ಆಗಿವೆ',
+  },
+  ml:{
+    back:'തിരിച്ച്',settings_title:'ക്രമീകരണങ്ങൾ',appearance:'രൂപം',
+    dark_mode:'ഡാർക്ക് മോഡ്',accent_color:'ആക്സന്റ് നിറം',font_size:'ഫോണ്ട് വലുപ്പം',
+    font_sub:'മുഴുവൻ പേജിലും ബാധകം',compact_layout:'കംപാക്ട് ലേഔട്ട്',
+    compact_sub:'ഇനങ്ങൾക്കിടയിലെ ഇടം കുറയ്ക്കുന്നു',sound_music_label:'ശബ്ദം & സംഗീതം',
+    sound_effects:'ശബ്ദ ഇഫക്റ്റുകൾ',sound_sub:'UI ശബ്ദങ്ങൾ',
+    bg_music:'പശ്ചാത്തല സംഗീതം',music_sub:'അംബിയന്റ് സൗണ്ട്ട്രാക്ക്',music_theme:'സംഗീത തീം',
+    notifications:'അറിയിപ്പുകൾ',push_notif:'പുഷ് അറിയിപ്പുകൾ',
+    perm_status:'അനുമതി: ',test_notif:'ടെസ്റ്റ് അറിയിപ്പ്',send:'അയക്കുക',
+    email_digest:'ഇമെയിൽ ഡൈജസ്റ്റ്',email_sub:'പ്രതിവാര സംഗ്രഹ ഇമെയിൽ',
+    region_lang:'പ്രദേശം & ഭാഷ',language:'ഭാഷ',
+    date_format:'തീയതി ഫോർമാറ്റ്',time_format:'സമയ ഫോർമാറ്റ്',
+    time_sub:'12 അല്ലെങ്കിൽ 24 മണിക്കൂർ ഘടികാരം',clock:'ഘടികാരം',
+    reset:'↺ ഡിഫോൾട്ടിലേക്ക് റീസെറ്റ്',saved:'സംരക്ഷിച്ചു',
+    theme_light:'നിലവിൽ: ലൈറ്റ്',theme_dark:'നിലവിൽ: ഡാർക്ക്',
+    perm_granted:'അനുവദിച്ചു',perm_denied:'തടഞ്ഞു',perm_default:'സജ്ജമാക്കിയിട്ടില്ല',
+    reset_done:'ക്രമീകരണങ്ങൾ റീസെറ്റ് ചെയ്തു',
+  },
+  fr:{
+    back:'Retour',settings_title:'Paramètres',appearance:'Apparence',
+    dark_mode:'Mode sombre',accent_color:"Couleur d'accent",font_size:'Taille police',
+    font_sub:'Appliqué à toute la page',compact_layout:'Disposition compacte',
+    compact_sub:"Réduit l'espacement",sound_music_label:'Son et musique',
+    sound_effects:'Effets sonores',sound_sub:"Sons d'interface",
+    bg_music:'Musique de fond',music_sub:'Bande sonore ambiante',music_theme:'Thème musical',
+    notifications:'Notifications',push_notif:'Notifications push',
+    perm_status:'Permission: ',test_notif:'Notification test',send:'Envoyer',
+    email_digest:'Résumé email',email_sub:'Résumé hebdomadaire',
+    region_lang:'Région & Langue',language:'Langue',
+    date_format:'Format de date',time_format:"Format d'heure",
+    time_sub:'Horloge 12h ou 24h',clock:'Horloge',
+    reset:'↺ Réinitialiser',saved:'Enregistré',
+    theme_light:'Actuel: Clair',theme_dark:'Actuel: Sombre',
+    perm_granted:'Autorisé',perm_denied:'Bloqué',perm_default:'Non défini',
+    reset_done:'Paramètres réinitialisés',
+  },
+  de:{
+    back:'Zurück',settings_title:'Einstellungen',appearance:'Erscheinungsbild',
+    dark_mode:'Dunkelmodus',accent_color:'Akzentfarbe',font_size:'Schriftgröße',
+    font_sub:'Gilt für die gesamte Seite',compact_layout:'Kompaktes Layout',
+    compact_sub:'Reduziert den Abstand',sound_music_label:'Ton & Musik',
+    sound_effects:'Soundeffekte',sound_sub:'UI-Geräusche',
+    bg_music:'Hintergrundmusik',music_sub:'Ambient-Soundtrack',music_theme:'Musikthema',
+    notifications:'Benachrichtigungen',push_notif:'Push-Benachrichtigungen',
+    perm_status:'Berechtigung: ',test_notif:'Testbenachrichtigung',send:'Senden',
+    email_digest:'E-Mail-Zusammenfassung',email_sub:'Wöchentliche Zusammenfassung',
+    region_lang:'Region & Sprache',language:'Sprache',
+    date_format:'Datumsformat',time_format:'Zeitformat',
+    time_sub:'12- oder 24-Stunden-Uhr',clock:'Uhr',
+    reset:'↺ Zurücksetzen',saved:'Gespeichert',
+    theme_light:'Aktuell: Hell',theme_dark:'Aktuell: Dunkel',
+    perm_granted:'Erlaubt',perm_denied:'Blockiert',perm_default:'Nicht gesetzt',
+    reset_done:'Einstellungen zurückgesetzt',
+  },
+  ja:{
+    back:'戻る',settings_title:'設定',appearance:'外観',
+    dark_mode:'ダークモード',accent_color:'アクセントカラー',font_size:'フォントサイズ',
+    font_sub:'ページ全体に適用',compact_layout:'コンパクトレイアウト',
+    compact_sub:'余白を削減します',sound_music_label:'サウンドと音楽',
+    sound_effects:'サウンドエフェクト',sound_sub:'UI操作音',
+    bg_music:'バックグラウンドミュージック',music_sub:'アンビエントサウンドトラック',music_theme:'音楽テーマ',
+    notifications:'通知',push_notif:'プッシュ通知',
+    perm_status:'許可: ',test_notif:'テスト通知',send:'送信',
+    email_digest:'メールダイジェスト',email_sub:'週次サマリーメール',
+    region_lang:'地域と言語',language:'言語',
+    date_format:'日付形式',time_format:'時刻形式',
+    time_sub:'12時間制または24時間制',clock:'時計',
+    reset:'↺ デフォルトにリセット',saved:'保存済み',
+    theme_light:'現在: ライト',theme_dark:'現在: ダーク',
+    perm_granted:'許可済み',perm_denied:'ブロック済み',perm_default:'未設定',
+    reset_done:'設定をリセットしました',
+  }
+};
+
+/* ═══════════════════════════════════════════
+   STATE & DEFAULTS
+═══════════════════════════════════════════ */
+const DEFAULTS = {
+  dark:false, accent:'#4CAF50', fontSize:'medium', compact:false,
+  sound:true, music:false, musicTheme:'lofi',
+  notif:true, email:false,
+  lang:'en', date:'dmy', timeFormat:'12'
+};
+let S = {...DEFAULTS};
+
+function load(){ try{ const v=localStorage.getItem('app_s4'); if(v) S={...DEFAULTS,...JSON.parse(v)}; }catch(e){} }
+function save(){ try{ localStorage.setItem('app_s4',JSON.stringify(S)); }catch(e){} showSaved(); }
+function tr(k){ return (TR[S.lang]||TR.en)[k]||k; }
+
+/* ═══════════════════════════════════════════
+   TOAST & SAVED
+═══════════════════════════════════════════ */
+function showToast(msg, dur=2400){
+  const c=document.getElementById('toasts'), el=document.createElement('div');
+  el.className='toast'; el.textContent=msg; c.appendChild(el);
+  requestAnimationFrame(()=>el.classList.add('show'));
+  setTimeout(()=>{ el.classList.remove('show'); setTimeout(()=>el.remove(),400); }, dur);
+}
+function showSaved(){
+  const t=document.getElementById('saved-tag'); t.classList.add('show');
+  clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),1600);
+}
+
+/* ═══════════════════════════════════════════
+   FONT SIZE — changes entire page
+═══════════════════════════════════════════ */
+function applyFontSize(){
+  const map={small:'12px', medium:'15px', large:'18px'};
+  document.documentElement.style.setProperty('--fs', map[S.fontSize]);
+  document.querySelectorAll('.font-btn').forEach(b=>b.classList.toggle('active', b.dataset.size===S.fontSize));
+}
+
+/* ═══════════════════════════════════════════
+   COMPACT
+═══════════════════════════════════════════ */
+function applyCompact(){
+  document.querySelectorAll('.row').forEach(r=>{
+    r.style.paddingTop    = S.compact ? '.35rem' : '.7rem';
+    r.style.paddingBottom = S.compact ? '.35rem' : '.7rem';
+  });
+}
+
+/* ═══════════════════════════════════════════
+   TRANSLATIONS — applies to entire page
+═══════════════════════════════════════════ */
+function applyTranslations(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{ el.textContent=tr(el.dataset.i18n); });
+  document.documentElement.lang = S.lang;
+  document.getElementById('theme-sub').textContent = S.dark ? tr('theme_dark') : tr('theme_light');
+  updateDatePreview();
+  updatePermChip();
+}
+
+/* ═══════════════════════════════════════════
+   DATE / CLOCK
+═══════════════════════════════════════════ */
+function formatDate(d,fmt){
+  const dd=String(d.getDate()).padStart(2,'0'), mm=String(d.getMonth()+1).padStart(2,'0'), yyyy=d.getFullYear();
+  if(fmt==='mdy') return `${mm}/${dd}/${yyyy}`;
+  if(fmt==='ymd') return `${yyyy}-${mm}-${dd}`;
+  return `${dd}/${mm}/${yyyy}`;
+}
+function updateDatePreview(){ document.getElementById('date-preview').textContent=formatDate(new Date(),S.date); }
+function updateClock(){
+  const now=new Date(); let h=now.getHours(), m=String(now.getMinutes()).padStart(2,'0'), str;
+  if(S.timeFormat==='12'){ const ap=h>=12?'PM':'AM'; h=h%12||12; str=`${h}:${m} ${ap}`; }
+  else str=`${String(h).padStart(2,'0')}:${m}`;
+  document.getElementById('live-time').textContent=str;
+}
+
+/* ═══════════════════════════════════════════
+   NOTIFICATIONS
+═══════════════════════════════════════════ */
+function updatePermChip(){
+  const c=document.getElementById('perm-chip');
+  if(!('Notification' in window)){ c.textContent='N/A'; c.className='perm-chip default'; return; }
+  const p=Notification.permission;
+  if(p==='granted'){ c.textContent=tr('perm_granted'); c.className='perm-chip granted'; }
+  else if(p==='denied'){ c.textContent=tr('perm_denied'); c.className='perm-chip denied'; }
+  else{ c.textContent=tr('perm_default'); c.className='perm-chip default'; }
+}
+
+/* ═══════════════════════════════════════════
+   APPLY ALL
+═══════════════════════════════════════════ */
+function applyAll(){
+  document.documentElement.dataset.theme = S.dark ? 'dark' : '';
+  document.documentElement.style.setProperty('--accent', S.accent);
+  document.querySelectorAll('.swatch').forEach(sw=>sw.classList.toggle('active', sw.dataset.color===S.accent));
+  document.getElementById('tog-dark').checked    = S.dark;
+  document.getElementById('tog-compact').checked = S.compact;
+  document.getElementById('tog-sound').checked   = S.sound;
+  document.getElementById('tog-music').checked   = S.music;
+  document.getElementById('tog-notif').checked   = S.notif;
+  document.getElementById('tog-email').checked   = S.email;
+  document.getElementById('sel-lang').value       = S.lang;
+  document.getElementById('sel-date').value       = S.date;
+  document.getElementById('sel-time').value       = S.timeFormat;
+  document.getElementById('sel-theme').value      = S.musicTheme;
+  applyFontSize();
+  applyCompact();
+  applyTranslations();
+  updateClock();
+  updateMusicBars();
+}
+
+/* ═══════════════════════════════════════════
+   SOUND ENGINE (SFX)
+═══════════════════════════════════════════ */
+let audioCtx=null;
+function getCtx(){ if(!audioCtx) audioCtx=new(window.AudioContext||window.webkitAudioContext)(); return audioCtx; }
+function playTone(freq=440,type='sine',dur=0.08,vol=0.15){
+  if(!S.sound) return;
+  try{
+    const ctx=getCtx(), o=ctx.createOscillator(), g=ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.type=type; o.frequency.value=freq;
+    g.gain.setValueAtTime(vol,ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+dur);
+    o.start(); o.stop(ctx.currentTime+dur);
+  }catch(e){}
+}
+function playOn()   { playTone(660,'sine',0.12,0.12); }
+function playOff()  { playTone(330,'sine',0.1,0.08);  }
+function playClick(){ playTone(800,'triangle',0.06,0.1); }
+function playReset(){ [440,360,280].forEach((f,i)=>setTimeout(()=>playTone(f,'sine',0.1,0.1),i*60)); }
+
+/* ═══════════════════════════════════════════
+   MUSIC ENGINE
+   — Each theme has a distinct character:
+     lofi   : slow, warm, jazzy (70bpm, minor penta)
+     ambient: very slow, sparse, drifting (40bpm, pentatonic)
+     upbeat : fast, bright, rhythmic (128bpm, major scale + kick)
+═══════════════════════════════════════════ */
+let musicInterval=null, musicPlaying=false, musicGain=null, reverbNode=null;
+
+const THEMES = {
+  lofi: {
+    bpm: 70,
+    // C minor pentatonic: C D Eb G Ab  (MIDI 60,62,63,67,68)
+    melody: [60,62,63,67,68,72,75,67],
+    // Chord: Cm7 voicing
+    chord:  [48,55,60,63,67],
+    bass:   [36,36,43,43],
+    waveM:'triangle', waveC:'sine', waveB:'triangle',
+    reverbSec:3, volM:0.18, volC:0.05, volB:0.10,
+    beatDiv:2,   // melody every 2 beats
+    hasKick:false, hasBass:true,
+  },
+  ambient: {
+    bpm: 40,
+    // Eb major pentatonic: Eb F G Bb C  (MIDI 63,65,67,70,72)
+    melody: [63,65,67,70,72,75,70,67],
+    chord:  [51,58,63,67,70],
+    bass:   [],
+    waveM:'sine', waveC:'sine', waveB:'sine',
+    reverbSec:6, volM:0.10, volC:0.04, volB:0,
+    beatDiv:4,
+    hasKick:false, hasBass:false,
+  },
+  upbeat: {
+    bpm: 128,
+    // G major scale: G A B C D E F# G  (MIDI 67,69,71,72,74,76,78,79)
+    melody: [67,69,71,72,74,76,79,74,72,71,69,67],
+    chord:  [55,59,62,67],
+    bass:   [43,43,50,50,43,43,50,55],
+    waveM:'square', waveC:'triangle', waveB:'sawtooth',
+    reverbSec:1, volM:0.12, volC:0.06, volB:0.12,
+    beatDiv:1,
+    hasKick:true, hasBass:true,
+  }
+};
+
+function midi2hz(m){ return 440*Math.pow(2,(m-69)/12); }
+
+function makeReverb(ctx, dur){
+  const conv=ctx.createConvolver();
+  const sr=ctx.sampleRate, len=Math.floor(sr*dur);
+  const buf=ctx.createBuffer(2,len,sr);
+  for(let c=0;c<2;c++){
+    const d=buf.getChannelData(c);
+    for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.5);
+  }
+  conv.buffer=buf;
+  return conv;
+}
+
+function startMusic(){
+  if(musicPlaying) return;
+  try{
+    const ctx=getCtx();
+    if(ctx.state==='suspended') ctx.resume();
+
+    const theme=THEMES[S.musicTheme]||THEMES.lofi;
+    const beatMs=(60/theme.bpm)*1000;
+
+    // Master gain with fade-in
+    musicGain=ctx.createGain();
+    musicGain.gain.setValueAtTime(0,ctx.currentTime);
+    musicGain.gain.linearRampToValueAtTime(1.0,ctx.currentTime+2);
+
+    // Reverb
+    reverbNode=makeReverb(ctx,theme.reverbSec);
+    const dryGain=ctx.createGain(); dryGain.gain.value=0.6;
+    const wetGain=ctx.createGain(); wetGain.gain.value=0.4;
+
+    musicGain.connect(dryGain); dryGain.connect(ctx.destination);
+    musicGain.connect(reverbNode); reverbNode.connect(wetGain); wetGain.connect(ctx.destination);
+
+    let beat=0;
+    const melLen=theme.melody.length;
+    const bassLen=theme.bass.length;
+
+    musicInterval=setInterval(()=>{
+      if(!musicPlaying) return;
+      const now=ctx.currentTime;
+      const beatSec=60/theme.bpm;
+
+      // ── MELODY ──
+      if(beat % theme.beatDiv === 0){
+        const idx=Math.floor(beat/theme.beatDiv) % melLen;
+        const note=theme.melody[idx];
+        const o=ctx.createOscillator(), g=ctx.createGain();
+        o.type=theme.waveM;
+        o.frequency.value=midi2hz(note);
+        // slight detune for warmth
+        o.detune.value=(Math.random()-0.5)*12;
+        g.gain.setValueAtTime(0.001,now);
+        g.gain.linearRampToValueAtTime(theme.volM,now+0.04);
+        g.gain.exponentialRampToValueAtTime(0.001,now+beatSec*theme.beatDiv*0.85);
+        o.connect(g); g.connect(musicGain);
+        o.start(now); o.stop(now+beatSec*theme.beatDiv);
+      }
+
+      // ── CHORD PAD (every 4 beats) ──
+      if(beat % 4 === 0){
+        theme.chord.forEach((n,i)=>{
+          const o=ctx.createOscillator(), g=ctx.createGain();
+          o.type=theme.waveC;
+          o.frequency.value=midi2hz(n);
+          o.detune.value=(i%2===0?1:-1)*6;
+          g.gain.setValueAtTime(0.001,now);
+          g.gain.linearRampToValueAtTime(theme.volC,now+0.5);
+          g.gain.exponentialRampToValueAtTime(0.001,now+beatSec*3.8);
+          o.connect(g); g.connect(musicGain);
+          o.start(now); o.stop(now+beatSec*4);
+        });
+      }
+
+      // ── BASS LINE ──
+      if(theme.hasBass && bassLen>0){
+        const bn=theme.bass[beat % bassLen];
+        const o=ctx.createOscillator(), g=ctx.createGain();
+        o.type=theme.waveB;
+        o.frequency.value=midi2hz(bn);
+        g.gain.setValueAtTime(0.001,now);
+        g.gain.linearRampToValueAtTime(theme.volB,now+0.03);
+        g.gain.exponentialRampToValueAtTime(0.001,now+beatSec*0.7);
+        o.connect(g); g.connect(musicGain);
+        o.start(now); o.stop(now+beatSec);
+      }
+
+      // ── KICK DRUM (upbeat only, every beat) ──
+      if(theme.hasKick){
+        const buf=ctx.createBuffer(1,ctx.sampleRate*0.15,ctx.sampleRate);
+        const d=buf.getChannelData(0);
+        for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,8);
+        const src=ctx.createBufferSource(), g=ctx.createGain();
+        src.buffer=buf;
+        // pitch sweep for kick feel
+        const osc=ctx.createOscillator(), kg=ctx.createGain();
+        osc.frequency.setValueAtTime(150,now);
+        osc.frequency.exponentialRampToValueAtTime(40,now+0.1);
+        kg.gain.setValueAtTime(0.4,now);
+        kg.gain.exponentialRampToValueAtTime(0.001,now+0.15);
+        osc.connect(kg); kg.connect(musicGain);
+        osc.start(now); osc.stop(now+0.15);
+        // noise layer
+        g.gain.setValueAtTime(0.06,now);
+        g.gain.exponentialRampToValueAtTime(0.001,now+0.08);
+        src.connect(g); g.connect(musicGain);
+        src.start(now);
+      }
+
+      // ── HI-HAT (upbeat only, every half-beat) ──
+      if(theme.hasKick && beat%1===0){
+        const buf=ctx.createBuffer(1,ctx.sampleRate*0.04,ctx.sampleRate);
+        const d=buf.getChannelData(0);
+        for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,3);
+        const src=ctx.createBufferSource(), g=ctx.createGain();
+        src.buffer=buf;
+        g.gain.setValueAtTime(0.03,now+beatSec*0.5);
+        g.gain.exponentialRampToValueAtTime(0.001,now+beatSec*0.5+0.04);
+        src.connect(g); g.connect(musicGain);
+        src.start(now+beatSec*0.5);
+      }
+
+      beat++;
+    }, beatMs);
+
+    musicPlaying=true;
+  }catch(e){ console.warn('Music error:',e); }
+}
+
+function stopMusic(){
+  clearInterval(musicInterval); musicInterval=null;
+  if(musicGain){
+    try{
+      const ctx=getCtx();
+      musicGain.gain.setValueAtTime(musicGain.gain.value,ctx.currentTime);
+      musicGain.gain.linearRampToValueAtTime(0,ctx.currentTime+0.8);
+      setTimeout(()=>{ try{ musicGain.disconnect(); reverbNode&&reverbNode.disconnect(); }catch(e){} },1000);
+    }catch(e){}
+  }
+  musicPlaying=false;
+}
+
+function updateMusicBars(){
+  document.getElementById('music-bars').classList.toggle('paused',!S.music);
+}
+
+/* ═══════════════════════════════════════════
+   EVENT LISTENERS
+═══════════════════════════════════════════ */
+document.getElementById('tog-dark').addEventListener('change',e=>{
+  S.dark=e.target.checked; applyAll(); save();
+  showToast(S.dark?'🌙 Dark mode on':'☀️ Light mode on');
+  S.dark?playOn():playOff();
+});
+document.getElementById('tog-compact').addEventListener('change',e=>{
+  S.compact=e.target.checked; applyCompact(); save(); playClick();
+  showToast(S.compact?'Compact on':'Compact off');
+});
+document.getElementById('tog-sound').addEventListener('change',e=>{
+  if(!e.target.checked) playOff();
+  S.sound=e.target.checked; save();
+  if(S.sound) playOn();
+  showToast(S.sound?'🔊 Sound on':'🔇 Sound off');
+  if(!S.sound && S.music){
+    stopMusic(); S.music=false;
+    document.getElementById('tog-music').checked=false;
+    save(); updateMusicBars();
+    showToast('Music paused — sound is off');
+  }
+});
+document.getElementById('tog-music').addEventListener('change',e=>{
+  S.music=e.target.checked; save();
+  if(S.music){
+    if(!S.sound){
+      showToast('⚠️ Enable sound first!');
+      e.target.checked=false; S.music=false; save(); return;
+    }
+    startMusic(); showToast('🎵 Music on'); playOn();
+  } else {
+    stopMusic(); showToast('🎵 Music off'); playOff();
+  }
+  updateMusicBars();
+});
+document.getElementById('sel-theme').addEventListener('change',e=>{
+  S.musicTheme=e.target.value; save(); playClick();
+  if(S.music){ stopMusic(); setTimeout(startMusic,300); showToast('🎵 Theme: '+e.target.value); }
+});
+document.getElementById('tog-notif').addEventListener('change',async e=>{
+  if(e.target.checked){
+    if(!('Notification'in window)){ e.target.checked=false; return; }
+    if(Notification.permission==='denied'){ e.target.checked=false; showToast('🚫 Blocked — enable in browser settings',3500); return; }
+    if(Notification.permission==='default'){
+      const r=await Notification.requestPermission(); updatePermChip();
+      if(r!=='granted'){ e.target.checked=false; S.notif=false; save(); return; }
+    }
+    S.notif=true; playOn(); showToast('🔔 Notifications on');
+  } else { S.notif=false; playOff(); showToast('Notifications off'); }
+  save(); updatePermChip();
+});
+document.getElementById('tog-email').addEventListener('change',e=>{
+  S.email=e.target.checked; save(); playClick();
+  showToast(S.email?'📧 Email digest on':'Email digest off');
+});
+document.getElementById('test-notif-btn').addEventListener('click',async()=>{
+  playClick();
+  if(!('Notification'in window)){ showToast("Browser doesn't support notifications"); return; }
+  if(Notification.permission==='denied'){ showToast('🚫 Blocked — enable in browser settings',3500); return; }
+  if(Notification.permission==='default'){ const r=await Notification.requestPermission(); updatePermChip(); if(r!=='granted') return; }
+  try{ new Notification('Settings App',{body:'🎉 Notifications are working!',tag:'test'}); showToast('🔔 Test notification sent!'); }
+  catch(err){ showToast('Could not send: '+err.message); }
+});
+document.getElementById('sel-lang').addEventListener('change',e=>{
+  S.lang=e.target.value; applyAll(); save(); playClick(); showToast('🌐 Language changed');
+});
+document.getElementById('sel-date').addEventListener('change',e=>{
+  S.date=e.target.value; updateDatePreview(); save(); playClick();
+});
+document.getElementById('sel-time').addEventListener('change',e=>{
+  S.timeFormat=e.target.value; updateClock(); save(); playClick();
+});
+document.querySelectorAll('.swatch').forEach(sw=>{
+  sw.addEventListener('click',()=>{ S.accent=sw.dataset.color; applyAll(); save(); playClick(); showToast('🎨 Accent updated'); });
+});
+document.querySelectorAll('.font-btn').forEach(b=>{
+  b.addEventListener('click',()=>{ S.fontSize=b.dataset.size; applyFontSize(); save(); playClick(); showToast('Font: '+S.fontSize); });
+});
+document.getElementById('back-btn').addEventListener('click',()=>{ playClick(); history.back(); });
+document.getElementById('reset-btn').addEventListener('click',()=>{
+  if(S.music) stopMusic();
+  S={...DEFAULTS}; applyAll();
+  try{ localStorage.removeItem('app_s4'); }catch(e){}
+  playReset(); showToast(tr('reset_done'));
+});
+
+setInterval(updateClock,1000);
+load();
+applyAll();
+</script>
+</body>
+</html>
