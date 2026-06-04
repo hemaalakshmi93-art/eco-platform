@@ -62,6 +62,21 @@
   }
   .header-title span { font-size: 12px; font-weight: 600; opacity: 0.8; display: block; }
 
+  /* difficulty badge in header */
+  .diff-badge {
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 12px; font-weight: 800;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    border: 2px solid rgba(255,255,255,0.5);
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .diff-badge.easy   { background: rgba(80,200,100,0.35); }
+  .diff-badge.medium { background: rgba(240,165,0,0.35); }
+  .diff-badge.hard   { background: rgba(220,60,40,0.35); }
+
   /* ── TIMER + SCORE ROW ── */
   .stats-row {
     display: flex;
@@ -83,6 +98,19 @@
   .stat-pill .icon { font-size: 16px; }
   .stat-pill .val  { font-size: 16px; font-weight: 800; color: var(--gm); }
   .stat-pill.gold .val { color: var(--gold); }
+
+  /* ── DIFFICULTY TIP ── */
+  .diff-tip {
+    margin: 10px 16px 0;
+    padding: 8px 14px;
+    border-radius: 10px;
+    font-size: 12px; font-weight: 700;
+    display: flex; align-items: center; gap: 7px;
+    max-width: 680px; width: calc(100% - 32px);
+  }
+  .diff-tip.easy   { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+  .diff-tip.medium { background: #fff8e1; color: #e65100; border: 1px solid #ffcc80; }
+  .diff-tip.hard   { background: #fce4ec; color: #b71c1c; border: 1px solid #ef9a9a; }
 
   /* ── PREVIEW IMAGE ── */
   .preview-wrap {
@@ -212,6 +240,7 @@
     🌿 Eco Puzzle
     <span>Piece together nature</span>
   </div>
+  <div class="diff-badge" id="diff-badge">Easy</div>
 </div>
 
 <!-- STATS -->
@@ -231,6 +260,11 @@
     <span>Best</span>
     <span class="val" id="s-best">—</span>
   </div>
+</div>
+
+<!-- DIFFICULTY TIP -->
+<div class="diff-tip" id="diff-tip">
+  <span id="diff-tip-text"></span>
 </div>
 
 <!-- PREVIEW IMAGE -->
@@ -270,82 +304,113 @@ const name = params.get('name') || '';
 const role = params.get('role') || '';
 
 // ═══════════════════════════════════════
-//  ECO IMAGES – many nature / eco scenes
+//  DIFFICULTY CONFIG
 // ═══════════════════════════════════════
-const ECO_IMAGES = [
-  {
-    url: 'https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&q=80',
-    label: '🌲 Ancient Forest'
+const DIFF = size <= 3 ? 'easy' : size === 4 ? 'medium' : 'hard';
+
+const DIFF_CONFIG = {
+  easy: {
+    label: '🟢 Easy',
+    badgeClass: 'easy',
+    tip: '🌱 Simple close-up eco scenes — perfect for beginners!',
+    tipClass: 'easy'
   },
-  {
-    url: 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=600&q=80',
-    label: '🦋 Wildflower Meadow'
+  medium: {
+    label: '🟡 Medium',
+    badgeClass: 'medium',
+    tip: '🌿 Moderate scenes — look carefully at each tile!',
+    tipClass: 'medium'
   },
-  {
-    url: 'https://images.unsplash.com/photo-1455218873509-8097305ee378?w=600&q=80',
-    label: '🌊 Clean Blue Ocean'
-  },
-  {
-    url: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=600&q=80',
-    label: '🏔️ Misty Mountains'
-  },
-  {
-    url: 'https://images.unsplash.com/photo-1500534314211-0a24cd710c6e?w=600&q=80',
-    label: '🏞️ River Valley'
-  },
-  {
-    url: 'https://images.unsplash.com/photo-1455218873509-8097305ee378?w=600&q=80',
-    label: '🌍 Blue Planet View'
-  },
-  {
-    url: 'https://images.unsplash.com/photo-1500534314211-0a24cd710c6e?w=600&q=80',
-    label: '🌿 Green Hillside'
-  },
-  {
-    url: 'https://images.unsplash.com/photo-1497250681960-ef046c08a56e?w=600&q=80',
-    label: '🌺 Rainforest Bloom'
-  },
-  {
-    url: 'https://images.unsplash.com/photo-1473448912268-2022ce9509d8?w=600&q=80',
-    label: '🍂 Autumn Canopy'
-  },
-  {
-    url: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=600&q=80',
-    label: '🌻 Sunflower Field'
-  },
-  {
-    url: 'https://images.unsplash.com/photo-1560493676-04071c5f467b?w=600&q=80',
-    label: '🥬 Organic Garden'
-  },
-  {
-    url: 'https://images.unsplash.com/photo-1524594154908-edd348ccff8f?w=600&q=80',
-    label: '🐝 Bee on Flower'
-  },
-  {
-    url: 'https://images.unsplash.com/photo-1471194402529-8e0f5a675de6?w=600&q=80',
-    label: '🌱 Young Seedling'
-  },
-  {
-    url: 'https://images.unsplash.com/photo-1509099863731-ef4bff19e808?w=600&q=80',
-    label: '⚡ Solar Farm'
-  },
-  {
-    url: 'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=600&q=80',
-    label: '💨 Wind Turbines'
-  },
-  {
-    url: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=600&q=80',
-    label: '♻️ Recycling Center'
-  },
-  {
-    url: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=600&q=80',
-    label: '🌳 Lonely Tree'
-  },
-  {
-    url: 'https://images.unsplash.com/photo-1523978591478-c753949ff840?w=600&q=80',
-    label: '🚶 Nature Trail'
+  hard: {
+    label: '🔴 Hard',
+    badgeClass: 'hard',
+    tip: '🔥 Dense, complex nature scenes — very challenging!',
+    tipClass: 'hard'
   }
-];
+};
+
+// ═══════════════════════════════════════
+//  ECO IMAGES — by difficulty
+//
+//  EASY   (3×3 → 9 tiles):
+//    Single subject, bold colours, very clear tile boundaries.
+//    One flower / one leaf / one animal close-up.
+//
+//  MEDIUM (4×4 → 16 tiles):
+//    Small groups, garden or meadow scenes, moderate detail.
+//
+//  HARD   (5×5 → 25 tiles):
+//    Dense, detailed, wide-angle scenes — forest canopy,
+//    coral reef, waterfall — hard to orientate tiles.
+// ═══════════════════════════════════════
+const ECO_IMAGES = {
+  easy: [
+    // single sunflower close-up
+    { url: 'https://images.unsplash.com/photo-1504569353012-91f0e63b7e3f?w=600&q=80', label: '🌻 Sunflower Close-Up' },
+    // single red poppy
+    { url: 'https://images.unsplash.com/photo-1490750967868-88df5691cc6e?w=600&q=80', label: '🌺 Red Poppy' },
+    // single green leaf macro
+    { url: 'https://images.unsplash.com/photo-1524055988636-436cfa46e59e?w=600&q=80', label: '🍃 Leaf Macro' },
+    // ladybug on leaf
+    { url: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80', label: '🐞 Ladybug on Leaf' },
+    // single white daisy
+    { url: 'https://images.unsplash.com/photo-1457089328109-e5d9bd499191?w=600&q=80', label: '🌼 White Daisy' },
+    // single green fern frond
+    { url: 'https://images.unsplash.com/photo-1527090526205-beaac8dc3c62?w=600&q=80', label: '🌿 Fern Frond' },
+    // water droplets on a green leaf
+    { url: 'https://images.unsplash.com/photo-1516912481808-3406841bd33c?w=600&q=80', label: '💧 Dewdrops on Leaf' },
+    // single orange tulip
+    { url: 'https://images.unsplash.com/photo-1462275646964-a0e3386b89fa?w=600&q=80', label: '🌷 Orange Tulip' },
+    // single mushroom in grass
+    { url: 'https://images.unsplash.com/photo-1516594915697-87eb3b1c14ea?w=600&q=80', label: '🍄 Forest Mushroom' },
+    // single butterfly on flower
+    { url: 'https://images.unsplash.com/photo-1558470598-a5dda9640f68?w=600&q=80', label: '🦋 Butterfly on Bloom' }
+  ],
+  medium: [
+    // small cottage garden
+    { url: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=600&q=80', label: '🌻 Sunflower Field' },
+    // wildflower meadow (wide angle, moderate detail)
+    { url: 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=600&q=80', label: '🦋 Wildflower Meadow' },
+    // organic vegetable garden rows
+    { url: 'https://images.unsplash.com/photo-1560493676-04071c5f467b?w=600&q=80', label: '🥬 Organic Garden' },
+    // bee on lavender
+    { url: 'https://images.unsplash.com/photo-1524594154908-edd348ccff8f?w=600&q=80', label: '🐝 Bee on Lavender' },
+    // young seedlings in soil
+    { url: 'https://images.unsplash.com/photo-1471194402529-8e0f5a675de6?w=600&q=80', label: '🌱 Young Seedlings' },
+    // autumn path through park
+    { url: 'https://images.unsplash.com/photo-1473448912268-2022ce9509d8?w=600&q=80', label: '🍂 Autumn Canopy' },
+    // wind turbines on green hill
+    { url: 'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=600&q=80', label: '💨 Wind Turbines' },
+    // solar panels on hillside
+    { url: 'https://images.unsplash.com/photo-1509099863731-ef4bff19e808?w=600&q=80', label: '⚡ Solar Farm' },
+    // lone tree in field
+    { url: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=600&q=80', label: '🌳 Lonely Tree' },
+    // river flowing through valley
+    { url: 'https://images.unsplash.com/photo-1500534314211-0a24cd710c6e?w=600&q=80', label: '🏞️ River Valley' }
+  ],
+  hard: [
+    // dense tropical rainforest canopy (lots of green texture)
+    { url: 'https://images.unsplash.com/photo-1500534314211-0a24cd710c6e?w=600&q=80', label: '🌴 Tropical Rainforest' },
+    // ancient dense forest floor (very complex lighting)
+    { url: 'https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&q=80', label: '🌲 Ancient Forest' },
+    // underwater coral reef (complex colours and shapes)
+    { url: 'https://images.unsplash.com/photo-1540539234-c14a20fb7c7b?w=600&q=80', label: '🐠 Coral Reef' },
+    // rushing waterfall close-up (chaotic water texture)
+    { url: 'https://images.unsplash.com/photo-1504618223053-559bdef9ad5f?w=600&q=80', label: '💦 Rushing Waterfall' },
+    // misty mountain range (subtle tones, hard to tell tiles apart)
+    { url: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=600&q=80', label: '🏔️ Misty Mountains' },
+    // dense moss-covered forest floor
+    { url: 'https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&q=80', label: '🌿 Mossy Forest Floor' },
+    // aerial view of amazon rainforest
+    { url: 'https://images.unsplash.com/photo-1497250681960-ef046c08a56e?w=600&q=80', label: '🌺 Rainforest Bloom' },
+    // ocean waves crashing (complex wave texture)
+    { url: 'https://images.unsplash.com/photo-1455218873509-8097305ee378?w=600&q=80', label: '🌊 Ocean Waves' },
+    // night sky over dark forest (stars + trees, very hard)
+    { url: 'https://images.unsplash.com/photo-1475274047050-1d0c0975de51?w=600&q=80', label: '🌌 Starry Forest Night' },
+    // dense cherry blossom tree canopy
+    { url: 'https://images.unsplash.com/photo-1522383225653-ed111181a951?w=600&q=80', label: '🌸 Cherry Blossom Canopy' }
+  ]
+};
 
 // ═══════════════════════════════════════
 //  SOUNDS
@@ -353,7 +418,6 @@ const ECO_IMAGES = [
 const moveSound = new Audio('https://cdn.pixabay.com/audio/2022/03/15/audio_115b9bce2b.mp3');
 const winSound  = new Audio('https://cdn.pixabay.com/audio/2022/10/25/audio_946b7f1b2c.mp3');
 
-// Prime audio on first user interaction
 document.body.addEventListener('click', () => {
   moveSound.play().then(() => moveSound.pause()).catch(() => {});
   winSound.play().then(() => winSound.pause()).catch(() => {});
@@ -367,28 +431,19 @@ let timeLeft = 0, totalTime = 0, interval = null;
 let moves = 0;
 let dragIdx = null, touchDragIdx = null;
 
-// ── HIGH SCORE (per grid size, stored in localStorage) ──────
+// ── HIGH SCORE ──────────────────────────
 const HS_KEY = `ecoPuzzle_best_${size}`;
-
-function getBest() {
-  return localStorage.getItem(HS_KEY) || null;
-}
-
+function getBest() { return localStorage.getItem(HS_KEY) || null; }
 function saveBest(movesCount, secs) {
   const cur = getBest();
   const value = `${movesCount}|${secs}`;
-  if (!cur) {
-    localStorage.setItem(HS_KEY, value);
-    return true;
-  }
+  if (!cur) { localStorage.setItem(HS_KEY, value); return true; }
   const [bm, bt] = cur.split('|').map(Number);
   if (movesCount < bm || (movesCount === bm && secs < bt)) {
-    localStorage.setItem(HS_KEY, value);
-    return true;
+    localStorage.setItem(HS_KEY, value); return true;
   }
   return false;
 }
-
 function bestLabel() {
   const cur = getBest();
   if (!cur) return '—';
@@ -396,13 +451,12 @@ function bestLabel() {
   const m = Math.floor(bt / 60), s = bt % 60;
   return `${bm} moves · ${m}:${s.toString().padStart(2,'0')}`;
 }
-
 function updateBestDisplay() {
   document.getElementById('s-best').textContent = bestLabel();
 }
 
 // ═══════════════════════════════════════
-//  TILE SIZE — responsive
+//  TILE SIZE
 // ═══════════════════════════════════════
 function tileSize() {
   const vw = Math.min(window.innerWidth, 640);
@@ -445,6 +499,24 @@ function updateTimerDisplay() {
 }
 
 // ═══════════════════════════════════════
+//  SETUP DIFFICULTY UI
+// ═══════════════════════════════════════
+function setupDiffUI() {
+  const cfg = DIFF_CONFIG[DIFF];
+
+  // badge
+  const badge = document.getElementById('diff-badge');
+  badge.textContent = cfg.label;
+  badge.className = 'diff-badge ' + cfg.badgeClass;
+
+  // tip
+  const tip = document.getElementById('diff-tip');
+  const tipText = document.getElementById('diff-tip-text');
+  tip.className = 'diff-tip ' + cfg.tipClass;
+  tipText.textContent = cfg.tip;
+}
+
+// ═══════════════════════════════════════
 //  START GAME
 // ═══════════════════════════════════════
 function startGame() {
@@ -454,7 +526,9 @@ function startGame() {
   dragIdx = null;
   touchDragIdx = null;
 
-  const pick = ECO_IMAGES[Math.floor(Math.random() * ECO_IMAGES.length)];
+  // Pick image from correct difficulty pool
+  const pool = ECO_IMAGES[DIFF];
+  const pick = pool[Math.floor(Math.random() * pool.length)];
   currentImage = pick.url;
   document.getElementById('preview').src = currentImage;
   document.getElementById('eco-name').textContent = pick.label;
@@ -587,10 +661,7 @@ function hidePopup() {
 // ═══════════════════════════════════════
 //  BUTTONS / NAVIGATION
 // ═══════════════════════════════════════
-function playAgain() {
-  hidePopup();
-  startGame();
-}
+function playAgain() { hidePopup(); startGame(); }
 
 function goBack() {
   if (name && role) {
@@ -605,7 +676,8 @@ function goBack() {
 // ── Resize → redraw ──
 window.addEventListener('resize', () => draw());
 
-// ── START ──
+// ── INIT ──
+setupDiffUI();
 startGame();
 </script>
 </body>

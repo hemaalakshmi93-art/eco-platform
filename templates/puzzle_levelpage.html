@@ -1,122 +1,419 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Eco Puzzle</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eco Puzzle – Choose Level</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
 
 <style>
-body{
-    margin:0;
-    font-family:Arial;
-    background:linear-gradient(135deg,#eef5f1,#dfeee7);
-}
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* 🔝 TOP BAR */
-.top-bar{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    position:relative;
-    margin-top:30px;  /* ⭐ move down */
-}
+  :root {
+    --glass-bg: rgba(255,255,255,0.07);
+    --glass-border: rgba(255,255,255,0.18);
+    --glass-shadow: 0 8px 40px rgba(0,0,0,0.4);
+    --neon-green: #39ff8f;
+    --neon-teal: #00e5cc;
+    --neon-lime: #aaff00;
+    --neon-glow: 0 0 12px #39ff8f88, 0 0 30px #39ff8f33;
+    --text-bright: #e8fff3;
+    --text-muted: rgba(220,255,240,0.6);
+  }
 
-/* 🔙 BACK BUTTON */
-.back-btn{
-    position:absolute;
-    left:30px;
-    padding:10px 18px;
-    border:none;
-    border-radius:10px;
-    background:#4caf50;
-    color:white;
-    cursor:pointer;
-}
+  body {
+    min-height: 100vh;
+    font-family: 'Nunito', sans-serif;
+    background: #050f0a;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
 
-/* 🌿 TITLE */
-h1{
-    margin:0;
-    color:#2e7d32;
-}
+  /* ── ANIMATED BACKGROUND ── */
+  .bg-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 10%, #003d1a55 0%, transparent 60%),
+      radial-gradient(ellipse 60% 50% at 80% 80%, #00261155 0%, transparent 60%),
+      radial-gradient(ellipse 50% 40% at 50% 50%, #00140a 0%, #050f0a 100%);
+  }
 
-/* 📦 CENTER AREA */
-.container{
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    height:70vh;   /* ⭐ perfect vertical center */
-}
+  .grid-lines {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background-image:
+      linear-gradient(rgba(57,255,143,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(57,255,143,0.04) 1px, transparent 1px);
+    background-size: 50px 50px;
+    animation: gridDrift 20s linear infinite;
+  }
 
-/* 🧩 CARDS */
-.cards{
-    display:flex;
-    gap:60px;
-}
+  @keyframes gridDrift {
+    from { background-position: 0 0; }
+    to   { background-position: 50px 50px; }
+  }
 
-/* 🧱 CARD */
-.card{
-    background:white;
-    padding:45px;
-    border-radius:20px;
-    width:260px;
-    text-align:center;
-    cursor:pointer;
-    transition:0.3s;
-    box-shadow:0 10px 25px rgba(0,0,0,0.15);
-}
+  /* floating orbs */
+  .orb {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(70px);
+    opacity: 0.18;
+    animation: float 12s ease-in-out infinite alternate;
+    z-index: 0;
+  }
+  .orb1 { width: 380px; height: 380px; background: #00ff6a; top: -100px; left: -80px; animation-duration: 14s; }
+  .orb2 { width: 280px; height: 280px; background: #00e5cc; bottom: -60px; right: -60px; animation-duration: 10s; }
+  .orb3 { width: 200px; height: 200px; background: #aaff00; top: 50%; left: 50%; animation-duration: 16s; }
+  @keyframes float {
+    from { transform: translate(0,0) scale(1); }
+    to   { transform: translate(30px, 40px) scale(1.1); }
+  }
 
-.card:hover{
-    background:#c8e6c9;
-    transform:translateY(-10px);
-}
+  /* ── CONTENT WRAPPER ── */
+  .page {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px 60px;
+  }
 
-.card h3{
-    margin:10px 0;
-    font-size:24px;
-}
+  /* ── TOP BAR ── */
+  .top-bar {
+    width: 100%;
+    max-width: 960px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    margin-bottom: 60px;
+  }
 
-.card p{
-    color:#555;
-    font-size:17px;
-}
+  .back-btn {
+    position: absolute;
+    left: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 22px;
+    border: 1px solid var(--glass-border);
+    border-radius: 50px;
+    background: var(--glass-bg);
+    color: var(--neon-green);
+    font-family: 'Nunito', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    backdrop-filter: blur(12px);
+    transition: all 0.3s ease;
+    text-decoration: none;
+    letter-spacing: 0.02em;
+  }
+  .back-btn:hover {
+    background: rgba(57,255,143,0.12);
+    border-color: var(--neon-green);
+    box-shadow: var(--neon-glow);
+    transform: translateX(-3px);
+  }
+
+  /* ── TITLE ── */
+  .title-wrap {
+    text-align: center;
+  }
+  .title-wrap .badge {
+    display: inline-block;
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--neon-teal);
+    border: 1px solid rgba(0,229,204,0.35);
+    padding: 4px 14px;
+    border-radius: 50px;
+    margin-bottom: 14px;
+    background: rgba(0,229,204,0.07);
+  }
+  h1 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(26px, 5vw, 42px);
+    font-weight: 700;
+    color: var(--text-bright);
+    letter-spacing: 0.04em;
+    line-height: 1.15;
+  }
+  h1 span {
+    color: var(--neon-green);
+    text-shadow: var(--neon-glow);
+  }
+  .subtitle {
+    margin-top: 10px;
+    font-size: 15px;
+    color: var(--text-muted);
+    letter-spacing: 0.03em;
+  }
+
+  /* ── CARDS GRID ── */
+  .cards {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 20px;
+  }
+
+  /* ── INDIVIDUAL CARD ── */
+  .card {
+    position: relative;
+    width: 270px;
+    padding: 42px 32px 36px;
+    border-radius: 24px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(18px);
+    cursor: pointer;
+    text-align: center;
+    transition: transform 0.35s cubic-bezier(.22,1,.36,1), box-shadow 0.35s ease, border-color 0.3s ease;
+    overflow: hidden;
+    animation: cardIn 0.6s ease both;
+  }
+  .card:nth-child(1) { animation-delay: 0.1s; }
+  .card:nth-child(2) { animation-delay: 0.22s; }
+  .card:nth-child(3) { animation-delay: 0.34s; }
+
+  @keyframes cardIn {
+    from { opacity: 0; transform: translateY(30px) scale(0.95); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  /* card inner glow top strip */
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    height: 2px;
+    border-radius: 0 0 4px 4px;
+    background: var(--card-accent, var(--neon-green));
+    opacity: 0.8;
+    transition: width 0.3s ease, opacity 0.3s ease;
+    box-shadow: 0 0 12px var(--card-accent, var(--neon-green));
+  }
+
+  /* hover shimmer overlay */
+  .card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 0%, rgba(255,255,255,0.07), transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    border-radius: inherit;
+  }
+
+  .card:hover {
+    transform: translateY(-12px) scale(1.03);
+    border-color: var(--card-accent, var(--neon-green));
+    box-shadow:
+      0 20px 60px rgba(0,0,0,0.5),
+      0 0 30px var(--card-glow, rgba(57,255,143,0.2));
+  }
+  .card:hover::before { width: 85%; opacity: 1; }
+  .card:hover::after  { opacity: 1; }
+
+  .card-icon {
+    font-size: 48px;
+    margin-bottom: 18px;
+    display: block;
+    filter: drop-shadow(0 0 10px var(--card-accent, var(--neon-green)));
+    transition: transform 0.35s ease;
+  }
+  .card:hover .card-icon { transform: scale(1.15) rotate(-5deg); }
+
+  .card-label {
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--card-accent, var(--neon-green));
+    margin-bottom: 6px;
+    font-weight: 700;
+  }
+
+  .card h3 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-bright);
+    margin-bottom: 10px;
+    letter-spacing: 0.05em;
+  }
+
+  .card-grid-info {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    margin-bottom: 16px;
+  }
+
+  /* timer pill */
+  .card-timer {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 5px 14px;
+    border-radius: 50px;
+    border: 1px solid var(--card-accent, var(--neon-green));
+    color: var(--card-accent, var(--neon-green));
+    background: rgba(0,0,0,0.25);
+    letter-spacing: 0.06em;
+    margin-bottom: 24px;
+  }
+
+  /* play button */
+  .play-btn {
+    display: block;
+    width: 100%;
+    padding: 13px;
+    border: none;
+    border-radius: 14px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: linear-gradient(135deg, var(--card-accent, var(--neon-green)) 0%, var(--card-accent2, var(--neon-lime)) 100%);
+    color: #030f07;
+    box-shadow: 0 4px 20px var(--card-glow, rgba(57,255,143,0.35));
+  }
+  .play-btn:hover {
+    transform: scale(1.03);
+    box-shadow: 0 6px 28px var(--card-glow, rgba(57,255,143,0.5));
+    filter: brightness(1.1);
+  }
+
+  /* card variants */
+  .card.easy   { --card-accent: #39ff8f; --card-accent2: #aaff00; --card-glow: rgba(57,255,143,0.3); }
+  .card.medium { --card-accent: #00e5cc; --card-accent2: #00b3ff; --card-glow: rgba(0,229,204,0.3); }
+  .card.hard   { --card-accent: #ff6b35; --card-accent2: #ff003c; --card-glow: rgba(255,107,53,0.3); }
+
+  /* ── PARTICLES ── (CSS only) */
+  .particle {
+    position: fixed;
+    border-radius: 50%;
+    background: rgba(57,255,143,0.6);
+    animation: drift linear infinite;
+    z-index: 0;
+    pointer-events: none;
+  }
+  @keyframes drift {
+    from { transform: translateY(110vh) rotate(0deg); opacity: 0.6; }
+    to   { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+  }
 </style>
 </head>
-
 <body>
 
-<div class="top-bar">
-    <button class="back-btn" onclick="goBack()">⬅ Back</button>
-    <h1>🌿 Choose Your Level</h1>
-</div>
+<!-- Background -->
+<div class="bg-layer"></div>
+<div class="grid-lines"></div>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="orb orb3"></div>
 
-<div class="container">
-    <div class="cards">
+<!-- Floating particles (injected by JS) -->
 
-        <div class="card" onclick="go(3)">
-            <h3>Easy</h3>
-            <p>3x3 • 2 mins</p>
-        </div>
+<div class="page">
 
-        <div class="card" onclick="go(4)">
-            <h3>Medium</h3>
-            <p>4x4 • 7 mins</p>
-        </div>
-
-        <div class="card" onclick="go(5)">
-            <h3>Hard</h3>
-            <p>5x5 • 12 mins</p>
-        </div>
-
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <button class="back-btn" onclick="goBack()">
+      ← Back
+    </button>
+    <div class="title-wrap">
+      <div class="badge">🌿 Eco Puzzle</div>
+      <h1>Choose Your <span>Level</span></h1>
+      <p class="subtitle">Pick a grid size and begin the challenge</p>
     </div>
+  </div>
+
+  <!-- Cards -->
+  <div class="cards">
+
+    <!-- Easy -->
+    <div class="card easy" onclick="go(3)">
+      <span class="card-icon">🌱</span>
+      <div class="card-label">Beginner</div>
+      <h3>Easy</h3>
+      <div class="card-grid-info">3 × 3 Grid</div>
+      <div class="card-timer">⏱ 2 mins</div>
+      <button class="play-btn" onclick="go(3)">START →</button>
+    </div>
+
+    <!-- Medium -->
+    <div class="card medium" onclick="go(4)">
+      <span class="card-icon">🌿</span>
+      <div class="card-label">Intermediate</div>
+      <h3>Medium</h3>
+      <div class="card-grid-info">4 × 4 Grid</div>
+      <div class="card-timer">⏱ 7 mins</div>
+      <button class="play-btn" onclick="go(4)">START →</button>
+    </div>
+
+    <!-- Hard -->
+    <div class="card hard" onclick="go(5)">
+      <span class="card-icon">🌳</span>
+      <div class="card-label">Expert</div>
+      <h3>Hard</h3>
+      <div class="card-grid-info">5 × 5 Grid</div>
+      <div class="card-timer">⏱ 12 mins</div>
+      <button class="play-btn" onclick="go(5)">START →</button>
+    </div>
+
+  </div>
 </div>
 
 <script>
-function go(level){
-    window.location.href = "/puzzle?size=" + level + "&name={{ name }}&role={{ role }}";
-}
+  /* ── TEMPLATE VARIABLES (Flask/Jinja) ── */
+  const NAME = "{{ name }}";
+  const ROLE = "{{ role }}";
 
-function goBack(){
-    window.location.href = "/game/{{ name }}/{{ role }}";
-}
+  function go(level) {
+    window.location.href = `/puzzle?size=${level}&name=${NAME}&role=${ROLE}`;
+  }
+
+  function goBack() {
+    window.location.href = `/game/${NAME}/${ROLE}`;
+  }
+
+  /* ── SPAWN PARTICLES ── */
+  const colors = ['#39ff8f','#00e5cc','#aaff00','#00b3ff'];
+  for (let i = 0; i < 18; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = Math.random() * 5 + 2;
+    p.style.cssText = `
+      width:${size}px; height:${size}px;
+      left:${Math.random()*100}vw;
+      bottom:${Math.random()*-20}vh;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      animation-duration:${Math.random()*12+8}s;
+      animation-delay:${Math.random()*10}s;
+      opacity:${Math.random()*0.6+0.2};
+    `;
+    document.body.appendChild(p);
+  }
 </script>
-
 </body>
 </html>
