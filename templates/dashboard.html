@@ -207,6 +207,11 @@
             .card-points { flex-direction: column; text-align: center; }
         }
 
+        /* ───────────────────────────────────────────
+           CHATBOT STYLES
+        ─────────────────────────────────────────── */
+
+        /* Floating button */
         #chatToggleBtn {
             position: fixed;
             bottom: 24px;
@@ -231,6 +236,7 @@
             box-shadow: 0 6px 28px rgba(16,185,129,0.65);
         }
 
+        /* Chat window */
         #chatWindow {
             position: fixed;
             bottom: 90px;
@@ -254,6 +260,7 @@
             to   { opacity: 1; transform: translateY(0); }
         }
 
+        /* Header */
         .chat-header {
             display: flex;
             align-items: center;
@@ -311,6 +318,7 @@
         }
         .chat-close-btn:hover { color: #fff; background: rgba(255,255,255,0.08); }
 
+        /* Messages area */
         #chatMessages {
             flex: 1;
             height: 300px;
@@ -327,6 +335,7 @@
         #chatMessages::-webkit-scrollbar { width: 4px; }
         #chatMessages::-webkit-scrollbar-thumb { background: rgba(34,211,238,0.2); border-radius: 4px; }
 
+        /* Message bubbles */
         .chat-msg {
             max-width: 85%;
             word-break: break-word;
@@ -355,6 +364,7 @@
             border-radius: 14px 4px 14px 14px;
         }
 
+        /* Typing indicator */
         .typing-bubble {
             align-self: flex-start;
             background: rgba(255,255,255,0.07);
@@ -379,6 +389,7 @@
             30% { transform: translateY(-5px); }
         }
 
+        /* Quick suggestions */
         .chat-suggestions {
             padding: 6px 14px 0;
             display: flex;
@@ -402,6 +413,7 @@
             border-color: #10b981;
         }
 
+        /* Input area */
         .chat-input-row {
             display: flex;
             gap: 8px;
@@ -451,14 +463,16 @@
 <div class="orb orb2"></div>
 <div class="orb orb3"></div>
 
+<!-- SIDEBAR -->
 <div id="sidebar" class="sidebar">
     <span class="close-btn" onclick="toggleSidebar()">✖</span>
-    <a href="#"><i data-lucide="user"></i> <span>Profile</span></a>
-    <a href="#"><i data-lucide="settings"></i> <span>Settings</span></a>
-    <a href="#"><i data-lucide="gamepad-2"></i> <span>Play Games</span></a>
-    <a href="#"><i data-lucide="book-open"></i> <span>Course</span></a>
+    <a href="/profile/{{ name }}/{{ role }}"><i data-lucide="user"></i> <span>Profile</span></a>
+    <a href="/settings/{{ name }}"><i data-lucide="settings"></i> <span>Settings</span></a>
+    <a href="/game/{{ name }}/{{ role }}"><i data-lucide="gamepad-2"></i> <span>Play Games</span></a>
+    <a href="/course"><i data-lucide="book-open"></i> <span>Course</span></a>
 </div>
 
+<!-- NAVBAR -->
 <div class="navbar">
     <div class="navbar-brand">
         <div class="menu-icon" onclick="toggleSidebar()">
@@ -467,12 +481,13 @@
         <span class="brand-name">Zephyra 🍁</span>
     </div>
     <div class="navbar-links">
-        <a href="#">🏠 Home</a>
-        <a href="#">🏆 Leaderboard</a>
-        <a href="#" class="logout-btn">Logout</a>
+        <a href="/">🏠 Home</a>
+        <a href="/leaderboard">🏆 Leaderboard</a>
+        <a href="/login_page" class="logout-btn">Logout</a>
     </div>
 </div>
 
+<!-- MAIN -->
 <div class="container">
 
     <div class="welcome-block">
@@ -509,7 +524,7 @@
             </div>
         </div>
 
-        <div class="card card-challenges">
+        <div class="card card-challenges" onclick="location.href='/challenges/{{ name }}/{{ role }}'">
             <div class="glow-strip" style="background: linear-gradient(90deg,#10b981,#22d3ee);"></div>
             <div>
                 <div class="card-icon">🌍</div>
@@ -519,7 +534,7 @@
             <div class="cta-arrow">Start Now →</div>
         </div>
 
-        <div class="card card-graph">
+        <div class="card card-graph" onclick="location.href='/graph/{{ name }}'">
             <div class="glow-strip" style="background: linear-gradient(90deg,#8b5cf6,#3b82f6);"></div>
             <div class="card-label">Analytics</div>
             <div class="card-title">📊 View Graph</div>
@@ -544,7 +559,7 @@
             <div class="card-sub" style="margin-top:8px;">Keep it going!</div>
         </div>
 
-        <div class="card card-map" onclick="window.location.href='map.html'">
+        <div class="card card-map" onclick="location.href='map.html'">
             <div class="glow-strip" style="background: linear-gradient(90deg,#10b981,#22d3ee);"></div>
             <div class="card-label">Explore</div>
             <div class="card-title">🗺️ Mission Map</div>
@@ -556,7 +571,7 @@
             </div>
         </div>
 
-        <div class="card card-game">
+        <div class="card card-game" onclick="location.href='/game/{{ name }}/{{ role }}'">
             <div class="glow-strip" style="background: linear-gradient(90deg,#7c3aed,#22d3ee);"></div>
             <div class="game-badge">🎮</div>
             <div>
@@ -564,16 +579,35 @@
                 <div class="card-title">Play Game</div>
                 <div class="card-sub">Jump in and earn eco points while you play</div>
             </div>
-            <button class="game-play-btn" type="button">Play Now ▶</button>
+            <button class="game-play-btn" onclick="location.href='/game/{{ name }}/{{ role }}'">Play Now ▶</button>
         </div>
 
     </div>
 
+    {% if role == "teacher" %}
+    <div class="students-card">
+        <h3>👨‍🎓 Students Joined</h3>
+        <ul>
+            {% for s in students %}
+                <li>{{ s[0] }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
 </div>
 
+<!-- ─────────────────────────────────────────────────
+     CHATBOT
+───────────────────────────────────────────────── -->
+
+<!-- Toggle Button -->
 <button id="chatToggleBtn" onclick="toggleChat()" title="Chat with EcoBot">🌱</button>
 
+<!-- Chat Window -->
 <div id="chatWindow">
+
+    <!-- Header -->
     <div class="chat-header">
         <div class="chat-header-avatar">🌿</div>
         <div class="chat-header-info">
@@ -585,6 +619,7 @@
         <button class="chat-close-btn" onclick="toggleChat()">✕</button>
     </div>
 
+    <!-- Messages -->
     <div id="chatMessages">
         <div class="chat-msg bot">
             Hi there! 👋 I'm EcoBot, your environment assistant.<br><br>
@@ -592,6 +627,7 @@
         </div>
     </div>
 
+    <!-- Quick suggestions -->
     <div class="chat-suggestions" id="chatSuggestions">
         <button class="suggestion-chip" onclick="useSuggestion('What is carbon footprint?')">🌍 Carbon footprint?</button>
         <button class="suggestion-chip" onclick="useSuggestion('How to save water at home?')">💧 Save water?</button>
@@ -599,6 +635,7 @@
         <button class="suggestion-chip" onclick="useSuggestion('How to recycle properly?')">♻️ Recycling tips?</button>
     </div>
 
+    <!-- Input -->
     <div class="chat-input-row">
         <textarea
             id="chatInput"
@@ -613,27 +650,40 @@
     </div>
 </div>
 
+<!-- ─────────────────────────────────────────────────
+     SCRIPTS
+───────────────────────────────────────────────── -->
 <script>
+    // ── Progress bar ──
+    // Each level is 100 points. We show how far into the current level the user is.
     let pts = Number("{{ points }}") || 0;
     let levelSize = 100;
-    let progressPct = pts % levelSize;
-    if (progressPct === 0 && pts > 0) progressPct = 100;
-
+    let progressPct = pts % levelSize;          // e.g. 445 % 100 = 45%
+    if (progressPct === 0 && pts > 0) progressPct = 100; // exactly on a level boundary = full bar
     setTimeout(() => {
-        const progressBar = document.getElementById("progressBar");
-        const progressLabel = document.getElementById("progressLabel");
-        if (progressBar) progressBar.style.width = progressPct + "%";
-        if (progressLabel) progressLabel.textContent = pts + " pts (" + progressPct + "% to next level)";
+        document.getElementById("progressBar").style.width = progressPct + "%";
+        document.getElementById("progressLabel").textContent = pts + " pts (" + progressPct + "% to next level)";
     }, 300);
 
+    // ── Sidebar ──
     function toggleSidebar() {
         document.getElementById("sidebar").classList.toggle("active");
     }
 
+    // ── Lucide icons ──
     lucide.createIcons();
 </script>
 
 <script>
+const GROQ_API_KEY = ""; // Your existing Groq key
+
+const SYSTEM_INSTRUCTION = `You are EcoBot, a friendly assistant on EcoLearn.
+- Reply in maximum 2-3 short sentences only. Never write long answers.
+- Be warm and friendly.
+- Only answer environment topics: pollution, climate, recycling, sustainability etc.
+- If asked unrelated topics, politely redirect.
+- No bullet points or lists. Short conversational answers only.`;
+
 let chatHistory = [];
 let isOpen = false;
 
@@ -685,6 +735,9 @@ function removeTyping() {
     const el = document.getElementById("typingIndicator");
     if (el) el.remove();
 }
+
+// இந்த line முழுக்க delete பண்ணு:
+// const GROQ_API_KEY = "";
 
 async function sendMessage() {
     const input = document.getElementById("chatInput");
