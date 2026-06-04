@@ -809,6 +809,28 @@ def send_all_progress_emails():
             failed += 1
     return jsonify({"sent": sent, "failed": failed}), 200
 
+@app.route("/set_session", methods=["POST"])
+def set_session():
+    data = request.get_json()
+    name = data.get("name", "")
+    role = data.get("role", "student")
+    if not name:
+        return jsonify({"status": "error"}), 400
+    cur = get_cursor()
+    cur.execute("SELECT role FROM users WHERE name=%s", (name,))
+    row = cur.fetchone()
+    if row:
+        role = row[0]
+    else:
+        cur.execute(
+            "INSERT INTO users (name, email, password, role, points) VALUES (%s,%s,%s,%s,%s)",
+            (name, data.get("email",""), "", role, 0)
+        )
+        db.commit()
+    session["name"] = name
+    session["role"] = role
+    return jsonify({"status": "ok", "role": role})
+
 # -------------------- RUN --------------------
 if __name__ == "__main__":
     app.run(debug=True)

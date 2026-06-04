@@ -515,9 +515,18 @@ document.getElementById("googleLoginBtn").addEventListener("click", function () 
     const provider = new firebase.auth.GoogleAuthProvider();
     auth.signInWithPopup(provider)
     .then((result) => {
-        const name = result.user.displayName;
-        window.location.href = "/dashboard/" + encodeURIComponent(name) + "/student";
+    const name = result.user.displayName;
+    const email = result.user.email;
+    fetch("/set_session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name, email: email, role: "student" })
     })
+    .then(res => res.json())
+    .then(data => {
+        window.location.href = "/dashboard/" + encodeURIComponent(name) + "/" + data.role;
+    });
+})
     .catch((error) => {
         alert(error.message);
         console.log(error);
