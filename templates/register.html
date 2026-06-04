@@ -30,7 +30,6 @@
             color: var(--text);
         }
 
-        /* ── BACKGROUND ── */
         .bg {
             position: fixed; inset: 0; z-index: 0;
             background:
@@ -45,7 +44,6 @@
             background-image: radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px);
             background-size: 30px 30px;
         }
-        /* diagonal lines — opposite direction from login */
         .bg::after {
             content: "";
             position: absolute; inset: 0;
@@ -69,7 +67,6 @@
         @keyframes floatA { from{transform:translate(0,0) scale(1);} to{transform:translate(-28px,38px) scale(1.05);} }
         @keyframes floatB { from{transform:translate(0,0) scale(1);} to{transform:translate(25px,-32px) scale(1.04);} }
 
-        /* ── MAIN WRAP — right panel layout (flipped from login) ── */
         .page-wrap {
             position: relative; z-index: 1;
             display: flex;
@@ -86,7 +83,6 @@
             to   { opacity:1; transform: translateY(0) scale(1); }
         }
 
-        /* ── LEFT — FORM PANEL ── */
         .form-panel {
             flex: 1;
             background: rgba(10,16,32,0.93);
@@ -105,7 +101,6 @@
             color: #fff; line-height: 1.15;
         }
 
-        /* ── FIELDS ── */
         .field { margin-bottom: 13px; }
         .field label {
             display: block; font-size: 11px; font-weight: 600;
@@ -135,11 +130,9 @@
         }
         .input-wrap select option { color: #111; background: #fff; }
 
-        /* two-col row */
         .field-row { display: flex; gap: 12px; margin-bottom: 13px; }
         .field-row .field { flex: 1; margin-bottom: 0; }
 
-        /* password eye */
         .toggle-password {
             position: absolute; right: 13px; top: 50%;
             transform: translateY(-50%);
@@ -149,7 +142,6 @@
         }
         .toggle-password:hover { opacity: 1; }
 
-        /* ── ROLE TOGGLE ── */
         .role-toggle { display: flex; gap: 8px; }
         .role-btn {
             flex: 1; padding: 9px;
@@ -166,7 +158,19 @@
         }
         #roleSelect { display: none; }
 
-        /* ── BUTTONS ── */
+        /* Error styles */
+        .field-error {
+            font-size: 11px;
+            color: #f87171;
+            margin-top: 5px;
+            display: none;
+        }
+        .field-error.visible { display: block; }
+        .input-wrap input.invalid {
+            border-color: rgba(248,113,113,0.6) !important;
+            box-shadow: 0 0 0 3px rgba(248,113,113,0.1) !important;
+        }
+
         .btn-primary {
             width: 100%; padding: 13px;
             background: linear-gradient(135deg, #10b981, #8b5cf6);
@@ -174,7 +178,7 @@
             font-family: 'Syne', sans-serif; font-weight: 700; font-size: 15px;
             color: #fff; letter-spacing: 0.03em;
             position: relative; overflow: hidden;
-            transition: transform 0.25s, box-shadow 0.25s;
+            transition: transform 0.25s, box-shadow 0.25s, opacity 0.25s;
             margin-bottom: 10px; margin-top: 4px;
         }
         .btn-primary::before {
@@ -182,8 +186,9 @@
             background: linear-gradient(135deg, rgba(255,255,255,0.12), transparent);
             opacity: 0; transition: opacity 0.25s;
         }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(16,185,129,0.4); }
-        .btn-primary:hover::before { opacity: 1; }
+        .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(16,185,129,0.4); }
+        .btn-primary:hover:not(:disabled)::before { opacity: 1; }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
 
         .divider {
             display: flex; align-items: center; gap: 12px; margin: 2px 0 10px;
@@ -206,6 +211,21 @@
         .btn-google:hover { background: rgba(255,255,255,0.09); border-color: rgba(255,255,255,0.2); transform: translateY(-1px); }
         .google-icon { width: 17px; height: 17px; }
 
+        /* Success banner */
+        .success-banner {
+            display: none;
+            padding: 12px 16px;
+            background: rgba(16,185,129,0.12);
+            border: 1px solid rgba(16,185,129,0.3);
+            border-radius: 10px;
+            color: var(--emerald);
+            font-size: 13px;
+            font-weight: 500;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .success-banner.visible { display: block; }
+
         .form-footer {
             margin-top: 16px; text-align: center;
             font-size: 13px; color: var(--muted);
@@ -213,7 +233,6 @@
         .form-footer a { color: var(--emerald); text-decoration: none; font-weight: 500; }
         .form-footer a:hover { text-decoration: underline; }
 
-        /* ── RIGHT DECORATIVE PANEL ── */
         .deco-panel {
             width: 38%;
             flex-shrink: 0;
@@ -228,15 +247,12 @@
             border-left: 1px solid var(--border);
         }
 
-        /* Hexagon grid decoration */
         .hex-grid {
             position: absolute; inset: 0;
-            background-image:
-                radial-gradient(circle, rgba(16,185,129,0.08) 1px, transparent 1px);
+            background-image: radial-gradient(circle, rgba(16,185,129,0.08) 1px, transparent 1px);
             background-size: 24px 28px;
         }
 
-        /* Floating squares */
         .float-shape {
             position: absolute;
             border: 1px solid rgba(16,185,129,0.15);
@@ -252,7 +268,6 @@
             to   { transform: translateY(-14px) rotate(calc(var(--r,15deg) + 8deg)); opacity:1; }
         }
 
-        /* Center icon */
         .deco-icon {
             position: relative; z-index: 2;
             width: 88px; height: 88px; border-radius: 26px;
@@ -282,14 +297,11 @@
             line-height: 1.6; position: relative; z-index: 2; max-width: 180px;
         }
 
-        /* Steps */
         .steps {
             position: relative; z-index: 2;
             margin-top: 32px; display: flex; flex-direction: column; gap: 14px; width: 100%;
         }
-        .step {
-            display: flex; align-items: flex-start; gap: 12px;
-        }
+        .step { display: flex; align-items: flex-start; gap: 12px; }
         .step-num {
             width: 22px; height: 22px; border-radius: 6px; flex-shrink: 0;
             background: linear-gradient(135deg, rgba(16,185,129,0.3), rgba(139,92,246,0.3));
@@ -326,46 +338,46 @@
             <div class="form-title">Create your<br>account</div>
         </div>
 
-        <form action="/register" method="POST">
+        <form action="/register" method="POST" id="registerForm" novalidate>
 
             <!-- Name + Email in a row -->
             <div class="field-row">
                 <div class="field">
                     <label>Name</label>
                     <div class="input-wrap">
-                        <input type="text" name="name" placeholder="Your name" required>
+                        <input type="text" name="name" id="nameInput" placeholder="Your name" autocomplete="name">
                     </div>
+                    <span class="field-error" id="nameError">Please enter your name.</span>
                 </div>
                 <div class="field">
                     <label>Email</label>
                     <div class="input-wrap">
-                        <input type="email" name="email" placeholder="you@example.com" required>
+                        <input type="email" name="email" id="emailInput" placeholder="you@example.com" autocomplete="email">
                     </div>
+                    <span class="field-error" id="emailError">Enter a valid email address.</span>
                 </div>
             </div>
 
-            <!-- Password (original hidden one preserved) -->
-            <input type="password" name="password" required style="display:none;">
-
-            <!-- Visible password with toggle -->
+            <!-- Password with toggle — SINGLE field only -->
             <div class="field">
                 <label>Password</label>
                 <div class="input-wrap">
-                    <input type="password" name="password" id="password" placeholder="••••••••" required>
-                    <button type="button" class="toggle-password" onclick="togglePassword()">👁️</button>
+                    <input type="password" name="password" id="password" placeholder="&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;" autocomplete="new-password">
+                    <button type="button" class="toggle-password" onclick="togglePassword()" aria-label="Toggle password visibility">&#x1F441;&#xFE0F;</button>
                 </div>
+                <span class="field-error" id="passError">Password must be at least 6 characters.</span>
             </div>
 
             <!-- Role -->
             <div class="field">
                 <label>Role</label>
                 <div class="role-toggle">
-                    <button type="button" class="role-btn active" id="btnTeacher" onclick="setRole('teacher')">🎓 Teacher</button>
-                    <button type="button" class="role-btn" id="btnStudent" onclick="setRole('student')">🧑‍💻 Student</button>
+                    <button type="button" class="role-btn" id="btnTeacher" onclick="setRole('teacher')">&#x1F393; Teacher</button>
+                    <button type="button" class="role-btn active" id="btnStudent" onclick="setRole('student')">&#x1F9D1;&#x200D;&#x1F4BB; Student</button>
                 </div>
                 <select name="role" id="roleSelect">
                     <option value="teacher">Teacher</option>
-                    <option value="student">Student</option>
+                    <option value="student" selected>Student</option>
                 </select>
             </div>
 
@@ -377,7 +389,10 @@
                 </div>
             </div>
 
-            <button type="submit" class="btn-primary">Create Account →</button>
+            <!-- Success banner -->
+            <div class="success-banner" id="successBanner">&#x1F389; Account created! Redirecting...</div>
+
+            <button type="submit" class="btn-primary" id="submitBtn">Create Account &#x2192;</button>
 
             <div class="divider"><span>or continue with</span></div>
 
@@ -406,7 +421,7 @@
         <div class="float-shape fs3"></div>
         <div class="float-shape fs4"></div>
 
-        <div class="deco-icon">🌿</div>
+        <div class="deco-icon">&#x1F33F;</div>
         <div class="deco-title">Start your<br>eco journey</div>
         <div class="deco-sub">Join thousands making a difference for the planet.</div>
 
@@ -442,69 +457,116 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
 <script>
-function togglePassword() {
-    const pwd = document.getElementById("password");
-    pwd.type = pwd.type === "password" ? "text" : "password";
-}
-
-function setRole(role) {
-    document.getElementById("roleSelect").value = role;
-    document.getElementById("btnTeacher").classList.toggle("active", role === "teacher");
-    document.getElementById("btnStudent").classList.toggle("active", role === "student");
-}
-
-/* parallax orbs */
-document.addEventListener("mousemove", e => {
-    const x = (e.clientX / window.innerWidth - 0.5) * 22;
-    const y = (e.clientY / window.innerHeight - 0.5) * 22;
-    document.querySelector(".orb1").style.transform = `translate(${-x}px,${y}px)`;
-    document.querySelector(".orb2").style.transform = `translate(${x}px,${-y}px)`;
-});
-
-/* Firebase */
-const firebaseConfig = {
-    apiKey: "AIzaSyBBQhWU9g4OqKLiLxWYqxK5B6Iv3pBXD-s",
-    authDomain: "eco-platform-603b7.firebaseapp.com",
-    projectId: "eco-platform-603b7",
-    storageBucket: "eco-platform-603b7.firebasestorage.app",
-    messagingSenderId: "608636464147",
-    appId: "1:608636464147:web:444cb8d0de92dab09823e6",
-    measurementId: "G-YL7WBQRPC0"
-};
-
-if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-
-/* Handle redirect result on page load */
-auth.getRedirectResult().then((result) => {
-    if (result && result.user) {
-        const name = result.user.displayName;
-        window.location.href = "/dashboard/" + encodeURIComponent(name) + "/student";
+    // ── PASSWORD TOGGLE ──
+    function togglePassword() {
+        const pwd = document.getElementById("password");
+        pwd.type = pwd.type === "password" ? "text" : "password";
     }
-}).catch((error) => {
-    console.error("Redirect result error:", error);
-});
 
-document.getElementById("googleLoginBtn").addEventListener("click", function () {
-    const provider = new firebase.auth.GoogleAuthProvider();
-    auth.signInWithPopup(provider)
-    .then((result) => {
-        const name = result.user.displayName;
-        window.location.href = "/dashboard/" + encodeURIComponent(name) + "/student";
-    })
-    .catch((error) => {
-        if (
-            error.code === "auth/popup-blocked" ||
-            error.code === "auth/popup-closed-by-user" ||
-            error.code === "auth/cancelled-popup-request"
-        ) {
-            auth.signInWithRedirect(provider);
-        } else {
-            console.error("Google sign-in error:", error.code, error.message);
-            alert("Sign-in failed: " + error.message);
-        }
+    // ── ROLE TOGGLE ──
+    function setRole(role) {
+        document.getElementById("roleSelect").value = role;
+        document.getElementById("btnTeacher").classList.toggle("active", role === "teacher");
+        document.getElementById("btnStudent").classList.toggle("active", role === "student");
+    }
+
+    // ── PARALLAX ORBS ──
+    document.addEventListener("mousemove", e => {
+        const x = (e.clientX / window.innerWidth - 0.5) * 22;
+        const y = (e.clientY / window.innerHeight - 0.5) * 22;
+        document.querySelector(".orb1").style.transform = `translate(${-x}px,${y}px)`;
+        document.querySelector(".orb2").style.transform = `translate(${x}px,${-y}px)`;
     });
-});
+
+    // ── FORM VALIDATION ──
+    document.getElementById("registerForm").addEventListener("submit", function(e) {
+        e.preventDefault();
+
+        const name     = document.getElementById("nameInput");
+        const email    = document.getElementById("emailInput");
+        const password = document.getElementById("password");
+
+        // Reset all errors
+        ["nameError","emailError","passError"].forEach(id => {
+            document.getElementById(id).classList.remove("visible");
+        });
+        [name, email, password].forEach(el => el.classList.remove("invalid"));
+
+        let valid = true;
+
+        if (!name.value.trim()) {
+            document.getElementById("nameError").classList.add("visible");
+            name.classList.add("invalid");
+            valid = false;
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!email.value.trim() || !emailRegex.test(email.value.trim())) {
+            document.getElementById("emailError").classList.add("visible");
+            email.classList.add("invalid");
+            valid = false;
+        }
+
+        if (password.value.length < 6) {
+            document.getElementById("passError").classList.add("visible");
+            password.classList.add("invalid");
+            valid = false;
+        }
+
+        if (!valid) return;
+
+        // All valid — submit the form
+        const btn = document.getElementById("submitBtn");
+        btn.disabled = true;
+        btn.textContent = "Creating account...";
+        this.submit();
+    });
+
+    // ── FIREBASE ──
+    const firebaseConfig = {
+        apiKey: "AIzaSyBBQhWU9g4OqKLiLxWYqxK5B6Iv3pBXD-s",
+        authDomain: "eco-platform-603b7.firebaseapp.com",
+        projectId: "eco-platform-603b7",
+        storageBucket: "eco-platform-603b7.firebasestorage.app",
+        messagingSenderId: "608636464147",
+        appId: "1:608636464147:web:444cb8d0de92dab09823e6",
+        measurementId: "G-YL7WBQRPC0"
+    };
+
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    // Handle redirect result on page load
+    auth.getRedirectResult().then((result) => {
+        if (result && result.user) {
+            const name = result.user.displayName;
+            window.location.href = "/dashboard/" + encodeURIComponent(name) + "/student";
+        }
+    }).catch((error) => {
+        console.error("Redirect result error:", error);
+    });
+
+    // Google sign-in
+    document.getElementById("googleLoginBtn").addEventListener("click", function () {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        auth.signInWithPopup(provider)
+        .then((result) => {
+            const name = result.user.displayName;
+            window.location.href = "/dashboard/" + encodeURIComponent(name) + "/student";
+        })
+        .catch((error) => {
+            if (
+                error.code === "auth/popup-blocked" ||
+                error.code === "auth/popup-closed-by-user" ||
+                error.code === "auth/cancelled-popup-request"
+            ) {
+                auth.signInWithRedirect(provider);
+            } else {
+                console.error("Google sign-in error:", error.code, error.message);
+                alert("Sign-in failed: " + error.message);
+            }
+        });
+    });
 </script>
 
 </body>
