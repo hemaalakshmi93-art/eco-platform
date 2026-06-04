@@ -33,7 +33,8 @@ try:
     port=int(os.environ.get("DB_PORT")),
     user=os.environ.get("DB_USER"),
     password=os.environ.get("DB_PASSWORD"),
-    database=os.environ.get("DB_NAME")
+    database=os.environ.get("DB_NAME"),
+    ssl_disabled=False
 )
     cursor = db.cursor(buffered=True)
     print("✅ DB connected")
@@ -53,7 +54,8 @@ def get_cursor():
     port=int(os.environ.get("DB_PORT")),
     user=os.environ.get("DB_USER"),
     password=os.environ.get("DB_PASSWORD"),
-    database=os.environ.get("DB_NAME")
+    database=os.environ.get("DB_NAME"),
+    ssl_disabled=False
 )
           
     cursor = db.cursor(buffered=True)
