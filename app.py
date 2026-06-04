@@ -302,6 +302,41 @@ def login():
     flash("Invalid Login ❌")
     return redirect(url_for("login"))
 
+# -------------------- CHATBOT ROUTE --------------------
+@app.route("/chat", methods=["POST"])
+def chat():
+    data = request.get_json()
+    messages = data.get("messages", [])
+    
+    SYSTEM_INSTRUCTION = """You are EcoBot, a friendly assistant on EcoLearn.
+- Reply in maximum 2-3 short sentences only.
+- Be warm and friendly.
+- Only answer environment topics: pollution, climate, recycling, sustainability etc.
+- If asked unrelated topics, politely redirect.
+- No bullet points or lists. Short conversational answers only."""
+
+    try:
+        response = requests.post(
+            "https://api.groq.com/openai/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {os.environ.get('GROQ_API_KEY')}",
+                "Content-Type": "application/json"
+            },
+            json={
+                "model": "llama-3.3-70b-versatile",
+                "messages": [{"role": "system", "content": SYSTEM_INSTRUCTION}] + messages,
+                "max_tokens": 120
+            },
+            timeout=30
+        )
+        result = response.json()
+        if "error" in result:
+            return jsonify({"error": result["error"]["message"]}), 400
+        reply = result["choices"][0]["message"]["content"]
+        return jsonify({"reply": reply})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 # -------------------- REGISTER --------------------
 @app.route("/register", methods=["GET", "POST"])
 def register():

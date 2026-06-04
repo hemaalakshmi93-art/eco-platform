@@ -736,6 +736,9 @@ function removeTyping() {
     if (el) el.remove();
 }
 
+// இந்த line முழுக்க delete பண்ணு:
+// const GROQ_API_KEY = "";
+
 async function sendMessage() {
     const input = document.getElementById("chatInput");
     const text = input.value.trim();
@@ -751,32 +754,21 @@ async function sendMessage() {
     showTyping();
 
     try {
-        const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        const response = await fetch("/chat", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": "Bearer " + GROQ_API_KEY
-            },
-            body: JSON.stringify({
-                model: "llama-3.3-70b-versatile",
-                messages: [
-                    { role: "system", content: SYSTEM_INSTRUCTION },
-                    ...chatHistory
-                ],
-                max_tokens: 120
-            })
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ messages: chatHistory })
         });
 
         const data = await response.json();
         removeTyping();
 
         if (data.error) {
-            addMessage("Error: " + data.error.message, "bot");
+            addMessage("Error: " + data.error, "bot");
             chatHistory.pop();
         } else {
-            const reply = data.choices?.[0]?.message?.content || "Hmm, I couldn't get a response. Try again!";
-            addMessage(reply, "bot");
-            chatHistory.push({ role: "assistant", content: reply });
+            addMessage(data.reply, "bot");
+            chatHistory.push({ role: "assistant", content: data.reply });
         }
 
     } catch (err) {
