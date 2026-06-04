@@ -493,421 +493,443 @@ const TR = {
 /* ═══════════════════════════════════════════
    STATE & DEFAULTS
 ═══════════════════════════════════════════ */
-const DEFAULTS = {
-  dark:false, accent:'#4CAF50', fontSize:'medium', compact:false,
-  sound:true, music:false, musicTheme:'lofi',
-  notif:true, email:false,
-  lang:'en', date:'dmy', timeFormat:'12'
-};
-let S = {...DEFAULTS};
+const STORAGE_KEY = 'app_s4';
 
-function load(){ try{ const v=localStorage.getItem('app_s4'); if(v) S={...DEFAULTS,...JSON.parse(v)}; }catch(e){} }
-function save(){ try{ localStorage.setItem('app_s4',JSON.stringify(S)); }catch(e){} showSaved(); }
-function tr(k){ return (TR[S.lang]||TR.en)[k]||k; }
+const DEFAULTS = {
+  dark: false,
+  accent: '#4CAF50',
+  fontSize: 'medium',   // small | medium | large
+  compact: false,
+  sound: true,
+  music: false,
+  musicTheme: 'lofi',   // lofi | ambient | upbeat
+  notif: true,
+  email: false,
+  lang: 'en',
+  date: 'dmy',
+  timeFormat: '12'
+};
+
+let S = { ...DEFAULTS };
+
+function loadState() {
+  try {
+    const v = localStorage.getItem(STORAGE_KEY);
+    if (v) S = { ...DEFAULTS, ...JSON.parse(v) };
+  } catch (e) {
+    S = { ...DEFAULTS };
+  }
+}
+
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(S));
+  } catch(e) {}
+  showSaved();
+}
+
+function tr(k) {
+  return (TR[S.lang] || TR.en)[k] || k;
+}
 
 /* ═══════════════════════════════════════════
    TOAST & SAVED
 ═══════════════════════════════════════════ */
-function showToast(msg, dur=2400){
-  const c=document.getElementById('toasts'), el=document.createElement('div');
-  el.className='toast'; el.textContent=msg; c.appendChild(el);
-  requestAnimationFrame(()=>el.classList.add('show'));
-  setTimeout(()=>{ el.classList.remove('show'); setTimeout(()=>el.remove(),400); }, dur);
+function showToast(msg, dur = 2400) {
+  const c = document.getElementById('toasts');
+  if (!c) return;
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  c.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('show'));
+  setTimeout(() => {
+    el.classList.remove('show');
+    setTimeout(() => el.remove(), 300);
+  }, dur);
 }
-function showSaved(){
-  const t=document.getElementById('saved-tag'); t.classList.add('show');
-  clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),1600);
+
+function showSaved() {
+  const tag = document.getElementById('saved-tag');
+  if (!tag) return;
+  tag.classList.add('show');
+  setTimeout(() => tag.classList.remove('show'), 1200);
 }
 
 /* ═══════════════════════════════════════════
-   FONT SIZE — changes entire page
+   APPEARANCE: THEME, ACCENT, FONT, COMPACT
 ═══════════════════════════════════════════ */
-function applyFontSize(){
-  const map={small:'12px', medium:'15px', large:'18px'};
-  document.documentElement.style.setProperty('--fs', map[S.fontSize]);
-  document.querySelectorAll('.font-btn').forEach(b=>b.classList.toggle('active', b.dataset.size===S.fontSize));
+function applyTheme() {
+  const html = document.documentElement;
+  const togDark = document.getElementById('tog-dark');
+  const themeSub = document.getElementById('theme-sub');
+
+  html.setAttribute('data-theme', S.dark ? 'dark' : 'light');
+  if (togDark) togDark.checked = S.dark;
+  if (themeSub) themeSub.textContent = S.dark ? tr('theme_dark') : tr('theme_light');
 }
 
-/* ═══════════════════════════════════════════
-   COMPACT
-═══════════════════════════════════════════ */
-function applyCompact(){
-  document.querySelectorAll('.row').forEach(r=>{
+function applyAccent() {
+  document.documentElement.style.setProperty('--accent', S.accent);
+  const swatches = document.querySelectorAll('.swatch');
+  swatches.forEach(sw => {
+    sw.classList.toggle('active', sw.dataset.color === S.accent);
+  });
+}
+
+const FONT_SIZE_MAP = {
+  small:  '14px',
+  medium: '15px',
+  large:  '17px'
+};
+
+function applyFontSize() {
+  const root = document.documentElement;
+  const btns = document.querySelectorAll('.font-btn');
+  const val = FONT_SIZE_MAP[S.fontSize] || FONT_SIZE_MAP.medium;
+  root.style.setProperty('--fs', val);
+  btns.forEach(b => {
+    b.classList.toggle('active', b.dataset.size === S.fontSize);
+  });
+}
+
+function applyCompact() {
+  const tog = document.getElementById('tog-compact');
+  if (tog) tog.checked = S.compact;
+  document.querySelectorAll('.row').forEach(r => {
     r.style.paddingTop    = S.compact ? '.35rem' : '.7rem';
     r.style.paddingBottom = S.compact ? '.35rem' : '.7rem';
   });
 }
 
 /* ═══════════════════════════════════════════
-   TRANSLATIONS — applies to entire page
+   SOUND: EFFECTS FLAG ONLY
 ═══════════════════════════════════════════ */
-function applyTranslations(){
-  document.querySelectorAll('[data-i18n]').forEach(el=>{ el.textContent=tr(el.dataset.i18n); });
-  document.documentElement.lang = S.lang;
-  document.getElementById('theme-sub').textContent = S.dark ? tr('theme_dark') : tr('theme_light');
-  updateDatePreview();
-  updatePermChip();
+function applySoundFX() {
+  const tog = document.getElementById('tog-sound');
+  if (tog) tog.checked = S.sound;
+  // Use S.sound as a gate before playing any UI click sounds
 }
 
 /* ═══════════════════════════════════════════
-   DATE / CLOCK
+   BACKGROUND MUSIC (3 THEMES via <audio>)
 ═══════════════════════════════════════════ */
-function formatDate(d,fmt){
-  const dd=String(d.getDate()).padStart(2,'0'), mm=String(d.getMonth()+1).padStart(2,'0'), yyyy=d.getFullYear();
-  if(fmt==='mdy') return `${mm}/${dd}/${yyyy}`;
-  if(fmt==='ymd') return `${yyyy}-${mm}-${dd}`;
-  return `${dd}/${mm}/${yyyy}`;
-}
-function updateDatePreview(){ document.getElementById('date-preview').textContent=formatDate(new Date(),S.date); }
-function updateClock(){
-  const now=new Date(); let h=now.getHours(), m=String(now.getMinutes()).padStart(2,'0'), str;
-  if(S.timeFormat==='12'){ const ap=h>=12?'PM':'AM'; h=h%12||12; str=`${h}:${m} ${ap}`; }
-  else str=`${String(h).padStart(2,'0')}:${m}`;
-  document.getElementById('live-time').textContent=str;
-}
-
-/* ═══════════════════════════════════════════
-   NOTIFICATIONS
-═══════════════════════════════════════════ */
-function updatePermChip(){
-  const c=document.getElementById('perm-chip');
-  if(!('Notification' in window)){ c.textContent='N/A'; c.className='perm-chip default'; return; }
-  const p=Notification.permission;
-  if(p==='granted'){ c.textContent=tr('perm_granted'); c.className='perm-chip granted'; }
-  else if(p==='denied'){ c.textContent=tr('perm_denied'); c.className='perm-chip denied'; }
-  else{ c.textContent=tr('perm_default'); c.className='perm-chip default'; }
-}
-
-/* ═══════════════════════════════════════════
-   APPLY ALL
-═══════════════════════════════════════════ */
-function applyAll(){
-  document.documentElement.dataset.theme = S.dark ? 'dark' : '';
-  document.documentElement.style.setProperty('--accent', S.accent);
-  document.querySelectorAll('.swatch').forEach(sw=>sw.classList.toggle('active', sw.dataset.color===S.accent));
-  document.getElementById('tog-dark').checked    = S.dark;
-  document.getElementById('tog-compact').checked = S.compact;
-  document.getElementById('tog-sound').checked   = S.sound;
-  document.getElementById('tog-music').checked   = S.music;
-  document.getElementById('tog-notif').checked   = S.notif;
-  document.getElementById('tog-email').checked   = S.email;
-  document.getElementById('sel-lang').value       = S.lang;
-  document.getElementById('sel-date').value       = S.date;
-  document.getElementById('sel-time').value       = S.timeFormat;
-  document.getElementById('sel-theme').value      = S.musicTheme;
-  applyFontSize();
-  applyCompact();
-  applyTranslations();
-  updateClock();
-  updateMusicBars();
-}
-
-/* ═══════════════════════════════════════════
-   SOUND ENGINE (SFX)
-═══════════════════════════════════════════ */
-let audioCtx=null;
-function getCtx(){ if(!audioCtx) audioCtx=new(window.AudioContext||window.webkitAudioContext)(); return audioCtx; }
-function playTone(freq=440,type='sine',dur=0.08,vol=0.15){
-  if(!S.sound) return;
-  try{
-    const ctx=getCtx(), o=ctx.createOscillator(), g=ctx.createGain();
-    o.connect(g); g.connect(ctx.destination);
-    o.type=type; o.frequency.value=freq;
-    g.gain.setValueAtTime(vol,ctx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+dur);
-    o.start(); o.stop(ctx.currentTime+dur);
-  }catch(e){}
-}
-function playOn()   { playTone(660,'sine',0.12,0.12); }
-function playOff()  { playTone(330,'sine',0.1,0.08);  }
-function playClick(){ playTone(800,'triangle',0.06,0.1); }
-function playReset(){ [440,360,280].forEach((f,i)=>setTimeout(()=>playTone(f,'sine',0.1,0.1),i*60)); }
-
-/* ═══════════════════════════════════════════
-   MUSIC ENGINE
-   — Each theme has a distinct character:
-     lofi   : slow, warm, jazzy (70bpm, minor penta)
-     ambient: very slow, sparse, drifting (40bpm, pentatonic)
-     upbeat : fast, bright, rhythmic (128bpm, major scale + kick)
-═══════════════════════════════════════════ */
-let musicInterval=null, musicPlaying=false, musicGain=null, reverbNode=null;
-
-const THEMES = {
-  lofi: {
-    bpm: 70,
-    // C minor pentatonic: C D Eb G Ab  (MIDI 60,62,63,67,68)
-    melody: [60,62,63,67,68,72,75,67],
-    // Chord: Cm7 voicing
-    chord:  [48,55,60,63,67],
-    bass:   [36,36,43,43],
-    waveM:'triangle', waveC:'sine', waveB:'triangle',
-    reverbSec:3, volM:0.18, volC:0.05, volB:0.10,
-    beatDiv:2,   // melody every 2 beats
-    hasKick:false, hasBass:true,
-  },
-  ambient: {
-    bpm: 40,
-    // Eb major pentatonic: Eb F G Bb C  (MIDI 63,65,67,70,72)
-    melody: [63,65,67,70,72,75,70,67],
-    chord:  [51,58,63,67,70],
-    bass:   [],
-    waveM:'sine', waveC:'sine', waveB:'sine',
-    reverbSec:6, volM:0.10, volC:0.04, volB:0,
-    beatDiv:4,
-    hasKick:false, hasBass:false,
-  },
-  upbeat: {
-    bpm: 128,
-    // G major scale: G A B C D E F# G  (MIDI 67,69,71,72,74,76,78,79)
-    melody: [67,69,71,72,74,76,79,74,72,71,69,67],
-    chord:  [55,59,62,67],
-    bass:   [43,43,50,50,43,43,50,55],
-    waveM:'square', waveC:'triangle', waveB:'sawtooth',
-    reverbSec:1, volM:0.12, volC:0.06, volB:0.12,
-    beatDiv:1,
-    hasKick:true, hasBass:true,
-  }
+/* 
+   IMPORTANT: change these paths to your real audio files.
+   Example:
+   /static/audio/zephyra_lofi.mp3
+   /static/audio/zephyra_ambient.mp3
+   /static/audio/zephyra_upbeat.mp3
+*/
+const tracks = {
+  lofi:   new Audio('/static/audio/lofi.mp3'),
+  ambient:new Audio('/static/audio/ambient.mp3'),
+  upbeat: new Audio('/static/audio/upbeat.mp3'),
 };
 
-function midi2hz(m){ return 440*Math.pow(2,(m-69)/12); }
+Object.values(tracks).forEach(a => {
+  a.loop = true;
+  a.volume = 0.35;   // default volume
+});
 
-function makeReverb(ctx, dur){
-  const conv=ctx.createConvolver();
-  const sr=ctx.sampleRate, len=Math.floor(sr*dur);
-  const buf=ctx.createBuffer(2,len,sr);
-  for(let c=0;c<2;c++){
-    const d=buf.getChannelData(c);
-    for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.5);
+let currentTrack = null;
+
+function applyMusicState() {
+  const togMusic = document.getElementById('tog-music');
+  const selTheme = document.getElementById('sel-theme');
+  const bars     = document.getElementById('music-bars');
+
+  if (togMusic) togMusic.checked = S.music;
+  if (selTheme) selTheme.value = S.musicTheme;
+
+  // stop all
+  Object.values(tracks).forEach(a => a.pause());
+
+  if (S.music) {
+    currentTrack = tracks[S.musicTheme] || tracks.lofi;
+    if (currentTrack) {
+      currentTrack.play().catch(() => {});
+    }
+    if (bars) bars.classList.remove('paused');
+  } else {
+    if (bars) bars.classList.add('paused');
   }
-  conv.buffer=buf;
-  return conv;
-}
-
-function startMusic(){
-  if(musicPlaying) return;
-  try{
-    const ctx=getCtx();
-    if(ctx.state==='suspended') ctx.resume();
-
-    const theme=THEMES[S.musicTheme]||THEMES.lofi;
-    const beatMs=(60/theme.bpm)*1000;
-
-    // Master gain with fade-in
-    musicGain=ctx.createGain();
-    musicGain.gain.setValueAtTime(0,ctx.currentTime);
-    musicGain.gain.linearRampToValueAtTime(1.0,ctx.currentTime+2);
-
-    // Reverb
-    reverbNode=makeReverb(ctx,theme.reverbSec);
-    const dryGain=ctx.createGain(); dryGain.gain.value=0.6;
-    const wetGain=ctx.createGain(); wetGain.gain.value=0.4;
-
-    musicGain.connect(dryGain); dryGain.connect(ctx.destination);
-    musicGain.connect(reverbNode); reverbNode.connect(wetGain); wetGain.connect(ctx.destination);
-
-    let beat=0;
-    const melLen=theme.melody.length;
-    const bassLen=theme.bass.length;
-
-    musicInterval=setInterval(()=>{
-      if(!musicPlaying) return;
-      const now=ctx.currentTime;
-      const beatSec=60/theme.bpm;
-
-      // ── MELODY ──
-      if(beat % theme.beatDiv === 0){
-        const idx=Math.floor(beat/theme.beatDiv) % melLen;
-        const note=theme.melody[idx];
-        const o=ctx.createOscillator(), g=ctx.createGain();
-        o.type=theme.waveM;
-        o.frequency.value=midi2hz(note);
-        // slight detune for warmth
-        o.detune.value=(Math.random()-0.5)*12;
-        g.gain.setValueAtTime(0.001,now);
-        g.gain.linearRampToValueAtTime(theme.volM,now+0.04);
-        g.gain.exponentialRampToValueAtTime(0.001,now+beatSec*theme.beatDiv*0.85);
-        o.connect(g); g.connect(musicGain);
-        o.start(now); o.stop(now+beatSec*theme.beatDiv);
-      }
-
-      // ── CHORD PAD (every 4 beats) ──
-      if(beat % 4 === 0){
-        theme.chord.forEach((n,i)=>{
-          const o=ctx.createOscillator(), g=ctx.createGain();
-          o.type=theme.waveC;
-          o.frequency.value=midi2hz(n);
-          o.detune.value=(i%2===0?1:-1)*6;
-          g.gain.setValueAtTime(0.001,now);
-          g.gain.linearRampToValueAtTime(theme.volC,now+0.5);
-          g.gain.exponentialRampToValueAtTime(0.001,now+beatSec*3.8);
-          o.connect(g); g.connect(musicGain);
-          o.start(now); o.stop(now+beatSec*4);
-        });
-      }
-
-      // ── BASS LINE ──
-      if(theme.hasBass && bassLen>0){
-        const bn=theme.bass[beat % bassLen];
-        const o=ctx.createOscillator(), g=ctx.createGain();
-        o.type=theme.waveB;
-        o.frequency.value=midi2hz(bn);
-        g.gain.setValueAtTime(0.001,now);
-        g.gain.linearRampToValueAtTime(theme.volB,now+0.03);
-        g.gain.exponentialRampToValueAtTime(0.001,now+beatSec*0.7);
-        o.connect(g); g.connect(musicGain);
-        o.start(now); o.stop(now+beatSec);
-      }
-
-      // ── KICK DRUM (upbeat only, every beat) ──
-      if(theme.hasKick){
-        const buf=ctx.createBuffer(1,ctx.sampleRate*0.15,ctx.sampleRate);
-        const d=buf.getChannelData(0);
-        for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,8);
-        const src=ctx.createBufferSource(), g=ctx.createGain();
-        src.buffer=buf;
-        // pitch sweep for kick feel
-        const osc=ctx.createOscillator(), kg=ctx.createGain();
-        osc.frequency.setValueAtTime(150,now);
-        osc.frequency.exponentialRampToValueAtTime(40,now+0.1);
-        kg.gain.setValueAtTime(0.4,now);
-        kg.gain.exponentialRampToValueAtTime(0.001,now+0.15);
-        osc.connect(kg); kg.connect(musicGain);
-        osc.start(now); osc.stop(now+0.15);
-        // noise layer
-        g.gain.setValueAtTime(0.06,now);
-        g.gain.exponentialRampToValueAtTime(0.001,now+0.08);
-        src.connect(g); g.connect(musicGain);
-        src.start(now);
-      }
-
-      // ── HI-HAT (upbeat only, every half-beat) ──
-      if(theme.hasKick && beat%1===0){
-        const buf=ctx.createBuffer(1,ctx.sampleRate*0.04,ctx.sampleRate);
-        const d=buf.getChannelData(0);
-        for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,3);
-        const src=ctx.createBufferSource(), g=ctx.createGain();
-        src.buffer=buf;
-        g.gain.setValueAtTime(0.03,now+beatSec*0.5);
-        g.gain.exponentialRampToValueAtTime(0.001,now+beatSec*0.5+0.04);
-        src.connect(g); g.connect(musicGain);
-        src.start(now+beatSec*0.5);
-      }
-
-      beat++;
-    }, beatMs);
-
-    musicPlaying=true;
-  }catch(e){ console.warn('Music error:',e); }
-}
-
-function stopMusic(){
-  clearInterval(musicInterval); musicInterval=null;
-  if(musicGain){
-    try{
-      const ctx=getCtx();
-      musicGain.gain.setValueAtTime(musicGain.gain.value,ctx.currentTime);
-      musicGain.gain.linearRampToValueAtTime(0,ctx.currentTime+0.8);
-      setTimeout(()=>{ try{ musicGain.disconnect(); reverbNode&&reverbNode.disconnect(); }catch(e){} },1000);
-    }catch(e){}
-  }
-  musicPlaying=false;
-}
-
-function updateMusicBars(){
-  document.getElementById('music-bars').classList.toggle('paused',!S.music);
 }
 
 /* ═══════════════════════════════════════════
-   EVENT LISTENERS
+   LANGUAGE & TEXT
 ═══════════════════════════════════════════ */
-document.getElementById('tog-dark').addEventListener('change',e=>{
-  S.dark=e.target.checked; applyAll(); save();
-  showToast(S.dark?'🌙 Dark mode on':'☀️ Light mode on');
-  S.dark?playOn():playOff();
-});
-document.getElementById('tog-compact').addEventListener('change',e=>{
-  S.compact=e.target.checked; applyCompact(); save(); playClick();
-  showToast(S.compact?'Compact on':'Compact off');
-});
-document.getElementById('tog-sound').addEventListener('change',e=>{
-  if(!e.target.checked) playOff();
-  S.sound=e.target.checked; save();
-  if(S.sound) playOn();
-  showToast(S.sound?'🔊 Sound on':'🔇 Sound off');
-  if(!S.sound && S.music){
-    stopMusic(); S.music=false;
-    document.getElementById('tog-music').checked=false;
-    save(); updateMusicBars();
-    showToast('Music paused — sound is off');
-  }
-});
-document.getElementById('tog-music').addEventListener('change',e=>{
-  S.music=e.target.checked; save();
-  if(S.music){
-    if(!S.sound){
-      showToast('⚠️ Enable sound first!');
-      e.target.checked=false; S.music=false; save(); return;
-    }
-    startMusic(); showToast('🎵 Music on'); playOn();
-  } else {
-    stopMusic(); showToast('🎵 Music off'); playOff();
-  }
-  updateMusicBars();
-});
-document.getElementById('sel-theme').addEventListener('change',e=>{
-  S.musicTheme=e.target.value; save(); playClick();
-  if(S.music){ stopMusic(); setTimeout(startMusic,300); showToast('🎵 Theme: '+e.target.value); }
-});
-document.getElementById('tog-notif').addEventListener('change',async e=>{
-  if(e.target.checked){
-    if(!('Notification'in window)){ e.target.checked=false; return; }
-    if(Notification.permission==='denied'){ e.target.checked=false; showToast('🚫 Blocked — enable in browser settings',3500); return; }
-    if(Notification.permission==='default'){
-      const r=await Notification.requestPermission(); updatePermChip();
-      if(r!=='granted'){ e.target.checked=false; S.notif=false; save(); return; }
-    }
-    S.notif=true; playOn(); showToast('🔔 Notifications on');
-  } else { S.notif=false; playOff(); showToast('Notifications off'); }
-  save(); updatePermChip();
-});
-document.getElementById('tog-email').addEventListener('change',e=>{
-  S.email=e.target.checked; save(); playClick();
-  showToast(S.email?'📧 Email digest on':'Email digest off');
-});
-document.getElementById('test-notif-btn').addEventListener('click',async()=>{
-  playClick();
-  if(!('Notification'in window)){ showToast("Browser doesn't support notifications"); return; }
-  if(Notification.permission==='denied'){ showToast('🚫 Blocked — enable in browser settings',3500); return; }
-  if(Notification.permission==='default'){ const r=await Notification.requestPermission(); updatePermChip(); if(r!=='granted') return; }
-  try{ new Notification('Settings App',{body:'🎉 Notifications are working!',tag:'test'}); showToast('🔔 Test notification sent!'); }
-  catch(err){ showToast('Could not send: '+err.message); }
-});
-document.getElementById('sel-lang').addEventListener('change',e=>{
-  S.lang=e.target.value; applyAll(); save(); playClick(); showToast('🌐 Language changed');
-});
-document.getElementById('sel-date').addEventListener('change',e=>{
-  S.date=e.target.value; updateDatePreview(); save(); playClick();
-});
-document.getElementById('sel-time').addEventListener('change',e=>{
-  S.timeFormat=e.target.value; updateClock(); save(); playClick();
-});
-document.querySelectorAll('.swatch').forEach(sw=>{
-  sw.addEventListener('click',()=>{ S.accent=sw.dataset.color; applyAll(); save(); playClick(); showToast('🎨 Accent updated'); });
-});
-document.querySelectorAll('.font-btn').forEach(b=>{
-  b.addEventListener('click',()=>{ S.fontSize=b.dataset.size; applyFontSize(); save(); playClick(); showToast('Font: '+S.fontSize); });
-});
-document.getElementById('back-btn').addEventListener('click',()=>{ playClick(); history.back(); });
-document.getElementById('reset-btn').addEventListener('click',()=>{
-  if(S.music) stopMusic();
-  S={...DEFAULTS}; applyAll();
-  try{ localStorage.removeItem('app_s4'); }catch(e){}
-  playReset(); showToast(tr('reset_done'));
-});
+function applyLanguage() {
+  const sel = document.getElementById('sel-lang');
+  if (sel) sel.value = S.lang;
 
-setInterval(updateClock,1000);
-load();
-applyAll();
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (!key) return;
+    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+      el.placeholder = tr(key);
+    } else {
+      el.textContent = tr(key);
+    }
+  });
+
+  const themeSub = document.getElementById('theme-sub');
+  if (themeSub) themeSub.textContent = S.dark ? tr('theme_dark') : tr('theme_light');
+}
+
+/* ═══════════════════════════════════════════
+   DATE & TIME
+═══════════════════════════════════════════ */
+function formatDateExample(fmt) {
+  const d = { day:'05', month:'01', year:'2026' };
+  if (fmt === 'dmy') return `${d.day}/${d.month}/${d.year}`;
+  if (fmt === 'mdy') return `${d.month}/${d.day}/${d.year}`;
+  if (fmt === 'ymd') return `${d.year}-${d.month}-${d.day}`;
+  return `${d.day}/${d.month}/${d.year}`;
+}
+
+function applyDateFormat() {
+  const sel = document.getElementById('sel-date');
+  const prev = document.getElementById('date-preview');
+  if (sel) sel.value = S.date;
+  if (prev) prev.textContent = formatDateExample(S.date);
+}
+
+function startClock() {
+  const live = document.getElementById('live-time');
+  const selTime = document.getElementById('sel-time');
+  if (selTime) selTime.value = S.timeFormat;
+
+  function tick() {
+    if (!live) return;
+    const now = new Date();
+    let h = now.getHours();
+    let m = String(now.getMinutes()).padStart(2, '0');
+    let txt;
+    if (S.timeFormat === '12') {
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      h = h % 12 || 12;
+      txt = `${String(h).padStart(2,'0')}:${m} ${ampm}`;
+    } else {
+      txt = `${String(h).padStart(2,'0')}:${m}`;
+    }
+    live.textContent = txt;
+  }
+
+  tick();
+  setInterval(tick, 1000);
+}
+
+/* ═══════════════════════════════════════════
+   NOTIFICATIONS (MINIMAL)
+═══════════════════════════════════════════ */
+function applyNotif() {
+  const togNotif = document.getElementById('tog-notif');
+  const togEmail = document.getElementById('tog-email');
+  const chip = document.getElementById('perm-chip');
+
+  if (togNotif) togNotif.checked = S.notif;
+  if (togEmail) togEmail.checked = S.email;
+
+  if (!chip || !('Notification' in window)) {
+    if (chip) {
+      chip.textContent = tr('perm_default');
+      chip.className = 'perm-chip default';
+    }
+    return;
+  }
+
+  const perm = Notification.permission;
+  if (perm === 'granted') {
+    chip.textContent = tr('perm_granted');
+    chip.className = 'perm-chip granted';
+  } else if (perm === 'denied') {
+    chip.textContent = tr('perm_denied');
+    chip.className = 'perm-chip denied';
+  } else {
+    chip.textContent = tr('perm_default');
+    chip.className = 'perm-chip default';
+  }
+}
+
+/* ═══════════════════════════════════════════
+   INIT & EVENT BINDINGS
+═══════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  loadState();
+
+  // Apply initial state
+  applyTheme();
+  applyAccent();
+  applyFontSize();
+  applyCompact();
+  applySoundFX();
+  applyMusicState();
+  applyLanguage();
+  applyDateFormat();
+  startClock();
+  applyNotif();
+
+  // Theme toggle
+  const togDark = document.getElementById('tog-dark');
+  if (togDark) {
+    togDark.addEventListener('change', () => {
+      S.dark = togDark.checked;
+      applyTheme();
+      saveState();
+      showToast(S.dark ? '🌙 Dark mode on' : '☀️ Light mode on');
+    });
+  }
+
+  // Accent swatches
+  const swatches = document.querySelectorAll('.swatch');
+  swatches.forEach(sw => {
+    sw.addEventListener('click', () => {
+      S.accent = sw.dataset.color;
+      applyAccent();
+      saveState();
+      showToast('🎨 Accent updated');
+    });
+  });
+
+  // Font buttons
+  const fontBtns = document.querySelectorAll('.font-btn');
+  fontBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      S.fontSize = btn.dataset.size;
+      applyFontSize();
+      saveState();
+      showToast('Font: ' + S.fontSize);
+    });
+  });
+
+  // Compact layout
+  const togCompact = document.getElementById('tog-compact');
+  if (togCompact) {
+    togCompact.addEventListener('change', () => {
+      S.compact = togCompact.checked;
+      applyCompact();
+      saveState();
+      showToast(S.compact ? 'Compact on' : 'Compact off');
+    });
+  }
+
+  // Sound effects toggle
+  const togSound = document.getElementById('tog-sound');
+  if (togSound) {
+    togSound.addEventListener('change', () => {
+      S.sound = togSound.checked;
+      saveState();
+      showToast(S.sound ? '🔊 Sound on' : '🔇 Sound off');
+    });
+  }
+
+  // Background music toggle + theme select
+  const togMusic = document.getElementById('tog-music');
+  const selTheme = document.getElementById('sel-theme');
+
+  if (togMusic) {
+    togMusic.addEventListener('change', () => {
+      S.music = togMusic.checked;
+      applyMusicState();
+      saveState();
+      showToast(S.music ? '🎵 Music on' : '🎵 Music off');
+    });
+  }
+
+  if (selTheme) {
+    selTheme.addEventListener('change', (e) => {
+      S.musicTheme = e.target.value;
+      applyMusicState();
+      saveState();
+      if (S.music) showToast('🎵 Theme: ' + e.target.value);
+    });
+  }
+
+  // Language select
+  const selLang = document.getElementById('sel-lang');
+  if (selLang) {
+    selLang.addEventListener('change', (e) => {
+      S.lang = e.target.value;
+      applyLanguage();
+      saveState();
+      showToast('🌐 Language changed');
+    });
+  }
+
+  // Date format select
+  const selDate = document.getElementById('sel-date');
+  if (selDate) {
+    selDate.addEventListener('change', (e) => {
+      S.date = e.target.value;
+      applyDateFormat();
+      saveState();
+    });
+  }
+
+  // Time format select
+  const selTime = document.getElementById('sel-time');
+  if (selTime) {
+    selTime.addEventListener('change', (e) => {
+      S.timeFormat = e.target.value;
+      saveState();
+    });
+  }
+
+  // Test notification
+  const testBtn = document.getElementById('test-notif-btn');
+  if (testBtn && 'Notification' in window) {
+    testBtn.addEventListener('click', async () => {
+      if (Notification.permission === 'default') {
+        await Notification.requestPermission();
+        applyNotif();
+      }
+      if (Notification.permission === 'granted') {
+        new Notification('Settings', { body: 'This is a test notification.' });
+        showToast('🔔 Test notification sent!');
+      } else {
+        showToast('Notifications are blocked');
+      }
+    });
+  }
+
+  // Email digest toggle
+  const togEmail = document.getElementById('tog-email');
+  if (togEmail) {
+    togEmail.addEventListener('change', () => {
+      S.email = togEmail.checked;
+      saveState();
+      showToast(S.email ? '📧 Email digest on' : 'Email digest off');
+    });
+  }
+
+  // Reset button
+  const resetBtn = document.getElementById('reset-btn');
+  if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+      S = { ...DEFAULTS };
+      saveState();
+      applyTheme();
+      applyAccent();
+      applyFontSize();
+      applyCompact();
+      applySoundFX();
+      applyMusicState();
+      applyLanguage();
+      applyDateFormat();
+      applyNotif();
+      showToast(tr('reset_done'));
+    });
+  }
+
+  // Back button
+  const backBtn = document.getElementById('back-btn');
+  if (backBtn) {
+    backBtn.addEventListener('click', () => {
+      history.back();
+    });
+  }
+});
 </script>
 </body>
 </html>

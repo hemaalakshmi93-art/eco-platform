@@ -29,9 +29,12 @@ if not os.path.exists(UPLOAD_FOLDER):
 # -------------------- DB --------------------
 try:
     db = mysql.connector.connect(
-        host="localhost", user="root",
-        password=os.environ.get("DB_PASSWORD"), database="eco_platform"
-    )
+    host=os.environ.get("DB_HOST"),
+    port=int(os.environ.get("DB_PORT")),
+    user=os.environ.get("DB_USER"),
+    password=os.environ.get("DB_PASSWORD"),
+    database=os.environ.get("DB_NAME")
+)
     cursor = db.cursor(buffered=True)
     print("✅ DB connected")
 except Exception as e:
@@ -46,9 +49,13 @@ def get_cursor():
         db.ping(reconnect=True, attempts=3, delay=1)
     except Exception:
         db = mysql.connector.connect(
-            host="localhost", user="root",
-            password=os.environ.get("DB_PASSWORD"), database="eco_platform"
-        )
+    host=os.environ.get("DB_HOST"),
+    port=int(os.environ.get("DB_PORT")),
+    user=os.environ.get("DB_USER"),
+    password=os.environ.get("DB_PASSWORD"),
+    database=os.environ.get("DB_NAME")
+)
+          
     cursor = db.cursor(buffered=True)
     return cursor
 

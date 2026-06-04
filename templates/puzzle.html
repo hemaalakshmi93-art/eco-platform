@@ -254,7 +254,7 @@
     <div class="popup-best" id="pop-best"></div>
     <div class="popup-btns">
       <button class="pop-btn primary"   onclick="playAgain()">🔄 Play Again</button>
-      <button class="pop-btn secondary" onclick="goBack()">⬅ Menu</button>
+      <button class="pop-btn secondary" onclick="goBack()">⬅️ Menu</button>
     </div>
   </div>
 </div>
@@ -270,8 +270,7 @@ const name = params.get('name') || '';
 const role = params.get('role') || '';
 
 // ═══════════════════════════════════════
-//  ECO IMAGES — all genuinely eco / nature themed
-//  Using Unsplash with specific eco keywords
+//  ECO IMAGES – many nature / eco scenes
 // ═══════════════════════════════════════
 const ECO_IMAGES = [
   {
@@ -283,20 +282,24 @@ const ECO_IMAGES = [
     label: '🦋 Wildflower Meadow'
   },
   {
-    url: 'https://images.unsplash.com/photo-1459213599465-03ab6a4d5e2a?w=600&q=80',
-    label: '🌿 Tropical Leaves'
+    url: 'https://images.unsplash.com/photo-1455218873509-8097305ee378?w=600&q=80',
+    label: '🌊 Clean Blue Ocean'
   },
   {
-    url: 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=600&q=80',
-    label: '♻️ Green Earth'
+    url: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=600&q=80',
+    label: '🏔️ Misty Mountains'
   },
   {
-    url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&q=80',
-    label: '🌱 Young Seedling'
+    url: 'https://images.unsplash.com/photo-1500534314211-0a24cd710c6e?w=600&q=80',
+    label: '🏞️ River Valley'
   },
   {
-    url: 'https://images.unsplash.com/photo-1530508777238-14544088c3ed?w=600&q=80',
-    label: '🐝 Bee on Flower'
+    url: 'https://images.unsplash.com/photo-1455218873509-8097305ee378?w=600&q=80',
+    label: '🌍 Blue Planet View'
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1500534314211-0a24cd710c6e?w=600&q=80',
+    label: '🌿 Green Hillside'
   },
   {
     url: 'https://images.unsplash.com/photo-1497250681960-ef046c08a56e?w=600&q=80',
@@ -314,6 +317,34 @@ const ECO_IMAGES = [
     url: 'https://images.unsplash.com/photo-1560493676-04071c5f467b?w=600&q=80',
     label: '🥬 Organic Garden'
   },
+  {
+    url: 'https://images.unsplash.com/photo-1524594154908-edd348ccff8f?w=600&q=80',
+    label: '🐝 Bee on Flower'
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1471194402529-8e0f5a675de6?w=600&q=80',
+    label: '🌱 Young Seedling'
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1509099863731-ef4bff19e808?w=600&q=80',
+    label: '⚡ Solar Farm'
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=600&q=80',
+    label: '💨 Wind Turbines'
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=600&q=80',
+    label: '♻️ Recycling Center'
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=600&q=80',
+    label: '🌳 Lonely Tree'
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1523978591478-c753949ff840?w=600&q=80',
+    label: '🚶 Nature Trail'
+  }
 ];
 
 // ═══════════════════════════════════════
@@ -321,9 +352,11 @@ const ECO_IMAGES = [
 // ═══════════════════════════════════════
 const moveSound = new Audio('https://cdn.pixabay.com/audio/2022/03/15/audio_115b9bce2b.mp3');
 const winSound  = new Audio('https://cdn.pixabay.com/audio/2022/10/25/audio_946b7f1b2c.mp3');
+
+// Prime audio on first user interaction
 document.body.addEventListener('click', () => {
-  moveSound.play().then(()=>moveSound.pause()).catch(()=>{});
-  winSound.play().then(()=>winSound.pause()).catch(()=>{});
+  moveSound.play().then(() => moveSound.pause()).catch(() => {});
+  winSound.play().then(() => winSound.pause()).catch(() => {});
 }, { once: true });
 
 // ═══════════════════════════════════════
@@ -336,25 +369,34 @@ let dragIdx = null, touchDragIdx = null;
 
 // ── HIGH SCORE (per grid size, stored in localStorage) ──────
 const HS_KEY = `ecoPuzzle_best_${size}`;
-function getBest() { return localStorage.getItem(HS_KEY) || null; }
-function saveBest(moves, secs) {
+
+function getBest() {
+  return localStorage.getItem(HS_KEY) || null;
+}
+
+function saveBest(movesCount, secs) {
   const cur = getBest();
-  // Store as "moves|secs" — lower moves wins; on tie, lower time wins
-  if (!cur) { localStorage.setItem(HS_KEY, `${moves}|${secs}`); return true; }
+  const value = `${movesCount}|${secs}`;
+  if (!cur) {
+    localStorage.setItem(HS_KEY, value);
+    return true;
+  }
   const [bm, bt] = cur.split('|').map(Number);
-  if (moves < bm || (moves === bm && secs < bt)) {
-    localStorage.setItem(HS_KEY, `${moves}|${secs}`);
+  if (movesCount < bm || (movesCount === bm && secs < bt)) {
+    localStorage.setItem(HS_KEY, value);
     return true;
   }
   return false;
 }
+
 function bestLabel() {
   const cur = getBest();
   if (!cur) return '—';
   const [bm, bt] = cur.split('|').map(Number);
-  const m = Math.floor(bt/60), s = bt%60;
+  const m = Math.floor(bt / 60), s = bt % 60;
   return `${bm} moves · ${m}:${s.toString().padStart(2,'0')}`;
 }
+
 function updateBestDisplay() {
   document.getElementById('s-best').textContent = bestLabel();
 }
@@ -395,8 +437,8 @@ function startTimer() {
 }
 
 function updateTimerDisplay() {
-  const m = Math.floor(Math.max(0,timeLeft)/60);
-  const s = Math.max(0,timeLeft) % 60;
+  const m = Math.floor(Math.max(0, timeLeft) / 60);
+  const s = Math.max(0, timeLeft) % 60;
   const el = document.getElementById('s-timer');
   el.textContent = `${m}:${s.toString().padStart(2,'0')}`;
   el.style.color = timeLeft <= 20 ? '#D85A30' : '';
@@ -409,7 +451,8 @@ function startGame() {
   moves = 0;
   document.getElementById('s-moves').textContent = '0';
   updateBestDisplay();
-  dragIdx = null; touchDragIdx = null;
+  dragIdx = null;
+  touchDragIdx = null;
 
   const pick = ECO_IMAGES[Math.floor(Math.random() * ECO_IMAGES.length)];
   currentImage = pick.url;
@@ -417,7 +460,8 @@ function startGame() {
   document.getElementById('eco-name').textContent = pick.label;
 
   tiles = [...Array(size * size).keys()];
-  // Fisher-Yates shuffle (ensure not already solved)
+
+  // Fisher–Yates shuffle; ensure not already solved
   do {
     for (let i = tiles.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -497,7 +541,7 @@ function swapTiles(a, b) {
   moves++;
   document.getElementById('s-moves').textContent = moves;
   moveSound.currentTime = 0;
-  moveSound.play().catch(()=>{});
+  moveSound.play().catch(() => {});
   draw();
   checkWin();
 }
@@ -505,7 +549,7 @@ function swapTiles(a, b) {
 function checkWin() {
   if (!tiles.every((v, i) => v === i)) return;
   clearInterval(interval);
-  winSound.play().catch(()=>{});
+  winSound.play().catch(() => {});
 
   const timeTaken = totalTime - timeLeft;
   const m = Math.floor(timeTaken / 60), s = timeTaken % 60;
@@ -541,7 +585,7 @@ function hidePopup() {
 }
 
 // ═══════════════════════════════════════
-//  BUTTONS
+//  BUTTONS / NAVIGATION
 // ═══════════════════════════════════════
 function playAgain() {
   hidePopup();
