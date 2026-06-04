@@ -255,6 +255,72 @@ def verify_challenge_photo(filepath, challenge_title):
     except Exception as e:
         return False, f"Verification error: {str(e)}"
 
+# -------------------- WELCOME EMAIL --------------------
+def send_welcome_email(to_email, user_name):
+    """Send welcome pamphlet image to newly registered user."""
+    try:
+        html_body = f"""
+        <div style="font-family: Arial, sans-serif; max-width: 650px; margin: auto;
+                    background: #f9fef5; padding: 24px; border-radius: 12px;">
+          <p style="font-size:17px; color:#1a3d2b; margin-bottom:8px;">
+            Hi <strong>{user_name}</strong> 👋
+          </p>
+          <p style="font-size:15px; color:#2d5a3d; margin-bottom:20px;">
+            Welcome to <strong>Zephyra</strong>! We're so excited to have you on board. 🌿<br/>
+            Here's a quick look at everything waiting for you:
+          </p>
+
+          <!-- Pamphlet shown inline -->
+          <img src="cid:zephyra_pamphlet"
+               alt="Zephyra Welcome Pamphlet"
+               style="width:100%; max-width:600px; border-radius:10px;
+                      display:block; margin: 0 auto 24px;" />
+
+          <div style="text-align:center; margin-top:20px;">
+            <a href="https://www.zephyra.com"
+               style="background:#2d7a45; color:white; padding:13px 32px;
+                      border-radius:50px; text-decoration:none;
+                      font-size:15px; font-weight:bold;">
+              Log In to Zephyra →
+            </a>
+          </div>
+
+          <p style="font-size:13px; color:#888; text-align:center; margin-top:28px;">
+            Need help?
+            <a href="mailto:support@zephyra.com" style="color:#2d7a45;">
+              support@zephyra.com
+            </a><br/>
+            © Zephyra — Learn • Play • Protect the Planet
+          </p>
+        </div>
+        """
+
+        msg = Message(
+            subject=f"Welcome to Zephyra, {user_name}! 🌱 Your eco-journey begins",
+            recipients=[to_email],
+            html=html_body,
+            body=f"Hi {user_name}, welcome to Zephyra! Visit https://www.zephyra.com to get started. 🌿"
+        )
+
+        # Attach pamphlet image inline using CID
+        # zephyra_pamphlet.jpg must be in the same folder as app.py
+        pamphlet_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "zephyra_pamphlet.jpg")
+        with open(pamphlet_path, "rb") as f:
+            msg.attach(
+                filename="Zephyra_Welcome_Pamphlet.jpg",
+                content_type="image/jpeg",
+                data=f.read(),
+                disposition="inline",
+                headers={"Content-ID": "<zephyra_pamphlet>"}
+            )
+
+        mail.send(msg)
+        print(f"✅ Welcome email sent to {to_email}")
+
+    except Exception as e:
+        # Never block registration if email fails — just log it
+        print(f"❌ Welcome email failed for {to_email}: {e}")
+
 # -------------------- HOME --------------------
 @app.route("/")
 def home():
@@ -355,6 +421,10 @@ def register():
             db.commit()
         except Exception as e:
             print("Register error:", e)
+
+        # ✅ Send welcome pamphlet email after successful registration
+        send_welcome_email(email, name)
+
         return redirect("/login")
     return render_template("register.html")
 
