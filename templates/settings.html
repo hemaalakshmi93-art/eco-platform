@@ -149,7 +149,32 @@ select{
 .music-bars.paused span{animation-play-state:paused;height:4px !important}
 @keyframes bar{from{transform:scaleY(0.3)}to{transform:scaleY(1)}}
 
-/* Demo Play Games button to test the stop-on-game feature */
+/* ── AUDIO UNLOCK BANNER ── */
+#audio-unlock-banner{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  background:rgba(76,175,80,0.10);border-bottom:1px solid rgba(76,175,80,0.2);
+  padding:.6rem 1.25rem;transition:all .3s;
+}
+#audio-unlock-banner.hidden{display:none}
+.unlock-text{font-size:0.78rem;color:var(--text-muted);display:flex;align-items:center;gap:6px}
+.unlock-btn{
+  font-size:0.78rem;font-family:var(--fn);font-weight:600;
+  background:var(--accent);color:#fff;border:none;border-radius:8px;
+  padding:5px 14px;cursor:pointer;white-space:nowrap;flex-shrink:0;
+  transition:opacity .15s;
+}
+.unlock-btn:hover{opacity:0.85}
+.audio-ready-badge{
+  display:none;align-items:center;gap:5px;font-size:0.72rem;
+  font-family:'DM Mono',monospace;color:var(--accent);font-weight:600;
+  padding:.45rem 1.25rem;background:rgba(76,175,80,0.08);
+  border-bottom:1px solid rgba(76,175,80,0.15);
+}
+.audio-ready-badge.show{display:flex}
+.badge-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 1.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+/* Demo Play Games button */
 .demo-bar{
   background:var(--surface2);border-top:1px solid var(--border);
   padding:.75rem 1.25rem;display:flex;align-items:center;justify-content:space-between;
@@ -175,6 +200,19 @@ select{
     </button>
     <span class="header-title" data-i18n="settings_title">Settings</span>
     <div class="header-spacer"></div>
+  </div>
+
+  <!-- ═══ AUDIO UNLOCK BANNER (shown until user taps Enable) ═══ -->
+  <div id="audio-unlock-banner">
+    <span class="unlock-text">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+      Tap to enable sound &amp; music
+    </span>
+    <button class="unlock-btn" id="unlock-audio-btn">🔊 Enable Audio</button>
+  </div>
+  <!-- shown after unlock succeeds -->
+  <div class="audio-ready-badge" id="audio-ready-badge">
+    <span class="badge-dot"></span> Audio ready — sound &amp; music will work
   </div>
 
   <!-- APPEARANCE -->
@@ -331,7 +369,7 @@ select{
     </span>
   </div>
 
-  <!-- DEMO BAR: simulate Play Games button from your main site -->
+  <!-- DEMO BAR -->
   <div class="demo-bar">
     <span class="demo-hint">↑ Test: music stops when game starts</span>
     <button class="play-game-btn" id="play-game-btn">🎮 Play Games</button>
@@ -356,94 +394,123 @@ const TR = {
 };
 
 /* ═══════════════════════════════════════════
-   WEB AUDIO ENGINE
-   No external files needed — all sounds are
-   generated programmatically via AudioContext.
+   AUDIO ENGINE
+   Key fix: AudioContext is only created AND
+   resumed inside a real user-gesture handler.
+   The unlock banner guarantees this happens
+   before any sound is attempted.
 ═══════════════════════════════════════════ */
 let audioCtx = null;
-let musicNodes = {};   // holds active oscillators/gain for background music
+let audioUnlocked = false;
+let musicNodes = {};
 let musicPlaying = false;
 
-async function getAudioCtx() {
-  if (!audioCtx) {
+/* ── UNLOCK ─────────────────────────────────
+   Call this once from a direct click/tap handler.
+   Creates the AudioContext inside the gesture
+   so browsers allow it immediately.
+─────────────────────────────────────────── */
+async function unlockAudio() {
+  if (audioUnlocked) return true;
+  try {
+    // Create context inside the user gesture
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    // Some browsers start suspended even on creation — resume explicitly
+    if (audioCtx.state === 'suspended') {
+      await audioCtx.resume();
+    }
+    // Play a silent buffer: this is the standard cross-browser unlock trick
+    const buf = audioCtx.createBuffer(1, 1, 22050);
+    const src = audioCtx.createBufferSource();
+    src.buffer = buf;
+    src.connect(audioCtx.destination);
+    src.start(0);
+
+    audioUnlocked = true;
+    showUnlockSuccess();
+    return true;
+  } catch(e) {
+    console.warn('Audio unlock failed:', e);
+    return false;
   }
-  if (audioCtx.state === 'suspended') {
-    await audioCtx.resume();
-  }
-  return audioCtx;
 }
 
-/* ── UI CLICK SOUND ── */
+function showUnlockSuccess() {
+  document.getElementById('audio-unlock-banner')?.classList.add('hidden');
+  document.getElementById('audio-ready-badge')?.classList.add('show');
+}
+
+/* Ensure AudioContext is running before playing anything */
+async function ensureAudio() {
+  if (!audioUnlocked) return false;
+  if (audioCtx && audioCtx.state === 'suspended') {
+    await audioCtx.resume();
+  }
+  return !!audioCtx;
+}
+
+/* ── CLICK SOUND ── */
 async function playClickSound() {
+  if (!S.sound || !await ensureAudio()) return;
   try {
-    const ctx = await getAudioCtx();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.frequency.setValueAtTime(880, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.08);
-    gain.gain.setValueAtTime(0.12, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 0.12);
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.08);
+    gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.12);
+    osc.start(audioCtx.currentTime);
+    osc.stop(audioCtx.currentTime + 0.12);
   } catch(e) {}
 }
 
-/* ── TOGGLE SOUND (slightly different pitch) ── */
+/* ── TOGGLE SOUND ── */
 async function playToggleSound(on) {
+  if (!S.sound || !await ensureAudio()) return;
   try {
-    const ctx = await getAudioCtx();
     const freq = on ? [440, 660] : [660, 440];
     [0, 0.08].forEach((t, i) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.frequency.setValueAtTime(freq[i], ctx.currentTime + t);
-      gain.gain.setValueAtTime(0.08, ctx.currentTime + t);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.1);
-      osc.start(ctx.currentTime + t);
-      osc.stop(ctx.currentTime + t + 0.1);
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.frequency.setValueAtTime(freq[i], audioCtx.currentTime + t);
+      gain.gain.setValueAtTime(0.08, audioCtx.currentTime + t);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + t + 0.1);
+      osc.start(audioCtx.currentTime + t);
+      osc.stop(audioCtx.currentTime + t + 0.1);
     });
   } catch(e) {}
 }
 
 /* ── NOTIFICATION CHIME ── */
 async function playNotifChime() {
+  if (!await ensureAudio()) return;
   try {
-    const ctx = await getAudioCtx();
     [523.25, 659.25, 783.99].forEach((freq, i) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
       osc.type = 'sine';
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.12);
-      gain.gain.setValueAtTime(0.15, ctx.currentTime + i * 0.12);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.12 + 0.4);
-      osc.start(ctx.currentTime + i * 0.12);
-      osc.stop(ctx.currentTime + i * 0.12 + 0.5);
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime + i * 0.12);
+      gain.gain.setValueAtTime(0.15, audioCtx.currentTime + i * 0.12);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + i * 0.12 + 0.4);
+      osc.start(audioCtx.currentTime + i * 0.12);
+      osc.stop(audioCtx.currentTime + i * 0.12 + 0.5);
     });
   } catch(e) {}
 }
 
 /* ═══════════════════════════════════════════
    BACKGROUND MUSIC ENGINE
-   Three distinct generative music styles
 ═══════════════════════════════════════════ */
-
 function stopMusic() {
   if (!musicPlaying) return;
   try {
     if (musicNodes.masterGain) {
       musicNodes.masterGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.3);
       setTimeout(() => {
-        try {
-          Object.values(musicNodes).forEach(n => {
-            if (n && n.stop) n.stop();
-            if (n && n.disconnect) n.disconnect();
-          });
-        } catch(e) {}
+        try { Object.values(musicNodes).forEach(n => { if(n&&n.stop)n.stop(); if(n&&n.disconnect)n.disconnect(); }); } catch(e) {}
         musicNodes = {};
       }, 1000);
     }
@@ -453,125 +520,94 @@ function stopMusic() {
 
 async function startMusic(theme) {
   stopMusic();
+  if (!await ensureAudio()) { showToast('🔇 Enable audio first — tap the banner above'); return; }
   try {
-    const ctx = await getAudioCtx();
-    const master = ctx.createGain();
-    master.gain.setValueAtTime(0, ctx.currentTime);
-    master.gain.setTargetAtTime(0.25, ctx.currentTime, 0.5);
-    master.connect(ctx.destination);
+    const master = audioCtx.createGain();
+    master.gain.setValueAtTime(0, audioCtx.currentTime);
+    master.gain.setTargetAtTime(0.25, audioCtx.currentTime, 0.5);
+    master.connect(audioCtx.destination);
     musicNodes.masterGain = master;
-
-    if (theme === 'lofi') startLofi(ctx, master);
-    else if (theme === 'ambient') startAmbient(ctx, master);
-    else if (theme === 'upbeat') startUpbeat(ctx, master);
-
+    if (theme === 'lofi') startLofi(master);
+    else if (theme === 'ambient') startAmbient(master);
+    else startUpbeat(master);
     musicPlaying = true;
-  } catch(e) {
-    console.warn('Music start error:', e);
-  }
+  } catch(e) { console.warn('Music start error:', e); }
 }
 
-function startLofi(ctx, master) {
-  const chords = [
-    [261.63, 329.63, 392.00],
-    [220.00, 277.18, 329.63],
-    [196.00, 246.94, 293.66],
-    [174.61, 220.00, 261.63],
-  ];
+function startLofi(master) {
+  const chords = [[261.63,329.63,392.00],[220.00,277.18,329.63],[196.00,246.94,293.66],[174.61,220.00,261.63]];
   let beat = 0;
-
   function playChord() {
     if (!musicPlaying) return;
-    const notes = chords[beat % chords.length];
-    notes.forEach(freq => {
-      const osc = ctx.createOscillator();
-      const g = ctx.createGain();
+    chords[beat % chords.length].forEach(freq => {
+      const osc = audioCtx.createOscillator(), g = audioCtx.createGain();
       osc.type = 'triangle';
-      osc.frequency.setValueAtTime(freq * 0.5, ctx.currentTime);
-      g.gain.setValueAtTime(0, ctx.currentTime);
-      g.gain.setTargetAtTime(0.04, ctx.currentTime, 0.2);
-      g.gain.setTargetAtTime(0.001, ctx.currentTime + 1.5, 0.5);
+      osc.frequency.setValueAtTime(freq * 0.5, audioCtx.currentTime);
+      g.gain.setValueAtTime(0, audioCtx.currentTime);
+      g.gain.setTargetAtTime(0.04, audioCtx.currentTime, 0.2);
+      g.gain.setTargetAtTime(0.001, audioCtx.currentTime + 1.5, 0.5);
       osc.connect(g); g.connect(master);
-      osc.start(ctx.currentTime);
-      osc.stop(ctx.currentTime + 2.5);
+      osc.start(audioCtx.currentTime); osc.stop(audioCtx.currentTime + 2.5);
     });
-
-    const bass = ctx.createOscillator();
-    const bg = ctx.createGain();
+    const bass = audioCtx.createOscillator(), bg = audioCtx.createGain();
     bass.type = 'sine';
-    bass.frequency.setValueAtTime(notes[0] * 0.25, ctx.currentTime);
-    bg.gain.setValueAtTime(0.07, ctx.currentTime);
-    bg.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.8);
+    bass.frequency.setValueAtTime(chords[beat % chords.length][0] * 0.25, audioCtx.currentTime);
+    bg.gain.setValueAtTime(0.07, audioCtx.currentTime);
+    bg.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.8);
     bass.connect(bg); bg.connect(master);
-    bass.start(ctx.currentTime); bass.stop(ctx.currentTime + 2);
-
+    bass.start(audioCtx.currentTime); bass.stop(audioCtx.currentTime + 2);
     beat++;
     musicNodes['lofi_timer'] = setTimeout(playChord, 2000);
   }
-
   playChord();
 }
 
-function startAmbient(ctx, master) {
-  const drones = [110, 165, 220, 277.18];
-  const oscs = [];
+function startAmbient(master) {
+  const drones = [110,165,220,277.18], oscs = [];
   drones.forEach((freq, i) => {
-    const osc = ctx.createOscillator();
-    const lfo = ctx.createOscillator();
-    const lfoGain = ctx.createGain();
-    const g = ctx.createGain();
-
+    const osc = audioCtx.createOscillator(), lfo = audioCtx.createOscillator();
+    const lfoGain = audioCtx.createGain(), g = audioCtx.createGain();
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
     lfo.type = 'sine';
-    lfo.frequency.setValueAtTime(0.05 + i * 0.02, ctx.currentTime);
-    lfoGain.gain.setValueAtTime(freq * 0.005, ctx.currentTime);
-
-    lfo.connect(lfoGain);
-    lfoGain.connect(osc.frequency);
-    g.gain.setValueAtTime(0.03, ctx.currentTime);
-
+    lfo.frequency.setValueAtTime(0.05 + i * 0.02, audioCtx.currentTime);
+    lfoGain.gain.setValueAtTime(freq * 0.005, audioCtx.currentTime);
+    lfo.connect(lfoGain); lfoGain.connect(osc.frequency);
+    g.gain.setValueAtTime(0.03, audioCtx.currentTime);
     osc.connect(g); g.connect(master);
-    lfo.start(ctx.currentTime);
-    osc.start(ctx.currentTime);
+    lfo.start(audioCtx.currentTime); osc.start(audioCtx.currentTime);
     oscs.push(osc, lfo);
   });
-  musicNodes['ambient_oscs'] = { stop: () => oscs.forEach(o => { try { o.stop(); } catch(e){} }), disconnect: () => {} };
+  musicNodes['ambient_oscs'] = { stop: () => oscs.forEach(o=>{try{o.stop();}catch(e){}}), disconnect: ()=>{} };
 }
 
-function startUpbeat(ctx, master) {
-  const scale = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25];
-  const pattern = [0, 2, 4, 7, 4, 2, 0, 5, 4, 2, 4, 7];
+function startUpbeat(master) {
+  const scale = [261.63,293.66,329.63,349.23,392.00,440.00,493.88,523.25];
+  const pattern = [0,2,4,7,4,2,0,5,4,2,4,7];
   let step = 0;
-
   function playNote() {
     if (!musicPlaying) return;
     const freq = scale[pattern[step % pattern.length]];
-    const osc = ctx.createOscillator();
-    const g = ctx.createGain();
+    const osc = audioCtx.createOscillator(), g = audioCtx.createGain();
     osc.type = 'square';
-    osc.frequency.setValueAtTime(freq, ctx.currentTime);
-    g.gain.setValueAtTime(0.04, ctx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.18);
+    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+    g.gain.setValueAtTime(0.04, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.18);
     osc.connect(g); g.connect(master);
-    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.2);
-
+    osc.start(audioCtx.currentTime); osc.stop(audioCtx.currentTime + 0.2);
     if (step % 4 === 0) {
-      const kick = ctx.createOscillator();
-      const kg = ctx.createGain();
+      const kick = audioCtx.createOscillator(), kg = audioCtx.createGain();
       kick.type = 'sine';
-      kick.frequency.setValueAtTime(150, ctx.currentTime);
-      kick.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + 0.15);
-      kg.gain.setValueAtTime(0.1, ctx.currentTime);
-      kg.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+      kick.frequency.setValueAtTime(150, audioCtx.currentTime);
+      kick.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.15);
+      kg.gain.setValueAtTime(0.1, audioCtx.currentTime);
+      kg.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
       kick.connect(kg); kg.connect(master);
-      kick.start(ctx.currentTime); kick.stop(ctx.currentTime + 0.2);
+      kick.start(audioCtx.currentTime); kick.stop(audioCtx.currentTime + 0.2);
     }
-
     step++;
     musicNodes['upbeat_timer'] = setTimeout(playNote, 220);
   }
-
   playNote();
 }
 
@@ -583,15 +619,13 @@ const DEFAULTS = {dark:false,accent:'#4CAF50',fontSize:'medium',compact:false,so
 let S = {...DEFAULTS};
 
 function loadState() {
-  try { const v = localStorage.getItem(STORAGE_KEY); if (v) S = {...DEFAULTS,...JSON.parse(v)}; }
-  catch(e) { S = {...DEFAULTS}; }
+  try { const v = localStorage.getItem(STORAGE_KEY); if(v) S={...DEFAULTS,...JSON.parse(v)}; }
+  catch(e) { S={...DEFAULTS}; }
 }
-
 function saveState() {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(S)); } catch(e) {}
   showSaved();
 }
-
 function tr(k) { return (TR[S.lang]||TR.en)[k]||k; }
 
 /* ═══════════════════════════════════════════
@@ -604,9 +638,8 @@ function showToast(msg, dur=2400) {
   el.className = 'toast'; el.textContent = msg;
   c.appendChild(el);
   requestAnimationFrame(() => el.classList.add('show'));
-  setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 300); }, dur);
+  setTimeout(() => { el.classList.remove('show'); setTimeout(()=>el.remove(),300); }, dur);
 }
-
 function showSaved() {
   const tag = document.getElementById('saved-tag');
   if (!tag) return;
@@ -619,109 +652,86 @@ function showSaved() {
 ═══════════════════════════════════════════ */
 function applyTheme() {
   document.documentElement.setAttribute('data-theme', S.dark ? 'dark' : 'light');
-  const t = document.getElementById('tog-dark');
-  const s = document.getElementById('theme-sub');
-  if (t) t.checked = S.dark;
-  if (s) s.textContent = S.dark ? tr('theme_dark') : tr('theme_light');
+  const t=document.getElementById('tog-dark'), s=document.getElementById('theme-sub');
+  if(t) t.checked=S.dark;
+  if(s) s.textContent=S.dark?tr('theme_dark'):tr('theme_light');
 }
 function applyAccent() {
   document.documentElement.style.setProperty('--accent', S.accent);
-  document.querySelectorAll('.swatch').forEach(sw => sw.classList.toggle('active', sw.dataset.color === S.accent));
+  document.querySelectorAll('.swatch').forEach(sw=>sw.classList.toggle('active',sw.dataset.color===S.accent));
 }
-const FONT_SIZE_MAP = {small:'14px',medium:'15px',large:'17px'};
+const FONT_SIZE_MAP={small:'14px',medium:'15px',large:'17px'};
 function applyFontSize() {
-  document.documentElement.style.setProperty('--fs', FONT_SIZE_MAP[S.fontSize]||'15px');
-  document.querySelectorAll('.font-btn').forEach(b => b.classList.toggle('active', b.dataset.size === S.fontSize));
+  document.documentElement.style.setProperty('--fs',FONT_SIZE_MAP[S.fontSize]||'15px');
+  document.querySelectorAll('.font-btn').forEach(b=>b.classList.toggle('active',b.dataset.size===S.fontSize));
 }
 function applyCompact() {
-  const t = document.getElementById('tog-compact');
-  if (t) t.checked = S.compact;
-  document.querySelectorAll('.row').forEach(r => {
-    r.style.paddingTop = S.compact ? '.35rem' : '.7rem';
-    r.style.paddingBottom = S.compact ? '.35rem' : '.7rem';
+  const t=document.getElementById('tog-compact'); if(t) t.checked=S.compact;
+  document.querySelectorAll('.row').forEach(r=>{
+    r.style.paddingTop=S.compact?'.35rem':'.7rem';
+    r.style.paddingBottom=S.compact?'.35rem':'.7rem';
   });
 }
 function applySoundFX() {
-  const t = document.getElementById('tog-sound');
-  if (t) t.checked = S.sound;
+  const t=document.getElementById('tog-sound'); if(t) t.checked=S.sound;
 }
 function applyMusicState() {
-  const t = document.getElementById('tog-music');
-  const s = document.getElementById('sel-theme');
-  const bars = document.getElementById('music-bars');
-  if (t) t.checked = S.music;
-  if (s) s.value = S.musicTheme;
-  if (S.music) {
-    startMusic(S.musicTheme);
-    if (bars) bars.classList.remove('paused');
-  } else {
-    stopMusic();
-    if (bars) bars.classList.add('paused');
-  }
+  const t=document.getElementById('tog-music'), s=document.getElementById('sel-theme');
+  const bars=document.getElementById('music-bars');
+  if(t) t.checked=S.music; if(s) s.value=S.musicTheme;
+  // Don't auto-start music on load — wait for explicit user toggle
+  if(!S.music && bars) bars.classList.add('paused');
 }
 
-/* PUBLIC function — call this from your game page! */
+/* PUBLIC — call from game page */
 window.stopBackgroundMusic = function() {
   S.music = false;
-  const t = document.getElementById('tog-music');
-  if (t) t.checked = false;
-  const bars = document.getElementById('music-bars');
-  if (bars) bars.classList.add('paused');
-  stopMusic();
-  saveState();
+  const t=document.getElementById('tog-music'); if(t) t.checked=false;
+  document.getElementById('music-bars')?.classList.add('paused');
+  stopMusic(); saveState();
   showToast('🎮 Music paused for game');
 };
 
 function applyLanguage() {
-  const s = document.getElementById('sel-lang');
-  if (s) s.value = S.lang;
-  document.querySelectorAll('[data-i18n]').forEach(el => {
-    const k = el.getAttribute('data-i18n');
-    if (!k) return;
-    if (el.tagName==='INPUT'||el.tagName==='TEXTAREA') el.placeholder = tr(k);
-    else el.textContent = tr(k);
+  const s=document.getElementById('sel-lang'); if(s) s.value=S.lang;
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const k=el.getAttribute('data-i18n'); if(!k) return;
+    if(el.tagName==='INPUT'||el.tagName==='TEXTAREA') el.placeholder=tr(k);
+    else el.textContent=tr(k);
   });
-  const ts = document.getElementById('theme-sub');
-  if (ts) ts.textContent = S.dark ? tr('theme_dark') : tr('theme_light');
+  const ts=document.getElementById('theme-sub');
+  if(ts) ts.textContent=S.dark?tr('theme_dark'):tr('theme_light');
 }
 function formatDateExample(fmt) {
-  const d = {day:'05',month:'01',year:'2026'};
-  if (fmt==='dmy') return `${d.day}/${d.month}/${d.year}`;
-  if (fmt==='mdy') return `${d.month}/${d.day}/${d.year}`;
+  const d={day:'05',month:'01',year:'2026'};
+  if(fmt==='dmy') return `${d.day}/${d.month}/${d.year}`;
+  if(fmt==='mdy') return `${d.month}/${d.day}/${d.year}`;
   return `${d.year}-${d.month}-${d.day}`;
 }
 function applyDateFormat() {
-  const s = document.getElementById('sel-date');
-  const p = document.getElementById('date-preview');
-  if (s) s.value = S.date;
-  if (p) p.textContent = formatDateExample(S.date);
+  const s=document.getElementById('sel-date'), p=document.getElementById('date-preview');
+  if(s) s.value=S.date; if(p) p.textContent=formatDateExample(S.date);
 }
 function startClock() {
-  const live = document.getElementById('live-time');
-  const st = document.getElementById('sel-time');
-  if (st) st.value = S.timeFormat;
+  const live=document.getElementById('live-time'), st=document.getElementById('sel-time');
+  if(st) st.value=S.timeFormat;
   function tick() {
-    if (!live) return;
-    const now = new Date();
-    let h = now.getHours(), m = String(now.getMinutes()).padStart(2,'0'), txt;
-    if (S.timeFormat==='12') {
-      const ampm = h>=12?'PM':'AM'; h=h%12||12;
-      txt = `${String(h).padStart(2,'0')}:${m} ${ampm}`;
-    } else { txt = `${String(h).padStart(2,'0')}:${m}`; }
-    live.textContent = txt;
+    if(!live) return;
+    const now=new Date(); let h=now.getHours(), m=String(now.getMinutes()).padStart(2,'0'), txt;
+    if(S.timeFormat==='12') { const ampm=h>=12?'PM':'AM'; h=h%12||12; txt=`${String(h).padStart(2,'0')}:${m} ${ampm}`; }
+    else { txt=`${String(h).padStart(2,'0')}:${m}`; }
+    live.textContent=txt;
   }
-  tick(); setInterval(tick, 1000);
+  tick(); setInterval(tick,1000);
 }
 function applyNotif() {
-  const tn = document.getElementById('tog-notif');
-  const te = document.getElementById('tog-email');
-  const chip = document.getElementById('perm-chip');
-  if (tn) tn.checked = S.notif;
-  if (te) te.checked = S.email;
-  if (!chip || !('Notification' in window)) { if (chip){chip.textContent=tr('perm_default');chip.className='perm-chip default';} return; }
-  const p = Notification.permission;
-  if (p==='granted'){chip.textContent=tr('perm_granted');chip.className='perm-chip granted';}
-  else if (p==='denied'){chip.textContent=tr('perm_denied');chip.className='perm-chip denied';}
+  const tn=document.getElementById('tog-notif'), te=document.getElementById('tog-email');
+  const chip=document.getElementById('perm-chip');
+  if(tn) tn.checked=S.notif; if(te) te.checked=S.email;
+  if(!chip||!('Notification' in window)) { if(chip){chip.textContent=tr('perm_default');chip.className='perm-chip default';} return; }
+  const p=Notification.permission;
+  if(p==='granted'){chip.textContent=tr('perm_granted');chip.className='perm-chip granted';}
+  else if(p==='denied'){chip.textContent=tr('perm_denied');chip.className='perm-chip denied';}
   else {chip.textContent=tr('perm_default');chip.className='perm-chip default';}
 }
 
@@ -731,21 +741,40 @@ function applyNotif() {
 document.addEventListener('DOMContentLoaded', () => {
   loadState();
   applyTheme(); applyAccent(); applyFontSize(); applyCompact();
-  applySoundFX(); applyLanguage(); applyDateFormat(); startClock(); applyNotif();
-  // Don't auto-play music on load — browser blocks it without user gesture
+  applySoundFX(); applyMusicState(); applyLanguage(); applyDateFormat();
+  startClock(); applyNotif();
+
+  /* ── AUDIO UNLOCK BUTTON ────────────────────
+     This is the CRITICAL fix. The AudioContext
+     is created here, inside a real user gesture,
+     so browsers cannot block it.
+  ─────────────────────────────────────────── */
+  document.getElementById('unlock-audio-btn')?.addEventListener('click', async () => {
+    const ok = await unlockAudio();
+    if (ok) {
+      showToast('🔊 Audio enabled! Toggle sound effects & music below.');
+      // If music was saved as ON, start it now that we have permission
+      if (S.music) {
+        await startMusic(S.musicTheme);
+        document.getElementById('music-bars')?.classList.remove('paused');
+      }
+    } else {
+      showToast('⚠️ Could not enable audio — check browser settings');
+    }
+  });
 
   /* Dark mode */
   document.getElementById('tog-dark')?.addEventListener('change', e => {
-    if (S.sound) playToggleSound(e.target.checked);
-    S.dark = e.target.checked; applyTheme(); saveState();
-    showToast(S.dark ? '🌙 Dark mode on' : '☀️ Light mode on');
+    playToggleSound(e.target.checked);
+    S.dark=e.target.checked; applyTheme(); saveState();
+    showToast(S.dark?'🌙 Dark mode on':'☀️ Light mode on');
   });
 
   /* Accent swatches */
   document.querySelectorAll('.swatch').forEach(sw => {
     sw.addEventListener('click', () => {
-      if (S.sound) playClickSound();
-      S.accent = sw.dataset.color; applyAccent(); saveState();
+      playClickSound();
+      S.accent=sw.dataset.color; applyAccent(); saveState();
       showToast('🎨 Accent updated');
     });
   });
@@ -753,33 +782,37 @@ document.addEventListener('DOMContentLoaded', () => {
   /* Font size */
   document.querySelectorAll('.font-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      if (S.sound) playClickSound();
-      S.fontSize = btn.dataset.size; applyFontSize(); saveState();
-      showToast('Font: ' + S.fontSize);
+      playClickSound();
+      S.fontSize=btn.dataset.size; applyFontSize(); saveState();
+      showToast('Font: '+S.fontSize);
     });
   });
 
   /* Compact */
   document.getElementById('tog-compact')?.addEventListener('change', e => {
-    if (S.sound) playToggleSound(e.target.checked);
-    S.compact = e.target.checked; applyCompact(); saveState();
-    showToast(S.compact ? 'Compact on' : 'Compact off');
+    playToggleSound(e.target.checked);
+    S.compact=e.target.checked; applyCompact(); saveState();
+    showToast(S.compact?'Compact on':'Compact off');
   });
 
-  /* Sound effects */
-  document.getElementById('tog-sound')?.addEventListener('change', e => {
+  /* Sound effects toggle */
+  document.getElementById('tog-sound')?.addEventListener('change', async e => {
     S.sound = e.target.checked;
-    if (S.sound) playToggleSound(true);  // demo the sound turning on
+    // Unlock audio on this gesture if not already done
+    if (!audioUnlocked) await unlockAudio();
+    if (S.sound) playToggleSound(true);
     saveState();
-    showToast(S.sound ? '🔊 Sound on' : '🔇 Sound off');
+    showToast(S.sound?'🔊 Sound on':'🔇 Sound off');
   });
 
   /* Background music toggle */
-  document.getElementById('tog-music')?.addEventListener('change', e => {
-    S.music = e.target.checked;
-    const bars = document.getElementById('music-bars');
+  document.getElementById('tog-music')?.addEventListener('change', async e => {
+    // Unlock audio on this gesture if not already done
+    if (!audioUnlocked) await unlockAudio();
+    S.music=e.target.checked;
+    const bars=document.getElementById('music-bars');
     if (S.music) {
-      startMusic(S.musicTheme);
+      await startMusic(S.musicTheme);
       if (bars) bars.classList.remove('paused');
       showToast('🎵 Music on');
     } else {
@@ -792,64 +825,63 @@ document.addEventListener('DOMContentLoaded', () => {
 
   /* Music theme select */
   document.getElementById('sel-theme')?.addEventListener('change', e => {
-    if (S.sound) playClickSound();
-    S.musicTheme = e.target.value;
+    playClickSound();
+    S.musicTheme=e.target.value;
     if (S.music) startMusic(S.musicTheme);
     saveState();
-    if (S.music) showToast('🎵 Theme: ' + e.target.value);
+    if (S.music) showToast('🎵 Theme: '+e.target.value);
   });
 
   /* Language */
   document.getElementById('sel-lang')?.addEventListener('change', e => {
-    if (S.sound) playClickSound();
-    S.lang = e.target.value; applyLanguage(); saveState();
+    playClickSound();
+    S.lang=e.target.value; applyLanguage(); saveState();
     showToast('🌐 Language changed');
   });
 
   /* Date format */
   document.getElementById('sel-date')?.addEventListener('change', e => {
-    if (S.sound) playClickSound();
-    S.date = e.target.value; applyDateFormat(); saveState();
+    playClickSound(); S.date=e.target.value; applyDateFormat(); saveState();
   });
 
   /* Time format */
   document.getElementById('sel-time')?.addEventListener('change', e => {
-    if (S.sound) playClickSound();
-    S.timeFormat = e.target.value; saveState();
+    playClickSound(); S.timeFormat=e.target.value; saveState();
   });
 
   /* Test notification */
   document.getElementById('test-notif-btn')?.addEventListener('click', async () => {
-    if (S.sound) playNotifChime();
+    if (!audioUnlocked) await unlockAudio();
+    playNotifChime();
     if (!('Notification' in window)) { showToast('Notifications not supported'); return; }
-    if (Notification.permission === 'default') { await Notification.requestPermission(); applyNotif(); }
-    if (Notification.permission === 'granted') {
-      new Notification('Settings', {body:'This is a test notification.'});
+    if (Notification.permission==='default') { await Notification.requestPermission(); applyNotif(); }
+    if (Notification.permission==='granted') {
+      new Notification('Settings',{body:'This is a test notification.'});
       showToast('🔔 Test notification sent!');
     } else { showToast('Notifications are blocked'); }
   });
 
   /* Email digest */
   document.getElementById('tog-email')?.addEventListener('change', e => {
-    if (S.sound) playToggleSound(e.target.checked);
-    S.email = e.target.checked; saveState();
-    showToast(S.email ? '📧 Email digest on' : 'Email digest off');
+    playToggleSound(e.target.checked);
+    S.email=e.target.checked; saveState();
+    showToast(S.email?'📧 Email digest on':'Email digest off');
   });
 
   /* Notif toggle */
   document.getElementById('tog-notif')?.addEventListener('change', e => {
-    if (S.sound) playToggleSound(e.target.checked);
-    S.notif = e.target.checked; saveState();
+    playToggleSound(e.target.checked);
+    S.notif=e.target.checked; saveState();
   });
 
   /* Reset */
   document.getElementById('reset-btn')?.addEventListener('click', () => {
-    if (S.sound) playClickSound();
-    S = {...DEFAULTS}; saveState();
+    playClickSound();
+    S={...DEFAULTS}; saveState();
     applyTheme(); applyAccent(); applyFontSize(); applyCompact();
     applySoundFX(); stopMusic();
     document.getElementById('music-bars')?.classList.add('paused');
-    document.getElementById('tog-music').checked = false;
+    document.getElementById('tog-music').checked=false;
     applyLanguage(); applyDateFormat(); applyNotif();
     showToast(tr('reset_done'));
   });
@@ -857,17 +889,10 @@ document.addEventListener('DOMContentLoaded', () => {
   /* Back */
   document.getElementById('back-btn')?.addEventListener('click', () => { history.back(); });
 
-  /* ═══════════════════════════════════════════
-     PLAY GAMES BUTTON — stops music, navigates
-     In your real site, just call:
-       window.stopBackgroundMusic()
-     before loading the game page.
-  ═══════════════════════════════════════════ */
+  /* Play Games button */
   document.getElementById('play-game-btn')?.addEventListener('click', () => {
     window.stopBackgroundMusic();
-    // In your real site, replace below with your actual game navigation:
     showToast('🎮 Loading game... music stopped!');
-    // e.g.: window.location.href = '/game';
   });
 });
 </script>
