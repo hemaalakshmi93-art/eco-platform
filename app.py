@@ -3,7 +3,6 @@ import os
 from datetime import date, timedelta
 from flask import Flask, render_template, request, redirect, session, url_for, flash, jsonify
 import mysql.connector
-from google import genai
 import base64, json
 import requests
 from flask_mail import Mail, Message
@@ -19,7 +18,7 @@ app.config['MAIL_PASSWORD']       = os.environ.get("MAIL_PASSWORD")
 app.config['MAIL_DEFAULT_SENDER'] = 'hemaalakshmi93@gmail.com'
 
 mail = Mail(app)
-PLATFORM_URL = "http://127.0.0.1:5000"
+PLATFORM_URL = os.environ.get("PLATFORM_URL")
 
 # -------------------- CONFIG --------------------
 UPLOAD_FOLDER = "static/uploads"
@@ -48,7 +47,7 @@ def get_cursor():
     except Exception:
         db = mysql.connector.connect(
             host="localhost", user="root",
-            password="Hemaa@2612", database="eco_platform"
+            password=os.environ.get("DB_PASSWORD"), database="eco_platform"
         )
     cursor = db.cursor(buffered=True)
     return cursor
