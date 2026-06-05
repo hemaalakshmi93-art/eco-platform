@@ -260,40 +260,56 @@ def send_welcome_email(to_email, user_name):
     """Send welcome pamphlet image to newly registered user."""
     try:
         html_body = f"""
-        <div style="font-family: Arial, sans-serif; max-width: 650px; margin: auto;
-                    background: #f9fef5; padding: 24px; border-radius: 12px;">
-          <p style="font-size:17px; color:#1a3d2b; margin-bottom:8px;">
-            Hi <strong>{user_name}</strong> 👋
-          </p>
-          <p style="font-size:15px; color:#2d5a3d; margin-bottom:20px;">
-            Welcome to <strong>Zephyra</strong>! We're so excited to have you on board. 🌿<br/>
-            Here's a quick look at everything waiting for you:
-          </p>
+<div style="font-family: Arial, sans-serif; max-width: 650px; margin: auto;
+            background: #f9fef5; padding: 24px; border-radius: 12px;">
 
-          <!-- Pamphlet shown inline -->
-          <img src="cid:zephyra_pamphlet"
-               alt="Zephyra Welcome Pamphlet"
-               style="width:100%; max-width:600px; border-radius:10px;
-                      display:block; margin: 0 auto 24px;" />
+  <!-- YOUR MESSAGE HERE -->
+  <h2 style="color: #2d7a45;">Welcome to Zephyra, {user_name}! 🌱</h2>
 
-          <div style="text-align:center; margin-top:20px;">
-            <a href="https://www.zephyra.com"
-               style="background:#2d7a45; color:white; padding:13px 32px;
-                      border-radius:50px; text-decoration:none;
-                      font-size:15px; font-weight:bold;">
-              Log In to Zephyra →
-            </a>
-          </div>
+  <p style="font-size:16px; color:#1a3d2b;">
+    We're thrilled to have you join our eco-community! 🌍
+  </p>
 
-          <p style="font-size:13px; color:#888; text-align:center; margin-top:28px;">
-            Need help?
-            <a href="mailto:support@zephyra.com" style="color:#2d7a45;">
-              support@zephyra.com
-            </a><br/>
-            © Zephyra — Learn • Play • Protect the Planet
-          </p>
-        </div>
-        """
+  <p style="font-size:15px; color:#2d5a3d;">
+    At <strong>Zephyra</strong>, you can:
+  </p>
+
+  <ul style="color:#2d5a3d; font-size:15px; line-height:1.8;">
+    <li>🎮 Play fun eco-games like Turtle Rescue & Eco Catch</li>
+    <li>🏆 Complete green challenges and earn points</li>
+    <li>📊 Track your progress on the leaderboard</li>
+    <li>🌳 Build eco-friendly habits every day</li>
+  </ul>
+
+  <p style="font-size:15px; color:#2d5a3d; margin-top:16px;">
+    Check out your welcome guide below and get started today! 👇
+  </p>
+
+  <!-- Pamphlet shown inline -->
+  <img src="cid:zephyra_pamphlet"
+       alt="Zephyra Welcome Pamphlet"
+       style="width:100%; max-width:600px; border-radius:10px;
+              display:block; margin: 16px auto;" />
+
+  <!-- Button -->
+  <div style="text-align:center; margin-top:24px;">
+    <a href="https://www.zephyra.com"
+       style="background:#2d7a45; color:white; padding:13px 32px;
+              border-radius:50px; text-decoration:none;
+              font-size:15px; font-weight:bold;">
+      Start Playing Now →
+    </a>
+  </div>
+
+  <!-- Footer -->
+  <p style="font-size:13px; color:#888; text-align:center; margin-top:28px;">
+    Questions? <a href="mailto:zephyrarespawn@gmail.com" style="color:#2d7a45;">
+    zephyrarespawn@gmail.com</a><br/>
+    © Zephyra — Learn • Play • Protect the Planet 🌿
+  </p>
+
+</div>
+"""
 
         msg = Message(
             subject=f"Welcome to Zephyra, {user_name}! 🌱 Your eco-journey begins",
