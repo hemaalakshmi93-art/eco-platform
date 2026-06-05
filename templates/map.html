@@ -193,7 +193,7 @@ h2{font-size:clamp(22px,5vw,34px);letter-spacing:1px;text-shadow:0 0 30px rgba(0
 <div class="grid"></div>
 
 <div class="page">
-  <a class="back-btn" id="backBtn" href="/dashboard.html" title="Back">&#8249;</a>
+  <a class="back-btn" id="backBtn" href="#" title="Back">&#8249;</a>
 
   <div class="header">
     <h2>🌍 Eco Mission Map</h2>
@@ -346,7 +346,16 @@ const ZONES = {
 
 function setupBackBtn(){
   const backBtn = document.getElementById('backBtn');
-  backBtn.href = '/dashboard.html';
+  backBtn.href = '#';
+  backBtn.onclick = function(){
+    const backTarget = params.get('return');
+    if (backTarget) {
+      window.location.href = decodeURIComponent(backTarget);
+    } else {
+      window.location.href = '/dashboard';
+    }
+    return false;
+  };
 }
 setupBackBtn();
 
