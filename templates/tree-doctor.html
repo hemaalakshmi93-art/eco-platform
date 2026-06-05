@@ -37,7 +37,6 @@
     touch-action: none;
   }
 
-  /* Scanline overlay */
   body::after {
     content: '';
     position: fixed;
@@ -59,7 +58,6 @@
     z-index: 1;
   }
 
-  /* ── HUD ── */
   #hud {
     position: absolute;
     top: 14px;
@@ -101,7 +99,6 @@
   #fire-val { color: var(--fire); text-shadow: 0 0 12px var(--fire-glow) !important; }
   #safe-val { color: var(--safe); text-shadow: 0 0 12px var(--safe-glow) !important; }
 
-  /* ── DANGER BAR ── */
   #danger-bar-wrap {
     position: absolute;
     top: 14px;
@@ -137,7 +134,6 @@
     box-shadow: 0 0 8px var(--fire-glow);
   }
 
-  /* ── BACK BUTTON ── */
   #back-btn {
     position: absolute;
     bottom: 20px;
@@ -145,16 +141,17 @@
     z-index: 20;
     background: rgba(5,20,12,0.85);
     border: 1px solid rgba(0,232,122,0.25);
-    border-radius: 10px;
-    padding: 10px 18px;
+    border-radius: 12px;
+    width: 52px;
+    height: 52px;
     color: var(--alive);
     font-family: 'Share Tech Mono', monospace;
-    font-size: 13px;
-    letter-spacing: 2px;
+    font-size: 30px;
+    line-height: 1;
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 8px;
+    justify-content: center;
     transition: all 0.2s;
     text-decoration: none;
     backdrop-filter: blur(8px);
@@ -165,9 +162,7 @@
     box-shadow: 0 0 16px rgba(0,232,122,0.2);
     transform: translateY(-1px);
   }
-  #back-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
 
-  /* ── INSTRUCTION PILL ── */
   #tip {
     position: absolute;
     bottom: 20px;
@@ -184,7 +179,6 @@
     backdrop-filter: blur(6px);
   }
 
-  /* ── NODES ── */
   .node {
     position: absolute;
     transform: translate(-50%, -50%);
@@ -197,7 +191,6 @@
 
   .node svg { display: block; }
 
-  /* ── OVERLAY ── */
   #overlay {
     position: absolute;
     inset: 0;
@@ -267,7 +260,6 @@
 
   #overlay-row { display: flex; flex-wrap: wrap; justify-content: center; }
 
-  /* stat bar in overlay */
   #stats-row {
     display: flex;
     gap: 28px;
@@ -282,15 +274,12 @@
   }
   .stat-label { font-size: 9px; letter-spacing: 3px; color: rgba(0,232,122,0.4); text-transform: uppercase; }
 
-  /* LEVEL COMPLETE colors */
   .win .stat-num { color: var(--alive); text-shadow: 0 0 12px var(--alive-glow); }
   .loss .stat-num { color: var(--fire); text-shadow: 0 0 12px var(--fire-glow); }
 
-  /* win title */
   .win #overlay-title { color: var(--alive); text-shadow: 0 0 24px var(--alive-glow); }
   .loss #overlay-title { color: var(--fire); text-shadow: 0 0 24px var(--fire-glow); }
 
-  /* PULSE anim for fire nodes */
   @keyframes firePulse {
     0%, 100% { filter: drop-shadow(0 0 6px #ff4e00) drop-shadow(0 0 2px #ffad00); }
     50% { filter: drop-shadow(0 0 14px #ff4e00) drop-shadow(0 0 6px #ffad00); }
@@ -312,7 +301,6 @@
 </head>
 <body>
 
-<!-- HUD -->
 <div id="hud">
   <div class="label">LEVEL</div>
   <div class="value" id="level-val">01</div>
@@ -332,22 +320,17 @@
   </div>
 </div>
 
-<!-- DANGER BAR -->
 <div id="danger-bar-wrap">
   <div id="danger-label">⚠ DANGER</div>
   <div id="danger-bar"><div id="danger-fill"></div></div>
 </div>
 
-<!-- BACK BUTTON -->
 <a href="#" class="back-btn" onclick="goBack(); return false;">&#8249;</a>
 
-<!-- TIP -->
 <div id="tip">TAP 🔥 NODES TO EXTINGUISH</div>
 
-<!-- CANVAS -->
 <canvas id="c"></canvas>
 
-<!-- OVERLAY -->
 <div id="overlay">
   <div id="overlay-icon">🌳</div>
   <div id="overlay-title">ROOT NETWORK</div>
@@ -367,27 +350,24 @@
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
 
-let W = canvas.width  = innerWidth;
+let W = canvas.width = innerWidth;
 let H = canvas.height = innerHeight;
 
 window.addEventListener('resize', () => {
-  W = canvas.width  = innerWidth;
+  W = canvas.width = innerWidth;
   H = canvas.height = innerHeight;
-  // Rebuild nodes on resize for mobile rotation
   if (!gameOver && !levelComplete) buildLevel();
 });
 
-// ── CONFIG ──────────────────────────────────────────────
 const CFG = {
-  nodeCount:      22,
-  padding:        90,
-  fireLimit:       5,   // game over if fire >= this
-  tickMs:        950,   // spread tick interval (ms) — higher = slower
-  spreadChance:  0.38,  // chance per link per tick
-  maxIgnitions:    2,   // random ignitions per tick max (was 1)
-  winDelay:     1600,   // ms after all fire gone → next level
+  nodeCount: 22,
+  padding: 90,
+  fireLimit: 5,
+  tickMs: 950,
+  spreadChance: 0.38,
+  maxIgnitions: 2,
+  winDelay: 1600,
 };
-// ────────────────────────────────────────────────────────
 
 let level = 0;
 let nodes = [], links = [];
@@ -395,14 +375,13 @@ let gameOver = false, levelComplete = false;
 let fireTimer = null, winTimer = null;
 let safeCount = 0, burnedCount = 0;
 
-/* ─── LEVEL BUILD ─── */
 function buildLevel() {
   clearWorld();
   safeCount = 0;
   burnedCount = 0;
 
   const count = CFG.nodeCount + Math.floor(level * 1.5);
-  const pad   = CFG.padding;
+  const pad = CFG.padding;
 
   for (let i = 0; i < count; i++) {
     nodes.push({
@@ -412,7 +391,6 @@ function buildLevel() {
     });
   }
 
-  // Links: chain + random long links
   for (let i = 0; i < count; i++) {
     if (i + 1 < count) links.push([i, i + 1]);
     if (i + 2 < count && Math.random() < 0.25) links.push([i, i + 2]);
@@ -427,26 +405,24 @@ function buildLevel() {
 
 function clearWorld() {
   if (fireTimer) clearTimeout(fireTimer);
-  if (winTimer)  clearTimeout(winTimer);
+  if (winTimer) clearTimeout(winTimer);
   document.querySelectorAll('.node').forEach(n => n.remove());
   nodes = []; links = [];
   levelComplete = false;
 }
 
-/* ─── NODE RENDERING ─── */
 function renderNodes() {
-  nodes.forEach((n, i) => {
+  nodes.forEach((n) => {
     const el = document.createElement('div');
     el.className = 'node alive';
 
     const size = isMobile() ? 36 : 30;
     el.innerHTML = makeSVG(size, '#00e87a');
     el.style.left = n.x + 'px';
-    el.style.top  = n.y + 'px';
-    el.style.width  = size + 'px';
+    el.style.top = n.y + 'px';
+    el.style.width = size + 'px';
     el.style.height = size + 'px';
 
-    // Touch + click
     const handler = (e) => {
       e.preventDefault();
       if (gameOver || levelComplete) return;
@@ -463,8 +439,8 @@ function renderNodes() {
 function makeSVG(size, color) {
   return `<svg viewBox="0 0 30 30" width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
     <circle cx="15" cy="15" r="11" fill="${color}" fill-opacity="0.15"/>
-    <circle cx="15" cy="15" r="7"  fill="${color}" fill-opacity="0.9"/>
-    <circle cx="15" cy="15" r="3"  fill="#fff" fill-opacity="0.6"/>
+    <circle cx="15" cy="15" r="7" fill="${color}" fill-opacity="0.9"/>
+    <circle cx="15" cy="15" r="3" fill="#fff" fill-opacity="0.6"/>
   </svg>`;
 }
 
@@ -476,7 +452,6 @@ function setNodeVisual(n, el, state) {
 
 function isMobile() { return W < 700; }
 
-/* ─── IGNITE / EXTINGUISH ─── */
 function ignite(i) {
   if (!nodes[i] || nodes[i].state !== 'alive') return;
   nodes[i].state = 'fire';
@@ -489,18 +464,14 @@ function extinguish(n, el) {
   setNodeVisual(n, el, 'safe');
 }
 
-/* ─── FIRE ENGINE ─── */
 function startEngine() {
   function tick() {
     if (gameOver || levelComplete) return;
 
-    let fireCount  = 0;
-    let aliveCount = 0;
     const toIgnite = [];
 
     nodes.forEach((n, i) => {
       if (n.state === 'fire') {
-        fireCount++;
         links.forEach(l => {
           const t = l[0] === i ? l[1] : l[1] === i ? l[0] : -1;
           if (t >= 0 && nodes[t].state === 'alive' && Math.random() < CFG.spreadChance) {
@@ -508,25 +479,20 @@ function startEngine() {
           }
         });
       }
-      if (n.state === 'alive') aliveCount++;
     });
 
-    // Apply spread (limit per tick so it's not instant wipe)
-    const maxSpread = 2;
-    const shuffled  = toIgnite.sort(() => Math.random() - 0.5).slice(0, maxSpread);
+    const shuffled = toIgnite.sort(() => Math.random() - 0.5).slice(0, 2);
     shuffled.forEach(i => ignite(i));
     if (shuffled.length > 0) burnedCount += shuffled.length;
 
     updateHUD();
 
-    // GAME OVER check
     const newFire = nodes.filter(n => n.state === 'fire').length;
     if (newFire >= CFG.fireLimit) {
       triggerGameOver();
       return;
     }
 
-    // WIN check — all fires extinguished
     if (newFire === 0) {
       if (!levelComplete) {
         levelComplete = true;
@@ -541,49 +507,44 @@ function startEngine() {
   fireTimer = setTimeout(tick, CFG.tickMs);
 }
 
-/* ─── HUD ─── */
 function updateHUD() {
-  const fire  = nodes.filter(n => n.state === 'fire').length;
-  const safe  = nodes.filter(n => n.state === 'safe').length;
+  const fire = nodes.filter(n => n.state === 'fire').length;
+  const safe = nodes.filter(n => n.state === 'safe').length;
   const alive = nodes.filter(n => n.state === 'alive').length;
 
-  document.getElementById('fire-val').textContent  = fire;
-  document.getElementById('safe-val').textContent  = safe;
+  document.getElementById('fire-val').textContent = fire;
+  document.getElementById('safe-val').textContent = safe;
   document.getElementById('alive-val').textContent = alive;
   document.getElementById('level-val').textContent = String(level + 1).padStart(2, '0');
 
-  // danger bar: fire / limit
   const pct = Math.min(100, (fire / CFG.fireLimit) * 100);
   document.getElementById('danger-fill').style.width = pct + '%';
 }
 
-/* ─── NEXT LEVEL ─── */
 function nextLevel() {
   if (gameOver) return;
   level++;
   buildLevel();
 }
 
-/* ─── GAME OVER ─── */
 function triggerGameOver() {
   if (gameOver) return;
   gameOver = true;
   if (fireTimer) clearTimeout(fireTimer);
 
-  document.getElementById('ov-saved').textContent  = safeCount;
+  document.getElementById('ov-saved').textContent = safeCount;
   document.getElementById('ov-burned').textContent = burnedCount;
-  document.getElementById('ov-level').textContent  = level + 1;
-  document.getElementById('overlay-icon').textContent  = '💀';
+  document.getElementById('ov-level').textContent = level + 1;
+  document.getElementById('overlay-icon').textContent = '💀';
   document.getElementById('overlay-title').textContent = 'NETWORK LOST';
-  document.getElementById('overlay-sub').textContent   = 'FIRE CONSUMED THE ROOT';
-  document.getElementById('ov-main-btn').textContent   = 'RETRY';
+  document.getElementById('overlay-sub').textContent = 'FIRE CONSUMED THE ROOT';
+  document.getElementById('ov-main-btn').textContent = 'RETRY';
 
   const ov = document.getElementById('overlay');
   ov.className = 'loss';
   ov.classList.add('show');
 }
 
-/* ─── OVERLAY BUTTONS ─── */
 function handleMainBtn() {
   document.getElementById('overlay').className = '';
   document.getElementById('overlay').classList.remove('show');
@@ -604,25 +565,22 @@ function goBack() {
   window.history.back();
 }
 
-/* ─── DRAW ─── */
 function draw() {
   ctx.clearRect(0, 0, W, H);
 
-  // Grid
   ctx.strokeStyle = 'rgba(0,180,80,0.035)';
-  ctx.lineWidth   = 1;
+  ctx.lineWidth = 1;
   const step = 50;
   for (let x = 0; x < W; x += step) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
   for (let y = 0; y < H; y += step) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
 
-  // Links
   links.forEach(l => {
     const a = nodes[l[0]], b = nodes[l[1]];
     if (!a || !b) return;
 
     const hasFire = a.state === 'fire' || b.state === 'fire';
     ctx.strokeStyle = hasFire ? 'rgba(255,80,0,0.3)' : 'rgba(0,220,100,0.13)';
-    ctx.lineWidth   = hasFire ? 1.5 : 1;
+    ctx.lineWidth = hasFire ? 1.5 : 1;
 
     ctx.beginPath();
     ctx.moveTo(a.x, a.y);
@@ -636,7 +594,6 @@ function loop() {
   requestAnimationFrame(loop);
 }
 
-/* ─── START ─── */
 buildLevel();
 loop();
 </script>
