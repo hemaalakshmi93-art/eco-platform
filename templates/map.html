@@ -193,7 +193,7 @@ h2{font-size:clamp(22px,5vw,34px);letter-spacing:1px;text-shadow:0 0 30px rgba(0
 <div class="grid"></div>
 
 <div class="page">
-  <a class="back-btn" id="backBtn" href="#" title="Back">&#8249;</a>
+  <a class="back-btn" id="backBtn" href="/dashboard.html" title="Back">&#8249;</a>
 
   <div class="header">
     <h2>🌍 Eco Mission Map</h2>
@@ -311,9 +311,6 @@ const params = getParams();
 const name = params.get('name') || '';
 const role = params.get('role') || '';
 
-const mapUrl = window.location.pathname + '?name=' + encodeURIComponent(name) + '&role=' + encodeURIComponent(role);
-const gameUrl = m.path + '?name=' + encodeURIComponent(name) + '&role=' + encodeURIComponent(role) + '&return=' + encodeURIComponent(mapUrl);
-
 const ZONES = {
   school:{
     icon:'🏫', label:'School', title:'School Missions',
@@ -349,11 +346,7 @@ const ZONES = {
 
 function setupBackBtn(){
   const backBtn = document.getElementById('backBtn');
-  if (name && role) {
-    backBtn.href = '/dashboard/' + encodeURIComponent(name) + '/' + encodeURIComponent(role);
-  } else {
-    backBtn.href = '/dashboard';
-  }
+  backBtn.href = '/dashboard.html';
 }
 setupBackBtn();
 
@@ -467,8 +460,8 @@ function openZone(zone){
     const item = document.createElement('div');
     item.className = 'mission-item' + (isDone ? ' done' : '');
 
-    const mapUrl = window.location.pathname + '?name=' + encodeURIComponent(name) + '&role=' + encodeURIComponent(role);
-    const gameUrl = m.path + '?name=' + encodeURIComponent(name) + '&role=' + encodeURIComponent(role) + '&return=' + encodeURIComponent(mapUrl);
+    const currentMap = window.location.pathname + '?name=' + encodeURIComponent(name) + '&role=' + encodeURIComponent(role);
+    const gameUrl = m.path + '?name=' + encodeURIComponent(name) + '&role=' + encodeURIComponent(role) + '&return=' + encodeURIComponent(currentMap);
 
     item.innerHTML =
       '<div class="mission-icon">' + m.icon + '</div>' +
