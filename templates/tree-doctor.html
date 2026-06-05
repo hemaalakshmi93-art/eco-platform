@@ -339,12 +339,7 @@
 </div>
 
 <!-- BACK BUTTON -->
-<a id="back-btn" href="map.html">
-  <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <polyline points="9,2 4,7 9,12"/>
-  </svg>
-  BACK TO MAP
-</a>
+<a href="#" class="back-btn" onclick="goBack(); return false;">&#8249;</a>
 
 <!-- TIP -->
 <div id="tip">TAP 🔥 NODES TO EXTINGUISH</div>
@@ -598,7 +593,15 @@ function handleMainBtn() {
 }
 
 function goBack() {
-  window.location.href = 'map.html';
+  const params = new URLSearchParams(window.location.search);
+  const returnUrl = params.get('return');
+
+  if (returnUrl) {
+    window.location.href = decodeURIComponent(returnUrl);
+    return;
+  }
+
+  window.history.back();
 }
 
 /* ─── DRAW ─── */
