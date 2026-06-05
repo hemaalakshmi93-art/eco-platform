@@ -300,7 +300,6 @@ h2{font-size:clamp(22px,5vw,34px);letter-spacing:1px;text-shadow:0 0 30px rgba(0
 </div>
 
 <script>
-const DASHBOARD_FILE = 'dashboard.html';
 const STORAGE_PREFIX = 'eco_';
 const memStore = {};
 
@@ -465,9 +464,8 @@ function openZone(zone){
     const item = document.createElement('div');
     item.className = 'mission-item' + (isDone ? ' done' : '');
 
-    const mapUrl = window.location.pathname;
-    const returnUrl = encodeURIComponent(mapUrl + '?completed=' + encodeURIComponent(m.path));
-    const gameUrl = m.path + '?name=' + encodeURIComponent(name) + '&role=' + encodeURIComponent(role) + '&return=' + returnUrl;
+    const mapUrl = window.location.pathname + '?name=' + encodeURIComponent(name) + '&role=' + encodeURIComponent(role);
+    const gameUrl = m.path + '?name=' + encodeURIComponent(name) + '&role=' + encodeURIComponent(role) + '&return=' + encodeURIComponent(mapUrl);
 
     item.innerHTML =
       '<div class="mission-icon">' + m.icon + '</div>' +
