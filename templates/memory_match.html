@@ -27,13 +27,14 @@
 body {
   font-family: 'Exo 2', sans-serif;
   min-height: 100vh;
+  height: 100vh;
   background: var(--bg-deep);
   color: var(--text);
   display: flex;
   justify-content: center;
-  align-items: flex-start;
-  padding: 12px;
-  overflow-x: hidden;
+  align-items: stretch;
+  padding: 8px;
+  overflow: hidden;
 }
 
 body::before {
@@ -69,14 +70,17 @@ body::after {
   position: relative;
   z-index: 1;
   width: 100%;
-  max-width: 980px;
+  max-width: 900px;
+  height: calc(100vh - 16px);
+  display: flex;
+  flex-direction: column;
 }
 
 .header {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 
 .title-block { flex: 1; }
@@ -104,15 +108,15 @@ body::after {
 .stats-bar {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 6px;
+  margin-bottom: 8px;
 }
 
 .stat-chip {
   background: var(--glass);
   border: 1px solid var(--glass-border);
-  border-radius: 12px;
-  padding: 8px 6px;
+  border-radius: 10px;
+  padding: 6px 4px;
   text-align: center;
   backdrop-filter: blur(8px);
 }
@@ -121,16 +125,16 @@ body::after {
   display: block;
   font-size: 9px;
   text-transform: uppercase;
-  letter-spacing: 1.5px;
+  letter-spacing: 1.2px;
   color: var(--text-dim);
-  margin-bottom: 3px;
+  margin-bottom: 2px;
   font-weight: 600;
 }
 
 .stat-value {
   display: block;
   font-family: 'Orbitron', monospace;
-  font-size: clamp(13px, 3vw, 20px);
+  font-size: clamp(13px, 3vw, 18px);
   font-weight: 700;
   color: var(--accent-cyan);
 }
@@ -138,13 +142,14 @@ body::after {
 .stat-value.green { color: var(--accent-green); }
 .stat-value.yellow { color: var(--accent-yellow); }
 .stat-value.purple { color: var(--accent-purple); }
+.stat-value.red-pulse { color: #ff2d55; }
 
 .timer-track {
   width: 100%;
-  height: 4px;
+  height: 3px;
   background: rgba(255,255,255,0.08);
   border-radius: 4px;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   overflow: hidden;
 }
 
@@ -164,21 +169,44 @@ body::after {
 .controls {
   display: flex;
   gap: 10px;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   align-items: center;
   flex-wrap: wrap;
+}
+
+.view-btn, .start-btn {
+  padding: 10px 14px;
+  border: none;
+  border-radius: 12px;
+  color: #050d1a;
+  font-family: 'Orbitron', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.view-btn {
+  background: linear-gradient(135deg, #ffd700, #ffef7a);
+}
+
+.start-btn {
+  background: linear-gradient(135deg, var(--accent-green), var(--accent-cyan));
+  box-shadow: 0 0 20px rgba(0,255,170,0.3);
 }
 
 .diff-select {
   flex: 1;
   min-width: 130px;
-  padding: 11px 14px;
+  padding: 10px 12px;
   background: var(--glass);
   border: 1.5px solid var(--glass-border);
   border-radius: 12px;
   color: var(--text);
   font-family: 'Exo 2', sans-serif;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   backdrop-filter: blur(8px);
@@ -190,37 +218,23 @@ body::after {
   padding-right: 32px;
 }
 
-.start-btn {
-  padding: 11px 22px;
-  background: linear-gradient(135deg, var(--accent-green), var(--accent-cyan));
-  border: none;
-  border-radius: 12px;
-  color: #050d1a;
-  font-family: 'Orbitron', monospace;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  cursor: pointer;
-  text-transform: uppercase;
-  box-shadow: 0 0 20px rgba(0,255,170,0.3);
-  white-space: nowrap;
-}
-
 .board-container {
   background: var(--glass);
   border: 1px solid var(--glass-border);
   border-radius: 20px;
-  padding: 4px;
+  padding: 6px;
   backdrop-filter: blur(10px);
   width: 100%;
   overflow: hidden;
-  min-height: 320px;
+  flex: 1;
+  min-height: 0;
 }
 
 .board {
   display: grid;
-  gap: 3px;
+  gap: 4px;
   width: 100%;
+  height: 100%;
   align-items: stretch;
   grid-auto-rows: 1fr;
 }
@@ -230,6 +244,7 @@ body::after {
   cursor: pointer;
   perspective: 900px;
   -webkit-tap-highlight-color: transparent;
+  min-width: 0;
 }
 
 .card-inner {
@@ -251,16 +266,15 @@ body::after {
   display: flex;
   justify-content: center;
   align-items: center;
-  border-radius: 10px;
+  border-radius: 7px;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-  min-height: 56px;
 }
 
 .card-front {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
-  font-size: clamp(10px, 2vw, 16px);
+  font-size: clamp(12px, 1.4vw, 16px);
   position: relative;
   overflow: hidden;
 }
@@ -280,7 +294,7 @@ body::after {
 .card-back {
   background: linear-gradient(135deg, #0e2038, #112240);
   border: 1px solid rgba(0,212,255,0.35);
-  font-size: clamp(12px, 2.2vw, 18px);
+  font-size: clamp(16px, 2.2vw, 26px);
   transform: rotateY(180deg);
   box-shadow: inset 0 0 20px rgba(0,212,255,0.08);
 }
@@ -336,66 +350,66 @@ body::after {
   background: linear-gradient(145deg, #0d1f38, #0a1628);
   border: 1.5px solid rgba(0,255,170,0.35);
   border-radius: 24px;
-  padding: 28px 24px;
+  padding: 22px 18px;
   text-align: center;
-  max-width: 340px;
+  max-width: 320px;
   width: 100%;
   box-shadow: 0 0 60px rgba(0,255,170,0.15), 0 0 120px rgba(0,212,255,0.1);
 }
 
 .popup-trophy {
-  font-size: 56px;
+  font-size: 42px;
   margin-bottom: 8px;
   display: block;
 }
 
 .popup-card h2 {
   font-family: 'Orbitron', monospace;
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 900;
   background: linear-gradient(90deg, var(--accent-green), var(--accent-cyan));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .popup-stats {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-bottom: 12px;
+  gap: 8px;
+  margin-bottom: 10px;
 }
 
 .popup-stat {
   background: rgba(255,255,255,0.04);
   border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 12px;
-  padding: 10px;
+  border-radius: 10px;
+  padding: 8px;
 }
 
 .popup-stat-label {
-  font-size: 10px;
+  font-size: 9px;
   text-transform: uppercase;
-  letter-spacing: 1.5px;
+  letter-spacing: 1.2px;
   color: var(--text-dim);
   display: block;
-  margin-bottom: 4px;
+  margin-bottom: 3px;
 }
 
 .popup-stat-value {
   font-family: 'Orbitron', monospace;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--accent-green);
 }
 
 .popup-quote {
-  font-size: 13px;
-  line-height: 1.5;
+  font-size: 12px;
+  line-height: 1.45;
   color: rgba(232,244,255,0.86);
-  margin-bottom: 14px;
-  padding: 10px 12px;
+  margin-bottom: 12px;
+  padding: 10px 10px;
   border-left: 3px solid var(--accent-green);
   background: rgba(255,255,255,0.04);
   border-radius: 10px;
@@ -406,11 +420,11 @@ body::after {
   background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,215,0,0.05));
   border: 1px solid rgba(255,215,0,0.4);
   border-radius: 10px;
-  padding: 8px 14px;
-  font-size: 13px;
+  padding: 7px 12px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--accent-yellow);
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   display: none;
 }
 
@@ -418,18 +432,18 @@ body::after {
 
 .popup-play-btn {
   width: 100%;
-  padding: 13px;
+  padding: 11px;
   background: linear-gradient(135deg, var(--accent-green), var(--accent-cyan));
   border: none;
-  border-radius: 14px;
+  border-radius: 12px;
   color: #050d1a;
   font-family: 'Orbitron', monospace;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 1px;
   cursor: pointer;
   text-transform: uppercase;
-  box-shadow: 0 0 25px rgba(0,255,170,0.4);
+  box-shadow: 0 0 20px rgba(0,255,170,0.35);
 }
 
 .timeout-card {
@@ -449,21 +463,27 @@ body::after {
   box-shadow: 0 0 25px rgba(255,45,85,0.4);
 }
 
-@media (max-width: 480px) {
-  body { padding: 8px; }
-  .stats-bar { grid-template-columns: repeat(2, 1fr); gap: 5px; }
-  .stat-chip { padding: 6px 3px; border-radius: 8px; }
-  .stat-label { font-size: 7px; letter-spacing: 0.5px; }
-  .board-container { padding: 3px; min-height: 300px; }
-  .board { gap: 2px; }
-  .card-face { border-radius: 8px; }
-  .popup-card { padding: 22px 16px; }
-  .card-front { font-size: 10px; min-height: 48px; }
-  .card-back { font-size: 12px; min-height: 48px; }
+:fullscreen {
+  background: var(--bg-deep);
 }
 
-@media (max-width: 360px) {
-  .stats-bar { grid-template-columns: repeat(3, 1fr); }
+:fullscreen .game-wrapper {
+  max-width: 1200px;
+  width: min(100%, 1200px);
+  padding: 0 10px;
+}
+
+@media (max-width: 480px) {
+  body { padding: 4px; }
+  .stats-bar { grid-template-columns: repeat(2, 1fr); gap: 3px; }
+  .stat-chip { padding: 4px 3px; border-radius: 8px; }
+  .stat-label { font-size: 7px; letter-spacing: 0.4px; }
+  .board-container { padding: 2px; min-height: 150px; }
+  .board { gap: 2px; }
+  .card-face { border-radius: 6px; }
+  .popup-card { padding: 20px 14px; }
+  .card-front { font-size: 8px; }
+  .card-back { font-size: 9px; }
 }
 </style>
 </head>
@@ -484,6 +504,7 @@ body::after {
   <div class="timer-track"><div class="timer-fill" id="timerFill" style="width:100%"></div></div>
 
   <div class="controls">
+    <button class="view-btn" id="viewBtn" type="button" onclick="toggleView()">VIEW</button>
     <select class="diff-select" id="difficulty">
       <option value="easy">🌱 Easy — 4×3 (12 cards)</option>
       <option value="medium" selected>🌿 Medium — 4×4 (16 cards)</option>
@@ -524,16 +545,27 @@ function playTick(){const c=getCtx(),osc=c.createOscillator(),gain=c.createGain(
 const iconPool=["♻️","🌳","💧","🐢","🌞","🍃","🌊","🪸","🌸","🍄","🌱","🐝"];
 let firstCard=null,secondCard=null,lock=false,moves=0,pairs=0,elapsed=0,totalPairs=0,maxTime=0,timer=null;
 
-function getConfig(){const d=document.getElementById('difficulty').value; if(d==='easy') return {cols:4,pairs:6,time:90}; if(d==='medium') return {cols:4,pairs:8,time:120}; return {cols:6,pairs:12,time:150};}
+function getConfig(){const d=document.getElementById('difficulty').value; if(d==='easy') return {cols:4,rows:3,pairs:6,time:90}; if(d==='medium') return {cols:4,rows:4,pairs:8,time:120}; return {cols:6,rows:4,pairs:12,time:150};}
 function loadBest(){const b=localStorage.getItem('ecoMemBest_v3')||'—';document.getElementById('statBest').textContent=b==='—'?'—':b;}
 function updateUI(){document.getElementById('statTime').textContent=elapsed+'s';document.getElementById('statMoves').textContent=moves;document.getElementById('statPairs').textContent=pairs+'/'+totalPairs;const left=maxTime-elapsed;const leftEl=document.getElementById('statLeft');leftEl.textContent=Math.max(0,left)+'s';leftEl.className='stat-value';if(left<=15)leftEl.classList.add('red-pulse');else leftEl.classList.add('green');const pct=Math.max(0,(left/maxTime))*100;const fill=document.getElementById('timerFill');fill.style.width=pct+'%';if(left<=15)fill.classList.add('warning');else fill.classList.remove('warning');document.getElementById('chipLeft').classList.toggle('highlight',left<=15);}
+
+function fitBoard(){
+  const wrapper = document.querySelector('.game-wrapper');
+  const header = document.querySelector('.header');
+  const stats = document.querySelector('.stats-bar');
+  const timerTrack = document.querySelector('.timer-track');
+  const controls = document.querySelector('.controls');
+  const boardContainer = document.querySelector('.board-container');
+  const h = wrapper.clientHeight - header.offsetHeight - stats.offsetHeight - timerTrack.offsetHeight - controls.offsetHeight - 34;
+  boardContainer.style.height = Math.max(220, h) + 'px';
+}
 
 function startGame(){
   clearInterval(timer); firstCard=null; secondCard=null; lock=false; moves=0; pairs=0; elapsed=0;
   document.getElementById('popup').classList.remove('show');
-  const cfg=getConfig(); totalPairs=cfg.pairs; maxTime=cfg.time;
+  const cfg=getConfig(); totalPairs=cfg.pairs; maxTime=cfg.time; fitBoard();
   const icons=shuffle([...iconPool]).slice(0,cfg.pairs); const cards=shuffle([...icons,...icons]);
-  const board=document.getElementById('board'); board.style.gridTemplateColumns=`repeat(${cfg.cols}, minmax(0, 1fr))`; board.innerHTML=''; board.style.gridAutoRows='1fr';
+  const board=document.getElementById('board'); board.style.gridTemplateColumns=`repeat(${cfg.cols}, minmax(0, 1fr))`; board.style.gridTemplateRows=`repeat(${cfg.rows}, minmax(0, 1fr))`; board.innerHTML=''; board.style.gridAutoRows='1fr';
   cards.forEach(icon=>{ const el=document.createElement('div'); el.className='card'; el.innerHTML=`<div class="card-inner"><div class="card-face card-front">🌍</div><div class="card-face card-back">${icon}</div></div>`; el.addEventListener('click',()=>onCardClick(el,icon)); board.appendChild(el); });
   updateUI(); loadBest();
   timer=setInterval(()=>{ elapsed++; updateUI(); const left=maxTime-elapsed; if(left===10)playTick(); if(left<=0){ clearInterval(timer); lock=true; playTimeout(); setTimeout(()=>showPopup(false),400); } },1000);
@@ -579,6 +611,21 @@ function showPopup(win){
 }
 
 function restart(){ document.getElementById('popup').classList.remove('show'); startGame(); }
+
+function toggleView(){
+  const root = document.documentElement;
+  if (!document.fullscreenElement) root.requestFullscreen?.().catch(()=>{});
+  else document.exitFullscreen?.().catch(()=>{});
+}
+
+document.addEventListener('fullscreenchange', () => {
+  const btn = document.getElementById('viewBtn');
+  if (btn) btn.textContent = document.fullscreenElement ? 'EXIT VIEW' : 'VIEW';
+  setTimeout(startGame, 50);
+});
+
+document.getElementById('difficulty').addEventListener('change', startGame);
+window.addEventListener('resize', () => { if (document.querySelector('.board-container')) fitBoard(); });
 
 function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
 
