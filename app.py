@@ -273,10 +273,7 @@ def send_welcome_email(to_email, user_name):
               <p style="font-size:15px; color:#2d5a3d;">
                 We're thrilled to have you join our eco-community! 🌍
               </p>
-              <img src="cid:zephyra_pamphlet"
-                   alt="Zephyra Welcome Pamphlet"
-                   style="width:100%; max-width:600px; border-radius:10px;
-                          display:block; margin:16px auto;" />
+              https://raw.githubusercontent.com/hemaalakshmi93-art/eco-platform/main/WhatsApp%20Image%202026-06-04%20at%2014.51.57.jpeg
               <div style="text-align:center; margin-top:24px;">
                 <a href="https://eco-platform-3.onrender.com"
                    style="background:#2d7a45; color:white; padding:13px 32px;
@@ -299,19 +296,6 @@ def send_welcome_email(to_email, user_name):
                 subject=f"Welcome to Zephyra, {user_name}! 🌱 Your eco-journey begins",
                 html_content=html_body
             )
-
-            pamphlet_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "zephyra_pamphlet.jpg")
-            if os.path.exists(pamphlet_path):
-                with open(pamphlet_path, "rb") as f:
-                    encoded = base64.b64encode(f.read()).decode()
-                attachment = Attachment(
-                    FileContent(encoded),
-                    FileName("Zephyra_Welcome_Pamphlet.jpg"),
-                    FileType("image/jpeg"),
-                    Disposition("inline"),
-                    ContentId("zephyra_pamphlet")
-                )
-                message.attachment = attachment
 
             sg.send(message)
             print(f"✅ Welcome email sent to {to_email}")
