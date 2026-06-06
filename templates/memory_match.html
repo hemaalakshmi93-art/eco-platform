@@ -32,7 +32,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding: 16px;
+  padding: 12px;
   overflow-x: hidden;
 }
 
@@ -41,9 +41,9 @@ body::before {
   position: fixed;
   inset: 0;
   background:
-    radial-gradient(ellipse 80% 50% at 20% 20%, rgba(0, 255, 170, 0.07) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 60% at 80% 80%, rgba(155, 89, 245, 0.08) 0%, transparent 60%),
-    radial-gradient(ellipse 50% 40% at 50% 50%, rgba(0, 212, 255, 0.05) 0%, transparent 70%);
+    radial-gradient(ellipse 80% 50% at 20% 20%, rgba(0,255,170,0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 60% at 80% 80%, rgba(155,89,245,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 50% 50%, rgba(0,212,255,0.05) 0%, transparent 70%);
   pointer-events: none;
   z-index: 0;
 }
@@ -69,14 +69,14 @@ body::after {
   position: relative;
   z-index: 1;
   width: 100%;
-  max-width: 960px;
+  max-width: 980px;
 }
 
 .header {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 20px;
+  margin-bottom: 14px;
 }
 
 .back-btn {
@@ -96,12 +96,6 @@ body::after {
   transition: background 0.2s, border-color 0.2s, transform 0.15s;
   backdrop-filter: blur(8px);
 }
-.back-btn:hover {
-  background: rgba(0,255,170,0.12);
-  border-color: var(--accent-green);
-  transform: translateX(-2px);
-}
-.back-btn:active { transform: translateX(-4px) scale(0.95); }
 
 .title-block { flex: 1; }
 
@@ -129,7 +123,7 @@ body::after {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 8px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .stat-chip {
@@ -139,10 +133,7 @@ body::after {
   padding: 8px 6px;
   text-align: center;
   backdrop-filter: blur(8px);
-  transition: border-color 0.3s;
 }
-
-.stat-chip.highlight { border-color: var(--accent-green); }
 
 .stat-label {
   display: block;
@@ -171,7 +162,7 @@ body::after {
   height: 4px;
   background: rgba(255,255,255,0.08);
   border-radius: 4px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   overflow: hidden;
 }
 
@@ -191,7 +182,7 @@ body::after {
 .controls {
   display: flex;
   gap: 10px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   align-items: center;
   flex-wrap: wrap;
 }
@@ -210,16 +201,12 @@ body::after {
   cursor: pointer;
   backdrop-filter: blur(8px);
   outline: none;
-  transition: border-color 0.2s;
-  -webkit-appearance: none;
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2300ffaa' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
   padding-right: 32px;
 }
-.diff-select:focus { border-color: var(--accent-green); }
-.diff-select option { background: #0a1628; color: #e8f4ff; }
 
 .start-btn {
   padding: 11px 22px;
@@ -233,22 +220,15 @@ body::after {
   letter-spacing: 1px;
   cursor: pointer;
   text-transform: uppercase;
-  transition: transform 0.15s, box-shadow 0.2s, filter 0.2s;
   box-shadow: 0 0 20px rgba(0,255,170,0.3);
   white-space: nowrap;
 }
-.start-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 0 30px rgba(0,255,170,0.5);
-  filter: brightness(1.1);
-}
-.start-btn:active { transform: translateY(0) scale(0.97); }
 
 .board-container {
   background: var(--glass);
   border: 1px solid var(--glass-border);
   border-radius: 20px;
-  padding: 8px;
+  padding: 4px;
   backdrop-filter: blur(10px);
   width: 100%;
   overflow: hidden;
@@ -256,7 +236,7 @@ body::after {
 
 .board {
   display: grid;
-  gap: 6px;
+  gap: 3px;
   width: 100%;
 }
 
@@ -286,16 +266,15 @@ body::after {
   display: flex;
   justify-content: center;
   align-items: center;
-  border-radius: 14px;
+  border-radius: 10px;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
 
 .card-front {
   background: var(--card-bg);
-  border: 1.5px solid var(--card-border);
-  font-size: clamp(14px, 2.8vw, 22px);
-  transition: background 0.2s, border-color 0.2s;
+  border: 1px solid var(--card-border);
+  font-size: clamp(10px, 2vw, 16px);
   position: relative;
   overflow: hidden;
 }
@@ -308,22 +287,22 @@ body::after {
 }
 
 .card:not(.flipped):not(.matched):hover .card-front {
-  background: rgba(0, 212, 255, 0.12);
-  border-color: rgba(0, 212, 255, 0.5);
+  background: rgba(0,212,255,0.12);
+  border-color: rgba(0,212,255,0.5);
 }
 
 .card-back {
   background: linear-gradient(135deg, #0e2038, #112240);
-  border: 1.5px solid rgba(0, 212, 255, 0.35);
-  font-size: clamp(16px, 3.2vw, 26px);
+  border: 1px solid rgba(0,212,255,0.35);
+  font-size: clamp(12px, 2.2vw, 18px);
   transform: rotateY(180deg);
   box-shadow: inset 0 0 20px rgba(0,212,255,0.08);
 }
 
 .card.matched .card-front,
 .card.matched .card-back {
-  border-color: rgba(0, 255, 170, 0.6);
-  box-shadow: 0 0 16px rgba(0, 255, 170, 0.3);
+  border-color: rgba(0,255,170,0.6);
+  box-shadow: 0 0 16px rgba(0,255,170,0.3);
 }
 
 .card.matched {
@@ -349,14 +328,14 @@ body::after {
 
 @keyframes matchPop {
   0% { transform: rotateY(180deg) scale(1); }
-  50% { transform: rotateY(180deg) scale(1.12); }
+  50% { transform: rotateY(180deg) scale(1.08); }
   100% { transform: rotateY(180deg) scale(1); }
 }
 
 .popup-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(5, 13, 26, 0.85);
+  background: rgba(5,13,26,0.85);
   backdrop-filter: blur(6px);
   display: none;
   justify-content: center;
@@ -371,29 +350,17 @@ body::after {
   background: linear-gradient(145deg, #0d1f38, #0a1628);
   border: 1.5px solid rgba(0,255,170,0.35);
   border-radius: 24px;
-  padding: 36px 32px;
+  padding: 28px 24px;
   text-align: center;
   max-width: 340px;
   width: 100%;
   box-shadow: 0 0 60px rgba(0,255,170,0.15), 0 0 120px rgba(0,212,255,0.1);
-  animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-@keyframes popIn {
-  from { transform: scale(0.5) translateY(30px); opacity: 0; }
-  to { transform: scale(1) translateY(0); opacity: 1; }
 }
 
 .popup-trophy {
   font-size: 56px;
   margin-bottom: 8px;
   display: block;
-  animation: trophySpin 0.6s ease 0.3s both;
-}
-
-@keyframes trophySpin {
-  from { transform: rotateY(-90deg) scale(0.5); opacity: 0; }
-  to { transform: rotateY(0) scale(1); opacity: 1; }
 }
 
 .popup-card h2 {
@@ -404,14 +371,14 @@ body::after {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .popup-stats {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
 .popup-stat {
@@ -439,9 +406,9 @@ body::after {
 
 .popup-quote {
   font-size: 13px;
-  line-height: 1.6;
+  line-height: 1.5;
   color: rgba(232,244,255,0.86);
-  margin-bottom: 16px;
+  margin-bottom: 14px;
   padding: 10px 12px;
   border-left: 3px solid var(--accent-green);
   background: rgba(255,255,255,0.04);
@@ -457,7 +424,7 @@ body::after {
   font-size: 13px;
   font-weight: 600;
   color: var(--accent-yellow);
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   display: none;
 }
 
@@ -476,37 +443,38 @@ body::after {
   letter-spacing: 1px;
   cursor: pointer;
   text-transform: uppercase;
-  transition: transform 0.15s, filter 0.2s;
   box-shadow: 0 0 25px rgba(0,255,170,0.4);
 }
-.popup-play-btn:hover { filter: brightness(1.1); transform: translateY(-2px); }
 
 .timeout-card {
-  border-color: rgba(255, 45, 85, 0.4);
+  border-color: rgba(255,45,85,0.4);
   box-shadow: 0 0 60px rgba(255,45,85,0.15);
 }
+
 .timeout-card h2 {
   background: linear-gradient(90deg, #ff6b35, #ff2d55);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+
 .timeout-card .popup-play-btn {
   background: linear-gradient(135deg, #ff6b35, #ff2d55);
   box-shadow: 0 0 25px rgba(255,45,85,0.4);
 }
 
 @media (max-width: 480px) {
-  .stats-bar { grid-template-columns: repeat(5, 1fr); gap: 5px; }
+  body { padding: 8px; }
+  .stats-bar { grid-template-columns: repeat(2, 1fr); gap: 5px; }
   .stat-chip { padding: 6px 3px; border-radius: 8px; }
   .stat-label { font-size: 7px; letter-spacing: 0.5px; }
-  .board-container { padding: 6px; }
-  .board { gap: 4px; }
+  .board-container { padding: 3px; }
+  .board { gap: 2px; }
   .card-face { border-radius: 8px; }
   .back-btn { width: 38px; height: 38px; font-size: 18px; }
-  .card-front { font-size: 14px; }
-  .card-back { font-size: 16px; }
-  .popup-card { padding: 24px 20px; }
+  .popup-card { padding: 22px 16px; }
+  .card-front { font-size: 10px; }
+  .card-back { font-size: 12px; }
 }
 
 @media (max-width: 360px) {
@@ -514,44 +482,22 @@ body::after {
 }
 </style>
 </head>
-
 <body>
 <div class="game-wrapper">
-
   <div class="header">
     <a href="map.html" class="back-btn" title="Back to map" aria-label="Back">&#8249;</a>
-    <div class="title-block">
-      <h1>🧠 ECO MEMORY MATCH</h1>
-      <p>Deluxe Edition · v3</p>
-    </div>
+    <div class="title-block"><h1>🧠 ECO MEMORY MATCH</h1><p>Deluxe Edition · v3</p></div>
   </div>
 
   <div class="stats-bar">
-    <div class="stat-chip" id="chipTime">
-      <span class="stat-label">Time</span>
-      <span class="stat-value" id="statTime">0s</span>
-    </div>
-    <div class="stat-chip" id="chipLeft">
-      <span class="stat-label">Left</span>
-      <span class="stat-value green" id="statLeft">—</span>
-    </div>
-    <div class="stat-chip">
-      <span class="stat-label">Moves</span>
-      <span class="stat-value purple" id="statMoves">0</span>
-    </div>
-    <div class="stat-chip">
-      <span class="stat-label">Pairs</span>
-      <span class="stat-value" id="statPairs">0/0</span>
-    </div>
-    <div class="stat-chip">
-      <span class="stat-label">Best</span>
-      <span class="stat-value yellow" id="statBest">—</span>
-    </div>
+    <div class="stat-chip" id="chipTime"><span class="stat-label">Time</span><span class="stat-value" id="statTime">0s</span></div>
+    <div class="stat-chip" id="chipLeft"><span class="stat-label">Left</span><span class="stat-value green" id="statLeft">—</span></div>
+    <div class="stat-chip"><span class="stat-label">Moves</span><span class="stat-value purple" id="statMoves">0</span></div>
+    <div class="stat-chip"><span class="stat-label">Pairs</span><span class="stat-value" id="statPairs">0/0</span></div>
+    <div class="stat-chip"><span class="stat-label">Best</span><span class="stat-value yellow" id="statBest">—</span></div>
   </div>
 
-  <div class="timer-track">
-    <div class="timer-fill" id="timerFill" style="width:100%"></div>
-  </div>
+  <div class="timer-track"><div class="timer-fill" id="timerFill" style="width:100%"></div></div>
 
   <div class="controls">
     <select class="diff-select" id="difficulty">
@@ -562,9 +508,7 @@ body::after {
     <button class="start-btn" onclick="startGame()">▶ START</button>
   </div>
 
-  <div class="board-container">
-    <div class="board" id="board"></div>
-  </div>
+  <div class="board-container"><div class="board" id="board"></div></div>
 </div>
 
 <div class="popup-overlay" id="popup">
@@ -572,22 +516,10 @@ body::after {
     <span class="popup-trophy" id="popupEmoji">🏆</span>
     <h2 id="popupTitle">Victory!</h2>
     <div class="popup-stats">
-      <div class="popup-stat">
-        <span class="popup-stat-label">Moves</span>
-        <span class="popup-stat-value" id="popMoves">0</span>
-      </div>
-      <div class="popup-stat">
-        <span class="popup-stat-label">Time</span>
-        <span class="popup-stat-value" id="popTime">0s</span>
-      </div>
-      <div class="popup-stat">
-        <span class="popup-stat-label">Score</span>
-        <span class="popup-stat-value" id="popScore">0</span>
-      </div>
-      <div class="popup-stat">
-        <span class="popup-stat-label">Best</span>
-        <span class="popup-stat-value" id="popBest">—</span>
-      </div>
+      <div class="popup-stat"><span class="popup-stat-label">Moves</span><span class="popup-stat-value" id="popMoves">0</span></div>
+      <div class="popup-stat"><span class="popup-stat-label">Time</span><span class="popup-stat-value" id="popTime">0s</span></div>
+      <div class="popup-stat"><span class="popup-stat-label">Score</span><span class="popup-stat-value" id="popScore">0</span></div>
+      <div class="popup-stat"><span class="popup-stat-label">Best</span><span class="popup-stat-value" id="popBest">—</span></div>
     </div>
     <div class="popup-quote" id="ecoQuote">“Every match is a small win for the Earth.”</div>
     <div class="popup-new-best" id="newBestBadge">⭐ New Best Score!</div>
@@ -596,282 +528,75 @@ body::after {
 </div>
 
 <script>
-const AudioCtx = window.AudioContext || window.webkitAudioContext;
-let ctx;
+const AudioCtx = window.AudioContext || window.webkitAudioContext; let ctx;
+function getCtx(){ if(!ctx) ctx = new AudioCtx(); return ctx; }
+function playFlip(){const c=getCtx(),osc=c.createOscillator(),gain=c.createGain();osc.connect(gain);gain.connect(c.destination);osc.type='sine';osc.frequency.setValueAtTime(380,c.currentTime);osc.frequency.exponentialRampToValueAtTime(520,c.currentTime+0.08);gain.gain.setValueAtTime(0.08,c.currentTime);gain.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.12);osc.start();osc.stop(c.currentTime+0.12);}
+function playMatch(){const c=getCtx();[523,659,784,1047].forEach((f,i)=>{const osc=c.createOscillator(),gain=c.createGain();osc.connect(gain);gain.connect(c.destination);osc.type='triangle';const t=c.currentTime+i*0.09;osc.frequency.setValueAtTime(f,t);gain.gain.setValueAtTime(0.0,t);gain.gain.linearRampToValueAtTime(0.1,t+0.02);gain.gain.exponentialRampToValueAtTime(0.001,t+0.22);osc.start(t);osc.stop(t+0.22);});}
+function playWrong(){const c=getCtx(),osc=c.createOscillator(),gain=c.createGain();osc.connect(gain);gain.connect(c.destination);osc.type='sawtooth';osc.frequency.setValueAtTime(200,c.currentTime);osc.frequency.exponentialRampToValueAtTime(120,c.currentTime+0.18);gain.gain.setValueAtTime(0.07,c.currentTime);gain.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.22);osc.start();osc.stop(c.currentTime+0.22);}
+function playVictory(){const c=getCtx();[523,659,784,1047,1568].forEach((f,i)=>{const osc=c.createOscillator(),gain=c.createGain();osc.connect(gain);gain.connect(c.destination);osc.type='sine';const t=c.currentTime+i*0.12;osc.frequency.setValueAtTime(f,t);gain.gain.setValueAtTime(0.0,t);gain.gain.linearRampToValueAtTime(0.12,t+0.03);gain.gain.exponentialRampToValueAtTime(0.001,t+0.3);osc.start(t);osc.stop(t+0.35);});}
+function playTimeout(){const c=getCtx();[400,320,260,210].forEach((f,i)=>{const osc=c.createOscillator(),gain=c.createGain();osc.connect(gain);gain.connect(c.destination);osc.type='triangle';const t=c.currentTime+i*0.14;osc.frequency.setValueAtTime(f,t);gain.gain.setValueAtTime(0.09,t);gain.gain.exponentialRampToValueAtTime(0.001,t+0.25);osc.start(t);osc.stop(t+0.28);});}
+function playTick(){const c=getCtx(),osc=c.createOscillator(),gain=c.createGain();osc.connect(gain);gain.connect(c.destination);osc.type='sine';osc.frequency.setValueAtTime(900,c.currentTime);gain.gain.setValueAtTime(0.04,c.currentTime);gain.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.05);osc.start();osc.stop(c.currentTime+0.05);}
 
-function getCtx() {
-  if (!ctx) ctx = new AudioCtx();
-  return ctx;
-}
+const iconPool=["♻️","🌳","💧","🐢","🌞","🍃","🌊","🪸","🌸","🍄","🌱","🐝"];
+let firstCard=null,secondCard=null,lock=false,moves=0,pairs=0,elapsed=0,totalPairs=0,maxTime=0,timer=null;
 
-function playFlip() {
-  const c = getCtx();
-  const osc = c.createOscillator();
-  const gain = c.createGain();
-  osc.connect(gain); gain.connect(c.destination);
-  osc.type = 'sine';
-  osc.frequency.setValueAtTime(380, c.currentTime);
-  osc.frequency.exponentialRampToValueAtTime(520, c.currentTime + 0.08);
-  gain.gain.setValueAtTime(0.08, c.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 0.12);
-  osc.start(); osc.stop(c.currentTime + 0.12);
-}
+function getConfig(){const d=document.getElementById('difficulty').value; if(d==='easy') return {cols:4,pairs:6,time:90}; if(d==='medium') return {cols:4,pairs:8,time:120}; return {cols:6,pairs:12,time:150};}
+function loadBest(){const b=localStorage.getItem('ecoMemBest_v3')||'—';document.getElementById('statBest').textContent=b==='—'?'—':b;}
+function updateUI(){document.getElementById('statTime').textContent=elapsed+'s';document.getElementById('statMoves').textContent=moves;document.getElementById('statPairs').textContent=pairs+'/'+totalPairs;const left=maxTime-elapsed;const leftEl=document.getElementById('statLeft');leftEl.textContent=Math.max(0,left)+'s';leftEl.className='stat-value';if(left<=15)leftEl.classList.add('red-pulse');else leftEl.classList.add('green');const pct=Math.max(0,(left/maxTime))*100;const fill=document.getElementById('timerFill');fill.style.width=pct+'%';if(left<=15)fill.classList.add('warning');else fill.classList.remove('warning');document.getElementById('chipLeft').classList.toggle('highlight',left<=15);}
 
-function playMatch() {
-  const c = getCtx();
-  const notes = [523, 659, 784, 1047];
-  notes.forEach((freq, i) => {
-    const osc = c.createOscillator();
-    const gain = c.createGain();
-    osc.connect(gain); gain.connect(c.destination);
-    osc.type = 'triangle';
-    const t = c.currentTime + i * 0.09;
-    osc.frequency.setValueAtTime(freq, t);
-    gain.gain.setValueAtTime(0.0, t);
-    gain.gain.linearRampToValueAtTime(0.1, t + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
-    osc.start(t); osc.stop(t + 0.22);
-  });
-}
-
-function playWrong() {
-  const c = getCtx();
-  const osc = c.createOscillator();
-  const gain = c.createGain();
-  osc.connect(gain); gain.connect(c.destination);
-  osc.type = 'sawtooth';
-  osc.frequency.setValueAtTime(200, c.currentTime);
-  osc.frequency.exponentialRampToValueAtTime(120, c.currentTime + 0.18);
-  gain.gain.setValueAtTime(0.07, c.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 0.22);
-  osc.start(); osc.stop(c.currentTime + 0.22);
-}
-
-function playVictory() {
-  const c = getCtx();
-  const melody = [523,659,784,1047,1568];
-  melody.forEach((freq, i) => {
-    const osc = c.createOscillator();
-    const gain = c.createGain();
-    osc.connect(gain); gain.connect(c.destination);
-    osc.type = 'sine';
-    const t = c.currentTime + i * 0.12;
-    osc.frequency.setValueAtTime(freq, t);
-    gain.gain.setValueAtTime(0.0, t);
-    gain.gain.linearRampToValueAtTime(0.12, t + 0.03);
-    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
-    osc.start(t); osc.stop(t + 0.35);
-  });
-}
-
-function playTimeout() {
-  const c = getCtx();
-  const notes = [400, 320, 260, 210];
-  notes.forEach((freq, i) => {
-    const osc = c.createOscillator();
-    const gain = c.createGain();
-    osc.connect(gain); gain.connect(c.destination);
-    osc.type = 'triangle';
-    const t = c.currentTime + i * 0.14;
-    osc.frequency.setValueAtTime(freq, t);
-    gain.gain.setValueAtTime(0.09, t);
-    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
-    osc.start(t); osc.stop(t + 0.28);
-  });
-}
-
-function playTick() {
-  const c = getCtx();
-  const osc = c.createOscillator();
-  const gain = c.createGain();
-  osc.connect(gain); gain.connect(c.destination);
-  osc.type = 'sine';
-  osc.frequency.setValueAtTime(900, c.currentTime);
-  gain.gain.setValueAtTime(0.04, c.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 0.05);
-  osc.start(); osc.stop(c.currentTime + 0.05);
-}
-
-const iconPool = ["♻️","🌳","💧","🐢","🌞","🍃","🌊","🪸","🌸","🍄","🌱","🐝"];
-
-let firstCard = null, secondCard = null, lock = false;
-let moves = 0, pairs = 0, elapsed = 0, totalPairs = 0;
-let maxTime = 0;
-let timer = null;
-
-function getConfig() {
-  const d = document.getElementById('difficulty').value;
-  if (d === 'easy')   return { cols: 4, pairs: 6,  time: 90  };
-  if (d === 'medium') return { cols: 4, pairs: 8,  time: 120 };
-  return { cols: 6, pairs: 12, time: 150 };
-}
-
-function loadBest() {
-  const b = localStorage.getItem('ecoMemBest_v3') || '—';
-  document.getElementById('statBest').textContent = b === '—' ? '—' : b;
-}
-
-function updateUI() {
-  document.getElementById('statTime').textContent = elapsed + 's';
-  document.getElementById('statMoves').textContent = moves;
-  document.getElementById('statPairs').textContent = pairs + '/' + totalPairs;
-
-  const left = maxTime - elapsed;
-  const leftEl = document.getElementById('statLeft');
-  leftEl.textContent = Math.max(0, left) + 's';
-  leftEl.className = 'stat-value';
-  if (left <= 15) leftEl.classList.add('red-pulse');
-  else leftEl.classList.add('green');
-
-  const pct = Math.max(0, (left / maxTime)) * 100;
-  const fill = document.getElementById('timerFill');
-  fill.style.width = pct + '%';
-  if (left <= 15) fill.classList.add('warning');
-  else fill.classList.remove('warning');
-
-  document.getElementById('chipLeft').classList.toggle('highlight', left <= 15);
-}
-
-function startGame() {
-  clearInterval(timer);
-  firstCard = null; secondCard = null; lock = false;
-  moves = 0; pairs = 0; elapsed = 0;
+function startGame(){
+  clearInterval(timer); firstCard=null; secondCard=null; lock=false; moves=0; pairs=0; elapsed=0;
   document.getElementById('popup').classList.remove('show');
-
-  const cfg = getConfig();
-  totalPairs = cfg.pairs;
-  maxTime = cfg.time;
-
-  const icons = shuffle([...iconPool]).slice(0, cfg.pairs);
-  const cards = shuffle([...icons, ...icons]);
-
-  const board = document.getElementById('board');
-  board.style.gridTemplateColumns = `repeat(${cfg.cols}, 1fr)`;
-  board.innerHTML = '';
-
-  cards.forEach(icon => {
-    const el = document.createElement('div');
-    el.className = 'card';
-    el.innerHTML = `
-      <div class="card-inner">
-        <div class="card-face card-front">🌍</div>
-        <div class="card-face card-back">${icon}</div>
-      </div>`;
-    el.addEventListener('click', () => onCardClick(el, icon));
-    board.appendChild(el);
-  });
-
-  updateUI();
-  loadBest();
-
-  timer = setInterval(() => {
-    elapsed++;
-    updateUI();
-    const left = maxTime - elapsed;
-    if (left === 10) playTick();
-    if (left <= 0) {
-      clearInterval(timer);
-      lock = true;
-      playTimeout();
-      setTimeout(() => showPopup(false), 400);
-    }
-  }, 1000);
+  const cfg=getConfig(); totalPairs=cfg.pairs; maxTime=cfg.time;
+  const icons=shuffle([...iconPool]).slice(0,cfg.pairs); const cards=shuffle([...icons,...icons]);
+  const board=document.getElementById('board'); board.style.gridTemplateColumns=`repeat(${cfg.cols}, minmax(0, 1fr))`; board.innerHTML='';
+  cards.forEach(icon=>{ const el=document.createElement('div'); el.className='card'; el.innerHTML=`<div class="card-inner"><div class="card-face card-front">🌍</div><div class="card-face card-back">${icon}</div></div>`; el.addEventListener('click',()=>onCardClick(el,icon)); board.appendChild(el); });
+  updateUI(); loadBest();
+  timer=setInterval(()=>{ elapsed++; updateUI(); const left=maxTime-elapsed; if(left===10)playTick(); if(left<=0){ clearInterval(timer); lock=true; playTimeout(); setTimeout(()=>showPopup(false),400); } },1000);
 }
 
-function onCardClick(card, icon) {
-  if (lock || card.classList.contains('flipped') || card.classList.contains('matched')) return;
-
-  playFlip();
-  card.classList.add('flipped');
-
-  if (!firstCard) {
-    firstCard = { card, icon };
-    return;
-  }
-
-  secondCard = { card, icon };
-  moves++;
-  updateUI();
-
-  if (firstCard.icon === secondCard.icon) {
-    setTimeout(() => {
-      firstCard.card.classList.add('matched');
-      secondCard.card.classList.add('matched');
-      pairs++;
-      updateUI();
-      playMatch();
-      firstCard = null; secondCard = null;
-
-      if (pairs === totalPairs) {
-        clearInterval(timer);
-        setTimeout(() => showPopup(true), 500);
-      }
-    }, 200);
+function onCardClick(card,icon){
+  if(lock||card.classList.contains('flipped')||card.classList.contains('matched')) return;
+  playFlip(); card.classList.add('flipped');
+  if(!firstCard){ firstCard={card,icon}; return; }
+  secondCard={card,icon}; moves++; updateUI();
+  if(firstCard.icon===secondCard.icon){
+    setTimeout(()=>{ firstCard.card.classList.add('matched'); secondCard.card.classList.add('matched'); pairs++; updateUI(); playMatch(); firstCard=null; secondCard=null; if(pairs===totalPairs){ clearInterval(timer); setTimeout(()=>showPopup(true),500); } },200);
   } else {
-    lock = true;
-    firstCard.card.classList.add('wrong');
-    secondCard.card.classList.add('wrong');
-    playWrong();
-
-    setTimeout(() => {
-      firstCard.card.classList.remove('flipped', 'wrong');
-      secondCard.card.classList.remove('flipped', 'wrong');
-      firstCard = null; secondCard = null;
-      lock = false;
-    }, 900);
+    lock=true; firstCard.card.classList.add('wrong'); secondCard.card.classList.add('wrong'); playWrong();
+    setTimeout(()=>{ firstCard.card.classList.remove('flipped','wrong'); secondCard.card.classList.remove('flipped','wrong'); firstCard=null; secondCard=null; lock=false; },900);
   }
 }
 
-function showPopup(win) {
-  const score = moves + elapsed;
-
-  document.getElementById('popMoves').textContent = moves;
-  document.getElementById('popTime').textContent = elapsed + 's';
-  document.getElementById('popScore').textContent = win ? score : '—';
-
-  const stored = localStorage.getItem('ecoMemBest_v3');
-  const popCard = document.getElementById('popupCard');
-  const badge = document.getElementById('newBestBadge');
-
-  if (win) {
-    document.getElementById('popupEmoji').textContent = '🏆';
-    document.getElementById('popupTitle').textContent = 'Victory!';
+function showPopup(win){
+  const score=moves+elapsed;
+  document.getElementById('popMoves').textContent=moves;
+  document.getElementById('popTime').textContent=elapsed+'s';
+  document.getElementById('popScore').textContent=win?score:'—';
+  const stored=localStorage.getItem('ecoMemBest_v3');
+  const popCard=document.getElementById('popupCard');
+  const badge=document.getElementById('newBestBadge');
+  if(win){
+    document.getElementById('popupEmoji').textContent='🏆';
+    document.getElementById('popupTitle').textContent='Victory!';
     popCard.classList.remove('timeout-card');
-
-    const isNewBest = !stored || score < parseInt(stored);
-    if (isNewBest) {
-      localStorage.setItem('ecoMemBest_v3', score);
-      document.getElementById('statBest').textContent = score;
-      badge.classList.add('show');
-      document.getElementById('popBest').textContent = score;
-    } else {
-      badge.classList.remove('show');
-      document.getElementById('popBest').textContent = stored;
-    }
+    const isNewBest=!stored||score<parseInt(stored);
+    if(isNewBest){ localStorage.setItem('ecoMemBest_v3',score); document.getElementById('statBest').textContent=score; badge.classList.add('show'); document.getElementById('popBest').textContent=score; }
+    else { badge.classList.remove('show'); document.getElementById('popBest').textContent=stored; }
     playVictory();
   } else {
-    document.getElementById('popupEmoji').textContent = '⏱️';
-    document.getElementById('popupTitle').textContent = 'Time\'s Up!';
+    document.getElementById('popupEmoji').textContent='⏱️';
+    document.getElementById('popupTitle').textContent='Time\\'s Up!';
     popCard.classList.add('timeout-card');
     badge.classList.remove('show');
-    document.getElementById('popBest').textContent = stored || '—';
+    document.getElementById('popBest').textContent=stored||'—';
   }
-
   document.getElementById('popup').classList.add('show');
 }
 
-function restart() {
-  document.getElementById('popup').classList.remove('show');
-  startGame();
-}
+function restart(){ document.getElementById('popup').classList.remove('show'); startGame(); }
 
-function shuffle(arr) {
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr;
-}
+function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
 
 loadBest();
 startGame();
