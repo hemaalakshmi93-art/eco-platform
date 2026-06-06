@@ -272,7 +272,7 @@ def send_welcome_email(to_email, user_name):
   <p style="font-size:15px; color:#2d5a3d;">
     We're thrilled to have you join our eco-community! 🌍
   </p>
-  <img src="https://raw.githubusercontent.com/hemaalakshmi93-art/eco-platform/main/WhatsApp%20Image%202026-06-04%20at%2014.51.57.jpeg"
+  <img src="https://kommodo.ai/i/oWLU0ixKd373wp7vW42q"
        alt="Zephyra Welcome Pamphlet"
        style="width:100%; max-width:600px; border-radius:10px; display:block; margin:16px auto;" />
   <div style="text-align:center; margin-top:24px;">
@@ -307,7 +307,7 @@ def send_welcome_email(to_email, user_name):
     thread = threading.Thread(target=_send)
     thread.daemon = True
     thread.start()
-    
+
 # -------------------- HOME --------------------
 @app.route("/")
 def home():
