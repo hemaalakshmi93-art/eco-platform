@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Campus Heist Neon Edition</title>
+<style>
+  :root{
+    --bg1:#07101d; --bg2:#0d1b2e; --bg3:#102f3c;
+    --card:rgba(255,255,255,.08); --card2:rgba(255,255,255,.05);
+    --line:rgba(180,230,255,.18); --text:#f5fbff; --muted:rgba(245,251,255,.72);
+    --accent:#52f2d0; --accent2:#7ec8ff; --accent3:#ffcc72; --danger:#ff6e8f;
+    --shadow:0 24px 65px rgba(0,0,0,.34); --radius:24px;
+  }
+  *{box-sizing:border-box} html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--text);overflow-x:hidden}
+  body{
+    background:
+      radial-gradient(circle at 15% 15%, rgba(82,242,208,.22), transparent 28%),
+      radial-gradient(circle at 85% 12%, rgba(126,200,255,.22), transparent 24%),
+      radial-gradient(circle at 50% 85%, rgba(255,204,114,.16), transparent 30%),
+      linear-gradient(180deg,var(--bg3),var(--bg2) 42%,var(--bg1));
+  }
+  body:before{content:"";position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:78px 78px;opacity:.22;pointer-events:none}
+  .wrap{max-width:1400px;margin:0 auto;padding:22px 16px 34px;position:relative}
+  .top{display:flex;justify-content:space-between;gap:14px;align-items:center;flex-wrap:wrap;padding:18px 20px;border:1px solid var(--line);border-radius:28px;background:linear-gradient(135deg,rgba(255,255,255,.09),rgba(255,255,255,.04));box-shadow:var(--shadow);backdrop-filter:blur(20px) saturate(140%)}
+  .brand{display:flex;align-items:center;gap:12px}.logo{width:56px;height:56px;border-radius:18px;display:grid;place-items:center;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#07111c;font-size:28px;font-weight:900;box-shadow:0 16px 30px rgba(82,242,208,.22)}
+  .title{font-size:23px;font-weight:900;letter-spacing:.2px}.sub{font-size:13px;color:var(--muted);margin-top:3px}
+  .hud{display:flex;gap:10px;flex-wrap:wrap}.chip{padding:9px 12px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.06);backdrop-filter:blur(10px);font-weight:800;font-size:13px}
+  .btn{border:1px solid var(--line);background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.05));color:var(--text);padding:11px 15px;border-radius:16px;cursor:pointer;font:inherit;font-weight:800;transition:.2s ease;box-shadow:0 10px 24px rgba(0,0,0,.12)}
+  .btn:hover{transform:translateY(-1px);background:rgba(255,255,255,.12)}
+  .btn.primary{background:linear-gradient(135deg,var(--accent),#2fcf84);border-color:transparent;color:#06110f}
+  .btn.warn{background:linear-gradient(135deg,var(--accent3),#ff9f57);border-color:transparent;color:#211300}
+  .btn.danger{background:linear-gradient(135deg,var(--danger),#ff9fb0);border-color:transparent;color:#2a060c}
+  .grid{display:grid;gap:18px;margin-top:18px}.stats{grid-template-columns:repeat(4,minmax(0,1fr))}.main{grid-template-columns:1.1fr .9fr}.bottom{grid-template-columns:1fr 1fr}
+  @media (max-width:1080px){.stats{grid-template-columns:repeat(2,1fr)}.main,.bottom{grid-template-columns:1fr}}
+  .card{border:1px solid var(--line);background:linear-gradient(180deg,var(--card),var(--card2));border-radius:28px;box-shadow:var(--shadow);backdrop-filter:blur(18px) saturate(140%);padding:18px}
+  .h{font-size:13px;text-transform:uppercase;letter-spacing:1.8px;color:var(--muted);font-weight:900;margin-bottom:10px}
+  .stat{min-height:122px;display:flex;flex-direction:column;gap:8px}.ico{font-size:25px}.val{font-size:36px;font-weight:900;line-height:1}.lab{color:var(--muted);font-size:13px}
+  .board-wrap{display:grid;gap:12px}
+  .board{position:relative;height:500px;border-radius:24px;overflow:hidden;border:1px solid rgba(180,230,255,.18);background:radial-gradient(circle at 25% 18%,rgba(82,242,208,.16),transparent 26%),radial-gradient(circle at 80% 16%,rgba(126,200,255,.16),transparent 24%),linear-gradient(180deg,#152c36,#08111a)}
+  .board:before{content:"";position:absolute;inset:0;background:linear-gradient(transparent 68%,rgba(82,242,208,.06) 100%)}
+  .zoneLabel{position:absolute;left:14px;top:14px;padding:8px 11px;border-radius:999px;background:rgba(0,0,0,.32);border:1px solid rgba(255,255,255,.08);font-size:12px;font-weight:900;letter-spacing:1px;text-transform:uppercase;z-index:10}
+  .obj,.player,.npc,.goal,.door,.trophy,.hint,.portal,.shadowObj,.msg{position:absolute;display:grid;place-items:center;user-select:none;transition:transform .12s linear, opacity .2s ease}
+  .player{width:56px;height:56px;border-radius:18px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#061019;font-size:28px;box-shadow:0 16px 28px rgba(82,242,208,.25);z-index:9}
+  .npc{width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#ff6e8f,#ffb1c1);font-size:26px;z-index:6}.npc.alert{outline:2px solid var(--accent3);box-shadow:0 0 0 6px rgba(255,204,114,.08)}
+  .goal{width:76px;height:76px;border-radius:22px;background:linear-gradient(135deg,var(--accent2),#9a93ff);font-size:31px;box-shadow:0 0 36px rgba(126,200,255,.18);z-index:5}
+  .door{width:56px;height:56px;border-radius:18px;background:linear-gradient(135deg,#233f4e,#0d1922);border:1px solid rgba(180,230,255,.22);font-size:24px;z-index:5}
+  .trophy{width:28px;height:28px;border-radius:50%;background:radial-gradient(circle,#fff7bf 0,#ffd27a 44%,#ff9f57 100%);box-shadow:0 0 18px rgba(255,210,122,.25);font-size:14px;z-index:5}
+  .hint{padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid var(--line);font-size:12px;color:var(--muted);z-index:6}
+  .shadowObj{width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,.24);filter:blur(2px)}
+  .wall,.desk,.bench,.plant,.camera,.windowObj,.tree,.locker,.canteen,.stairs,.lamp,.locker2,.doorway{position:absolute;border-radius:16px;z-index:2}
+  .wall{background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.03));border:1px solid rgba(255,255,255,.08)}
+  .desk{background:linear-gradient(180deg,#314f4a,#1f312d);border:1px solid rgba(255,255,255,.06)}
+  .bench{background:linear-gradient(180deg,#37547a,#1a2b42);border:1px solid rgba(126,200,255,.12)}
+  .plant{background:linear-gradient(180deg,#2f5c46,#183025);border:1px solid rgba(82,242,208,.12)}
+  .camera{background:linear-gradient(180deg,#444866,#222638);border:1px solid rgba(255,255,255,.08)}
+  .windowObj{background:linear-gradient(180deg,rgba(126,200,255,.16),rgba(255,255,255,.04));border:1px solid rgba(126,200,255,.12)}
+  .tree{background:linear-gradient(180deg,#2c5a40,#173022);border:1px solid rgba(82,242,208,.12)}
+  .locker{background:linear-gradient(180deg,#284061,#16263c);border:1px solid rgba(126,200,255,.12)}
+  .locker2{background:linear-gradient(180deg,#43395d,#241f33);border:1px solid rgba(255,255,255,.06)}
+  .canteen{background:linear-gradient(180deg,#5c4025,#2d1c10);border:1px solid rgba(255,204,114,.12)}
+  .stairs{background:linear-gradient(180deg,#264156,#182733);border:1px solid rgba(126,200,255,.12)}
+  .lamp{background:linear-gradient(180deg,#66572d,#2c2410);border:1px solid rgba(255,204,114,.12)}
+  .doorway{background:linear-gradient(180deg,#20313b,#101a21);border:1px solid rgba(180,230,255,.12)}
+  .bar{height:12px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.06);overflow:hidden}.bar>div{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .2s ease}
+  .missionPanel{display:grid;gap:12px}.missionLine{padding:12px 13px;border-radius:16px;border:1px solid var(--line);background:rgba(255,255,255,.04);font-size:13px;color:var(--muted);line-height:1.5}.missionLine b{color:var(--text)}
+  .choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.choice{padding:12px;border-radius:16px;border:1px solid var(--line);background:rgba(255,255,255,.05);cursor:pointer;color:var(--text);text-align:left;font:inherit;font-weight:800;transition:.18s}.choice:hover{background:rgba(255,255,255,.1)}
+  .shop{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.item{padding:12px;border-radius:16px;border:1px solid var(--line);background:rgba(255,255,255,.05);text-align:left}.item button{margin-top:8px;width:100%}
+  .log{max-height:210px;overflow:auto;display:flex;flex-direction:column;gap:8px}.entry{display:flex;gap:10px;padding:10px 12px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--muted);font-size:13px}.entry b{color:var(--text)}
+  .sceneMsg{position:absolute;left:50%;top:48%;transform:translate(-50%,-50%);padding:14px 18px;border-radius:18px;background:rgba(0,0,0,.42);border:1px solid rgba(255,255,255,.1);font-size:18px;font-weight:900;opacity:0;pointer-events:none;z-index:20;transition:opacity .25s ease, transform .25s ease}
+  .sceneMsg.show{opacity:1;transform:translate(-50%,-50%) scale(1.02)}
+  .endPanel{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(12px);align-items:center;justify-content:center;z-index:100}
+  .endCard{width:min(660px,92vw);border-radius:30px;border:1px solid var(--line);background:linear-gradient(180deg,rgba(12,28,32,.98),rgba(5,10,12,.99));box-shadow:var(--shadow);padding:22px}
+  .endCard h2{margin:0 0 8px;font-size:30px}.endCard p{color:var(--muted);line-height:1.6}.endActions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+  .toast{position:fixed;right:16px;bottom:16px;padding:12px 14px;border-radius:14px;background:rgba(9,22,28,.94);border:1px solid var(--line);box-shadow:var(--shadow);color:var(--text);font-weight:800;opacity:0;transform:translateY(12px);transition:.25s;z-index:200}
+  .toast.show{opacity:1;transform:translateY(0)}
+  .footer{margin-top:16px;text-align:center;color:var(--muted);font-size:12px}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div class="brand">
+        <div class="logo">🕵️</div>
+        <div>
+          <div class="title">Campus Heist: Neon Edition</div>
+          <div class="sub">Colorful, modern, copy-paste ready, and made for your Zephyra games section.</div>
+        </div>
+      </div>
+      <div class="hud">
+        <div class="chip">⏱ <span id="timeText">90</span>s</div>
+        <div class="chip">⭐ <span id="starText">0</span>/3</div>
+        <div class="chip">💬 <span id="clueText">0</span></div>
+        <div class="chip">🪙 <span id="coinText">0</span></div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn" id="pauseBtn">⏸ Pause</button>
+        <button class="btn warn" id="resetBtn">↺ Reset</button>
+        <button class="btn primary" id="startBtn">▶ Start Mission</button>
+      </div>
+    </div>
+
+    <div class="grid stats">
+      <div class="card stat"><div class="ico">🎯</div><div class="val" id="statWins">0</div><div class="lab">Successful Heists</div></div>
+      <div class="card stat"><div class="ico">🧠</div><div class="val" id="statClues">0</div><div class="lab">Clues Solved</div></div>
+      <div class="card stat"><div class="ico">⭐</div><div class="val" id="statStars">0</div><div class="lab">Stars Earned</div></div>
+      <div class="card stat"><div class="ico">🔥</div><div class="val" id="statStreak">0</div><div class="lab">Win Streak</div></div>
+    </div>
+
+    <div class="grid main">
+      <div class="card board-wrap">
+        <div class="h">Interactive Campus Map</div>
+        <div class="board" id="board">
+          <div class="zoneLabel" id="zoneLabel">Library Block</div>
+          <div class="sceneMsg" id="sceneMsg"></div>
+        </div>
+        <div class="bar"><div id="progressBar"></div></div>
+        <div style="color:var(--muted);font-size:13px">Move with arrow keys / WASD. Collect stars, solve clues, unlock the hidden route, then reach the goal.</div>
+      </div>
+      <div class="card missionPanel">
+        <div class="h">Mission Controls</div>
+        <div class="missionLine"><b>Unique style:</b> vivid neon theme, reward shop, story endings, social tricks, and zone-based campus maps.</div>
+        <div class="missionLine"><b>How to play:</b> collect 3 stars, solve 2 clues to unlock the hidden route, and escape through the goal.</div>
+        <div class="choices">
+          <button class="choice" data-talk="lure">Ask for directions</button>
+          <button class="choice" data-talk="joke">Tell a campus joke</button>
+          <button class="choice" data-talk="study">Pretend to study</button>
+          <button class="choice" data-talk="rush">Fake an urgent call</button>
+        </div>
+        <div class="missionLine"><b>Zone:</b>
+          <select id="zoneSel" style="margin-top:8px;width:100%;padding:12px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--text)">
+            <option value="library">Library Block</option>
+            <option value="canteen">Canteen Roof</option>
+            <option value="lab">Lab Wing</option>
+            <option value="hostel">Hostel Path</option>
+          </select>
+        </div>
+        <div class="missionLine"><b>Difficulty:</b>
+          <select id="diffSel" style="margin-top:8px;width:100%;padding:12px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--text)">
+            <option value="easy">Easy</option>
+            <option value="medium">Medium</option>
+            <option value="hard">Hard</option>
+          </select>
+        </div>
+        <div class="missionLine"><b>Rewards shop</b></div>
+        <div class="shop">
+          <div class="item"><b>Shadow Hoodie</b><br><span style="color:var(--muted)">Costs 3 coins</span><button class="btn" data-buy="hoodie">Buy</button></div>
+          <div class="item"><b>Lucky Badge</b><br><span style="color:var(--muted)">Costs 5 coins</span><button class="btn" data-buy="badge">Buy</button></div>
+          <div class="item"><b>Fast Shoes</b><br><span style="color:var(--muted)">Costs 6 coins</span><button class="btn" data-buy="shoes">Buy</button></div>
+          <div class="item"><b>Campus Cape</b><br><span style="color:var(--muted)">Costs 8 coins</span><button class="btn" data-buy="cape">Buy</button></div>
+        </div>
+        <div class="missionLine"><b>Owned skins:</b> <span id="skinsText">None</span></div>
+        <div class="missionLine"><b>Mission log</b></div>
+        <div class="log" id="log"></div>
+      </div>
+    </div>
+
+    <div class="grid bottom">
+      <div class="card"><div class="h">Story / Ending</div><div class="missionLine" id="storyBox">Start the mission to unlock a story ending.</div></div>
+      <div class="card"><div class="h">Tips</div><div class="missionLine" id="tipBox">Use one social trick wisely. Clues unlock the hidden door. Coins buy skins and boost style.</div></div>
+    </div>
+
+    <div class="card" style="margin-top:18px"><div class="h">Collected Rewards</div><div class="missionLine" id="rewardBox">No rewards yet. Finish missions to earn endings and cosmetics.</div></div>
+    <div class="footer">Campus Heist Neon Edition — colorful, modern, and ready to paste into your website.</div>
+  </div>
+
+  <div class="endPanel" id="endPanel"><div class="endCard"><h2 id="endTitle">Mission Complete</h2><p id="endDesc"></p><div class="endActions"><button class="btn primary" id="playAgainBtn">Play Again</button><button class="btn" id="closeEndBtn">Close</button></div></div></div>
+  <div class="toast" id="toast"></div>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const board = $('board');
+  const W = 860, H = 500;
+  const difficulty = { easy:{time:90,speed:3,guard:1.2}, medium:{time:72,speed:4,guard:1.8}, hard:{time:55,speed:5,guard:2.5} };
+  const maps = {
+    library:{ label:'Library Block', theme:'linear-gradient(180deg,#17333a,#09131c)', start:[20,390], goal:[760,28], secret:[470,360], door:[380,230], walls:[[120,40,42,280],[250,0,42,180],[250,250,42,180],[600,30,42,320],[720,140,42,180]], props:[['bench',80,90,52,18],['windowObj',40,20,220,22],['plant',320,360,42,24],['camera',655,70,34,22],['locker',675,275,44,50]], stars:[[70,420],[325,55],[700,330]], clues:[[180,360],[515,30],[650,375]], guards:[[140,170,1],[480,300,-1]], tips:['The library has the best hiding spots.','A secret study door is hidden behind clues.'], endings:{good:'You escaped through the quiet archive stairs — scholar stealth ending.',bad:'The librarian caught you near the archive — silent failure ending.'} },
+    canteen:{ label:'Canteen Roof', theme:'linear-gradient(180deg,#22302a,#09131c)', start:[25,50], goal:[735,370], secret:[455,95], door:[360,220], walls:[[110,70,42,260],[110,360,42,40],[300,40,42,200],[300,280,42,160],[520,0,42,220],[520,260,42,160]], props:[['canteen',180,250,70,18],['plant',640,40,40,24],['windowObj',680,260,62,20],['stairs',590,385,52,22]], stars:[[70,340],[360,340],[700,70]], clues:[[170,75],[450,350],[640,320]], guards:[[240,170,1],[590,205,-1]], tips:['The canteen roof is risky but has quick routes.','Distract the guard with a campus rumor.'], endings:{good:'You slipped out after the canteen rush — social butterfly ending.',bad:'The canteen manager spotted the chaos — snack-time failure ending.'} },
+    lab:{ label:'Lab Wing', theme:'linear-gradient(180deg,#13272d,#09131c)', start:[25,395], goal:[770,40], secret:[430,320], door:[350,200], walls:[[150,0,42,160],[150,260,42,180],[290,70,42,290],[430,0,42,180],[430,260,42,180],[620,60,42,320]], props:[['camera',85,100,40,20],['desk',675,295,62,24],['plant',715,380,38,22],['locker',635,20,44,54]], stars:[[70,60],[390,420],[700,370]], clues:[[210,320],[480,70],[620,375]], guards:[[220,180,1],[555,120,-1]], tips:['The lab has cameras, but they move slowly.','One clue opens the hidden service door.'], endings:{good:'You escaped with a fake experiment report — genius ending.',bad:'Security detected your movement on the lab camera — lab failure ending.'} },
+    hostel:{ label:'Hostel Path', theme:'linear-gradient(180deg,#1d3126,#09131c)', start:[25,200], goal:[760,200], secret:[430,80], door:[380,320], walls:[[150,70,42,140],[150,250,42,120],[340,0,42,160],[340,260,42,180],[540,70,42,140],[540,250,42,120]], props:[['bench2',80,160,60,18],['windowObj',620,140,80,20],['plant',640,320,42,24],['stairs',390,30,56,20]], stars:[[70,40],[370,220],[700,390]], clues:[[200,345],[470,40],[650,40]], guards:[[250,110,1],[590,320,-1]], tips:['The hostel path has the easiest social distractions.','Talk your way through a guard once per mission.'], endings:{good:'You escaped past the hostel crowd — stealth roommate ending.',bad:'A night warden stopped your escape — hostel failure ending.'} }
+  };
+  const state = { running:false, paused:false, time:90, maxTime:90, stars:0, clues:0, coins:0, wins:Number(localStorage.getItem('chu2.wins')||0), totalStars:Number(localStorage.getItem('chu2.stars')||0), totalClues:Number(localStorage.getItem('chu2.clues')||0), streak:Number(localStorage.getItem('chu2.streak')||0), zone:'library', diff:'easy', talkUsed:false, openDoor:false, secretUnlocked:false, rewards:JSON.parse(localStorage.getItem('chu2.rewards')||'[]'), skin:'None' };
+  let player, goal, door, secret, stars=[], clues=[], guards=[], walls=[], props=[], timer;
+  function save(){ localStorage.setItem('chu2.wins', state.wins); localStorage.setItem('chu2.stars', state.totalStars); localStorage.setItem('chu2.clues', state.totalClues); localStorage.setItem('chu2.streak', state.streak); localStorage.setItem('chu2.rewards', JSON.stringify(state.rewards)); }
+  function log(msg){ const e=document.createElement('div'); e.className='entry'; e.innerHTML=`<b>${new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</b><span>${msg}</span>`; $('log').prepend(e); }
+  function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove('show'),1500); }
+  function scene(msg){ const el=$('sceneMsg'); el.textContent=msg; el.classList.add('show'); clearTimeout(scene._t); scene._t=setTimeout(()=>el.classList.remove('show'),1200); }
+  function stats(){ $('timeText').textContent=Math.max(0,Math.ceil(state.time)); $('starText').textContent=state.stars; $('clueText').textContent=state.clues; $('coinText').textContent=state.coins; $('statWins').textContent=state.wins; $('statClues').textContent=state.totalClues; $('statStars').textContent=state.totalStars; $('statStreak').textContent=state.streak; $('progressBar').style.width=((state.maxTime-state.time)/state.maxTime*100).toFixed(1)+'%'; $('skinsText').textContent = state.rewards.length ? state.rewards.join(', ') : 'None'; $('rewardBox').textContent = state.rewards.length ? 'Unlocked: ' + state.rewards.join(', ') : 'No rewards yet. Finish missions to earn endings and cosmetics.'; }
+  function el(cls,x,y,w,h,t=''){ const d=document.createElement('div'); d.className=cls; d.style.left=x+'px'; d.style.top=y+'px'; d.style.width=w+'px'; d.style.height=h+'px'; if(t) d.textContent=t; return d; }
+  function loadZone(){ const z=maps[state.zone]; board.style.background=z.theme; $('zoneLabel').textContent=z.label; player={x:z.start[0],y:z.start[1],w:56,h:56}; goal={x:z.goal[0],y:z.goal[1],w:76,h:76}; secret={x:z.secret[0],y:z.secret[1],w:54,h:54}; door={x:z.door[0],y:z.door[1],w:54,h:54}; walls=z.walls.map(a=>({x:a[0],y:a[1],w:a[2],h:a[3]})); props=z.props.map(([c,x,y,w,h])=>({c,x,y,w,h})); stars=z.stars.map(([x,y])=>({x,y,w:28,h:28,got:false})); clues=z.clues.map(([x,y])=>({x,y,w:22,h:22,got:false})); guards=z.guards.map(([x,y,dir],i)=>({x,y,w:52,h:52,dir,base:y,amp:60+(i*12),phase:Math.random()*6,alert:false})); state.openDoor=false; state.secretUnlocked=false; state.talkUsed=false; $('storyBox').textContent='Start the mission to unlock a story ending.'; $('tipBox').textContent = z.tips[0]; render(); log(`Loaded ${z.label}. Tip: ${z.tips[0]}`); }
+  function render(){ board.innerHTML=''; board.appendChild(el('shadowObj', player.x+10, player.y+42, 34, 12)); walls.forEach(w=>board.appendChild(el('wall',w.x,w.y,w.w,w.h))); props.forEach(p=>board.appendChild(el(p.c,p.x,p.y,p.w,p.h))); if(!state.openDoor) board.appendChild(el('door',door.x,door.y,door.w,door.h,'🚪')); if(state.secretUnlocked) board.appendChild(el('portal',secret.x,secret.y,secret.w,secret.h,'🌀')); board.appendChild(el('goal',goal.x,goal.y,goal.w,goal.h,'🏁')); stars.forEach(s=>{ if(!s.got) board.appendChild(el('trophy',s.x,s.y,s.w,s.h,'★')); }); clues.forEach(c=>{ if(!c.got) board.appendChild(el('hint',c.x,c.y,c.w,c.h,'?')); }); guards.forEach(g=>board.appendChild(el('npc'+(g.alert?' alert':''),g.x,g.y,g.w,g.h,'🕵️'))); board.appendChild(el('player',player.x,player.y,player.w,player.h,state.skin==='Campus Cape'?'🧣':'🧥')); stats(); }
+  function hit(a,b){ return a.x<b.x+b.w && a.x+a.w>b.x && a.y<b.y+b.h && a.y+a.h>b.y; }
+  function blocked(n){ if(n.x<0||n.y<0||n.x+n.w>W||n.y+n.h>H) return true; if(walls.some(w=>hit(n,w))) return true; if(!state.openDoor && hit(n,door)) return true; return false; }
+  function collect(){ stars.forEach(s=>{ if(!s.got && hit(player,s)){ s.got=true; state.stars++; state.totalStars++; state.coins++; log('Star collected +1 coin.'); scene('Star found!'); } }); clues.forEach(c=>{ if(!c.got && hit(player,c)){ c.got=true; state.clues++; state.totalClues++; state.coins++; if(state.clues>=2) state.secretUnlocked=true; log('Clue solved +1 coin.'); scene('Clue solved!'); } }); if(!state.openDoor && state.secretUnlocked && hit(player,door)) { state.openDoor=true; log('Secret door unlocked!'); scene('Hidden route open!'); } }
+  function danger(){ guards.forEach(g=>{ g.alert = Math.abs(player.x-g.x)<110 && Math.abs(player.y-g.y)<95; if(hit(player,g)){ end(false,'Caught by campus patrol.'); } }); }
+  function endingText(win){ const z=maps[state.zone]; return win ? z.endings.good : z.endings.bad; }
+  function winCheck(){ if(state.openDoor && hit(player,goal)){ end(true,'Goal reached!'); } }
+  function move(dx,dy){ if(!state.running||state.paused) return; const sp=difficulty[state.diff].speed; const n={...player,x:player.x+dx*sp,y:player.y+dy*sp}; if(!blocked(n)) player=n; collect(); danger(); winCheck(); render(); }
+  function talk(type){ if(!state.running||state.paused) return; if(state.talkUsed){ log('You already used your one social trick this mission.'); toast('Social trick already used'); return; } state.talkUsed=true; const g=guards[Math.floor(Math.random()*guards.length)]; g.alert=false; g.x = Math.max(60, Math.min(W-110, g.x + (type==='rush'?120:type==='joke'?-90:type==='study'?60:-60))); state.time += 4; state.coins += 1; log(type==='lure' ? 'You asked for directions and slipped away.' : type==='joke' ? 'The guard laughed and turned around.' : type==='study' ? 'You pretended to study. Very convincing.' : 'Fake urgent call! The route cleared briefly.'); toast('Social trick used! +1 coin'); render(); }
+  function buy(item){ const price = {hoodie:3,badge:5,shoes:6,cape:8}[item]; const name = {hoodie:'Shadow Hoodie',badge:'Lucky Badge',shoes:'Fast Shoes',cape:'Campus Cape'}[item]; if(state.rewards.includes(name)){ toast('Already owned.'); return; } if(state.coins < price){ toast('Not enough coins.'); return; } state.coins -= price; state.rewards.push(name); state.skin = name; save(); log(`Bought ${name}.`); toast(`${name} unlocked!`); stats(); render(); }
+  function end(win,msg){ state.running=false; clearInterval(timer); if(win){ state.wins++; state.streak++; state.coins += 2; save(); $('storyBox').textContent = endingText(true); log(msg); if(!state.rewards.includes('Victory Poster')) state.rewards.push('Victory Poster'); } else { state.streak=0; save(); $('storyBox').textContent = endingText(false); log(msg); } $('endTitle').textContent = win ? 'Mission Complete' : 'Mission Failed'; $('endDesc').textContent = `${endingText(win)} You finished with ${state.coins} coins, ${state.stars} stars, and ${state.clues} clues.`; $('endPanel').style.display='flex'; stats(); }
+  function tick(){ if(!state.running||state.paused) return; state.time-=0.18; if(state.time<=0){ state.time=0; end(false,'Time up. Mission failed.'); } guards.forEach(g=>{ g.y = g.base + Math.sin(Date.now()/480 + g.phase)*g.amp; g.x += g.dir * difficulty[state.diff].guard; if(g.x<50||g.x>W-100) g.dir*=-1; }); danger(); winCheck(); render(); }
+  document.addEventListener('keydown', e=>{ const k=e.key.toLowerCase(); if(['arrowup','w'].includes(k)) move(0,-1); if(['arrowdown','s'].includes(k)) move(0,1); if(['arrowleft','a'].includes(k)) move(-1,0); if(['arrowright','d'].includes(k)) move(1,0); });
+  $('startBtn').onclick=()=>{ if(state.running){ state.paused=false; $('pauseBtn').textContent='⏸ Pause'; return; } state.zone=$('zoneSel').value; state.diff=$('diffSel').value; state.time=state.maxTime=difficulty[state.diff].time; state.stars=0; state.clues=0; state.coins=0; state.running=true; state.paused=false; state.talkUsed=false; $('endPanel').style.display='none'; loadZone(); $('startBtn').textContent='▶ Running'; log('Mission started. Use one social trick wisely.'); clearInterval(timer); timer=setInterval(tick,200); stats(); };
+  $('pauseBtn').onclick=()=>{ if(!state.running) return; state.paused=!state.paused; $('pauseBtn').textContent=state.paused?'▶ Resume':'⏸ Pause'; log(state.paused?'Mission paused.':'Mission resumed.'); };
+  $('resetBtn').onclick=()=>{ state.running=false; state.paused=false; clearInterval(timer); state.time=difficulty[state.diff].time; state.maxTime=state.time; state.stars=0; state.clues=0; state.coins=0; loadZone(); $('startBtn').textContent='▶ Start Mission'; $('endPanel').style.display='none'; log('Reset complete.'); };
+  $('playAgainBtn').onclick=()=>{$('endPanel').style.display='none';}; $('closeEndBtn').onclick=()=>{$('endPanel').style.display='none';};
+  $('zoneSel').onchange=()=>{ state.zone=$('zoneSel').value; if(!state.running) loadZone(); };
+  $('diffSel').onchange=()=>{ state.diff=$('diffSel').value; if(!state.running){ state.time=state.maxTime=difficulty[state.diff].time; stats(); } };
+  document.querySelectorAll('.choice').forEach(b=>b.onclick=()=>talk(b.dataset.talk));
+  document.querySelectorAll('[data-buy]').forEach(b=>b.onclick=()=>buy(b.dataset.buy));
+  loadZone(); stats(); log('Neon edition ready for Zephyra.');
+})();
+</script>
+</body>
+</html>
