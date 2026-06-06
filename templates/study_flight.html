@@ -6,13 +6,27 @@
 <title>Study Flight Ultimate</title>
 <style>
   :root{
-    --text:#f6fbf8; --muted:#a9c0c7; --accent:#72f0b6; --accent2:#7bd8ff; --gold:#ffd36b; --danger:#ff7d7d;
-    --line:rgba(255,255,255,.12); --glass:rgba(255,255,255,.10); --glass2:rgba(255,255,255,.06);
+    --text:#0e1116;
+    --muted:#374151;
+    --accent:#72f0b6;
+    --accent2:#7bd8ff;
+    --gold:#ffd36b;
+    --danger:#ff7d7d;
+    --line:rgba(0,0,0,.10);
+    --glass:rgba(255,255,255,.70);
+    --glass2:rgba(255,255,255,.48);
     --shadow:0 28px 70px rgba(0,0,0,.42);
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%}
-  body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;overflow:hidden;color:var(--text);background:#06131d}
+  body{
+    font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    overflow:hidden;
+    color:var(--text);
+    background:#06131d;
+    height:100vh;
+    width:100vw;
+  }
   .scene{position:fixed;inset:0;overflow:hidden}
   .sky{position:absolute;inset:0;background:linear-gradient(180deg,#76cfff 0%,#d5f2ff 18%,#edf9ff 34%,#b8e7ff 52%,#5aa8d8 74%,#23435f 100%)}
   .sun{position:absolute;top:8%;left:11%;width:130px;height:130px;border-radius:50%;background:radial-gradient(circle,#fff7cc 0%,#ffd36b 42%,rgba(255,211,107,.12) 70%,transparent 72%);box-shadow:0 0 90px rgba(255,211,107,.55);animation:floatSun 12s ease-in-out infinite}
@@ -38,7 +52,10 @@
   @keyframes planeFly{0%{transform:translate(0,0) rotate(8deg)}35%{transform:translate(46vw,-5vh) rotate(7deg)}70%{transform:translate(92vw,-2vh) rotate(6deg)}100%{transform:translate(132vw,0) rotate(4deg)}}
   .mountains{position:absolute;left:0;right:0;bottom:0;height:58vh}
   .mountain{position:absolute;bottom:0;width:0;height:0;border-left:24vw solid transparent;border-right:24vw solid transparent;border-bottom:44vh solid #3f5b5f;filter:drop-shadow(0 -10px 20px rgba(0,0,0,.18));animation:slowFloat 10s ease-in-out infinite}
-  .mountain.m1{left:-2vw;border-bottom-color:#48686c;transform:scale(1.1);z-index:1}.mountain.m2{left:18vw;border-bottom-color:#34515a;transform:scale(1.25);z-index:2}.mountain.m3{left:42vw;border-bottom-color:#27404b;transform:scale(1.35);z-index:3}.mountain.m4{left:66vw;border-bottom-color:#3a5864;transform:scale(1.18);z-index:2}
+  .mountain.m1{left:-2vw;border-bottom-color:#48686c;transform:scale(1.1);z-index:1}
+  .mountain.m2{left:18vw;border-bottom-color:#34515a;transform:scale(1.25);z-index:2}
+  .mountain.m3{left:42vw;border-bottom-color:#27404b;transform:scale(1.35);z-index:3}
+  .mountain.m4{left:66vw;border-bottom-color:#3a5864;transform:scale(1.18);z-index:2}
   .mountain:after{content:'';position:absolute;left:-6vw;top:5vh;width:0;height:0;border-left:10vw solid transparent;border-right:10vw solid transparent;border-bottom:16vh solid rgba(255,255,255,.72);clip-path:polygon(50% 0,0 100%,100% 100%);opacity:.8}
   .ridge{position:absolute;left:-5%;right:-5%;bottom:12vh;height:24vh;background:linear-gradient(180deg,#5e7a5e,#34513f 60%,#22352a);clip-path:polygon(0 58%, 10% 50%, 19% 56%, 29% 45%, 40% 54%, 50% 42%, 60% 50%, 70% 39%, 80% 48%, 90% 42%, 100% 50%, 100% 100%, 0 100%);z-index:4;animation:ridgeMove 14s ease-in-out infinite}
   @keyframes ridgeMove{0%,100%{transform:translateX(0)}50%{transform:translateX(8px)}}
@@ -53,57 +70,57 @@
   @keyframes waterMove{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
   @keyframes waterFlow{from{transform:translateX(0)}to{transform:translateX(80px)}}
   .overlay{position:fixed;inset:0;background:linear-gradient(180deg, rgba(3,10,15,.08), rgba(3,10,15,.28) 75%, rgba(3,10,15,.62));pointer-events:none}
-  .app{position:relative;z-index:10;width:min(1400px,100%);height:100%;display:flex;align-items:center;justify-content:center;padding:18px}
-  .layout{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
-  .hero{grid-column:1 / -1;background:rgba(255,255,255,.08);border:1px solid var(--line);border-radius:30px;padding:18px 20px;box-shadow:var(--shadow);backdrop-filter:blur(16px)}
+  .app{position:relative;z-index:10;width:100vw;height:100vh;display:flex;align-items:center;justify-content:center;padding:12px;overflow:hidden}
+  .layout{width:100%;height:100%;display:grid;grid-template-columns:minmax(320px,.95fr) minmax(360px,1.05fr);gap:12px;align-items:stretch}
+  .hero{grid-column:1 / -1;background:rgba(255,255,255,.60);border:1px solid var(--line);border-radius:26px;padding:14px 18px;box-shadow:var(--shadow);backdrop-filter:blur(16px)}
   .topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
   .brand{display:flex;align-items:center;gap:14px}
   .logo{width:58px;height:58px;border-radius:20px;display:grid;place-items:center;background:linear-gradient(135deg, rgba(123,216,255,.24), rgba(115,240,182,.24));border:1px solid rgba(255,255,255,.14);font-size:28px;box-shadow:0 12px 30px rgba(0,0,0,.18)}
   .title{font-size:clamp(24px,4vw,38px);font-weight:950;letter-spacing:-.04em}
-  .subtitle{font-size:13px;color:var(--muted);margin-top:4px;line-height:1.55;max-width:800px}
-  .badge{padding:10px 14px;border-radius:999px;background:linear-gradient(135deg,var(--accent),#2dc08a);color:#032017;font-weight:900;font-size:12px;white-space:nowrap;box-shadow:0 10px 26px rgba(0,0,0,.18)}
+  .subtitle{font-size:13px;color:#1f2937;margin-top:4px;line-height:1.55;max-width:800px}
+  .badge{padding:10px 14px;border-radius:999px;background:linear-gradient(135deg,var(--accent),#2dc08a);color:#07110d;font-weight:900;font-size:12px;white-space:nowrap;box-shadow:0 10px 26px rgba(0,0,0,.18)}
   .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-  .stat{background:rgba(255,255,255,.08);border:1px solid var(--line);border-radius:22px;padding:14px 16px;backdrop-filter:blur(10px);box-shadow:var(--shadow)}
-  .stat .k{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
+  .stat{background:rgba(255,255,255,.70);border:1px solid rgba(0,0,0,.10);border-radius:22px;padding:14px 16px;backdrop-filter:blur(10px);box-shadow:var(--shadow)}
+  .stat .k{font-size:11px;color:#4b5563;text-transform:uppercase;letter-spacing:.12em}
   .stat .v{font-size:24px;font-weight:950;margin-top:6px}
-  .panel{background:rgba(255,255,255,.08);border:1px solid var(--line);border-radius:28px;box-shadow:var(--shadow);backdrop-filter:blur(16px);overflow:hidden}
-  .section{padding:18px}
+  .panel{background:rgba(255,255,255,.70);border:1px solid rgba(0,0,0,.10);border-radius:26px;box-shadow:var(--shadow);backdrop-filter:blur(16px);overflow:hidden;min-height:0}
+  .section{padding:14px}
   .section + .section{border-top:1px solid var(--line)}
-  .section h2{font-size:18px;margin-bottom:10px}
-  .helper{font-size:13px;color:var(--muted);line-height:1.55;margin-bottom:14px}
-  .grid-places{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-  .card-btn{border:none;text-align:left;border-radius:22px;padding:16px;cursor:pointer;color:var(--text);background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.05));border:1px solid rgba(255,255,255,.10);transition:.18s transform,.18s box-shadow,.18s border-color;min-height:112px;position:relative;overflow:hidden}
+  .section h2{font-size:18px;margin-bottom:8px}
+  .helper{font-size:13px;color:#374151;line-height:1.45;margin-bottom:10px}
+  .grid-places{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+  .card-btn{border:none;text-align:left;border-radius:20px;padding:14px;cursor:pointer;color:var(--text);background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.05));border:1px solid rgba(255,255,255,.10);transition:.18s transform,.18s box-shadow,.18s border-color;min-height:96px;position:relative;overflow:hidden}
   .card-btn:hover{transform:translateY(-3px);box-shadow:0 16px 30px rgba(0,0,0,.25)}
   .card-btn.selected{border-color:rgba(123,216,255,.95);box-shadow:0 0 0 3px rgba(123,216,255,.14),0 16px 30px rgba(0,0,0,.25)}
   .emoji{font-size:30px;display:block;margin-bottom:10px}
   .place-name{font-size:16px;font-weight:900}
-  .place-desc{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.45}
-  .time-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-  .slot{border:none;border-radius:18px;padding:14px 12px;cursor:pointer;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.10);color:var(--text);font-weight:900;font-size:14px;transition:.18s transform,.18s border-color,.18s box-shadow}
+  .place-desc{font-size:12px;color:#374151;margin-top:4px;line-height:1.45}
+  .time-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .slot{border:none;border-radius:18px;padding:14px 12px;cursor:pointer;background:rgba(255,255,255,.76);border:1px solid rgba(0,0,0,.10);color:var(--text);font-weight:900;font-size:14px;transition:.18s transform,.18s border-color,.18s box-shadow}
   .slot:hover{transform:translateY(-2px);box-shadow:0 12px 20px rgba(0,0,0,.20)}
   .slot.selected{border-color:rgba(115,240,182,.95);box-shadow:0 0 0 3px rgba(115,240,182,.12)}
-  .inputs{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  .field{display:flex;flex-direction:column;gap:8px}
-  .field label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
-  input, select{width:100%;padding:14px 16px;border-radius:18px;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.07);color:var(--text);outline:none;font-size:14px}
+  .inputs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .field{display:flex;flex-direction:column;gap:6px}
+  .field label{font-size:11px;color:#4b5563;text-transform:uppercase;letter-spacing:.12em}
+  input, select{width:100%;padding:12px 14px;border-radius:16px;border:1px solid rgba(0,0,0,.10);background:rgba(255,255,255,.78);color:var(--text);outline:none;font-size:14px}
   input::placeholder{color:#758f8a}
   .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
   .btn{border:none;border-radius:18px;padding:13px 16px;font-weight:950;cursor:pointer;transition:.18s transform,.18s opacity;box-shadow:0 12px 24px rgba(0,0,0,.18)}
   .btn:hover{transform:translateY(-2px)}
-  .btn.primary{background:linear-gradient(135deg,var(--accent),#2cbc84);color:#022019}
-  .btn.secondary{background:rgba(255,255,255,.08);color:var(--text);border:1px solid rgba(255,255,255,.10)}
-  .ticket{padding:18px}
-  .ticket-shell{background:linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.05));border:1px solid rgba(255,255,255,.13);border-radius:28px;overflow:hidden;box-shadow:0 16px 34px rgba(0,0,0,.24)}
-  .ticket-topbar{display:flex;justify-content:space-between;align-items:center;padding:16px 18px;background:linear-gradient(135deg, rgba(115,240,182,.14), rgba(123,216,255,.10));border-bottom:1px solid rgba(255,255,255,.10)}
-  .airline{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+  .btn.primary{background:linear-gradient(135deg,var(--accent),#2cbc84);color:#07110d}
+  .btn.secondary{background:rgba(255,255,255,.78);color:var(--text);border:1px solid rgba(0,0,0,.10)}
+  .ticket{padding:14px;display:flex;flex-direction:column;min-height:0}
+  .ticket-shell{background:linear-gradient(180deg, rgba(255,255,255,.72), rgba(255,255,255,.48));border:1px solid rgba(0,0,0,.10);border-radius:26px;overflow:hidden;box-shadow:0 16px 34px rgba(0,0,0,.24)}
+  .ticket-topbar{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:linear-gradient(135deg, rgba(115,240,182,.14), rgba(123,216,255,.10));border-bottom:1px solid rgba(255,255,255,.10)}
+  .airline{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#374151}
   .airline-name{font-size:18px;font-weight:950;margin-top:4px}
-  .boarding{padding:0;display:grid;grid-template-columns:1.18fr .82fr;gap:0}
-  .ticket-main{padding:18px;display:grid;gap:14px}
-  .ticket-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-  .info{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);border-radius:18px;padding:12px}
-  .info .k{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
+  .boarding{padding:0;display:grid;grid-template-columns:1.12fr .88fr;gap:0;flex:1;min-height:0}
+  .ticket-main{padding:16px;display:grid;gap:12px;min-height:0}
+  .ticket-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+  .info{background:rgba(255,255,255,.78);border:1px solid rgba(0,0,0,.10);border-radius:16px;padding:10px;min-width:0}
+  .info .k{font-size:11px;color:#4b5563;text-transform:uppercase;letter-spacing:.12em}
   .info .v{margin-top:7px;font-size:16px;font-weight:900;line-height:1.35}
-  .qr{display:grid;place-items:center;min-height:100%;background:radial-gradient(circle at 50% 30%, rgba(255,255,255,.08), rgba(255,255,255,.03));border-left:1px dashed rgba(255,255,255,.14);padding:16px}
+  .qr{display:grid;place-items:center;min-height:100%;background:radial-gradient(circle at 50% 30%, rgba(255,255,255,.08), rgba(255,255,255,.03));border-left:1px dashed rgba(255,255,255,.14);padding:12px}
   .qr-box{width:160px;height:160px;border-radius:18px;background:
       linear-gradient(90deg,#fff 10px,transparent 10px) 0 0/20px 20px,
       linear-gradient(#fff 10px,transparent 10px) 0 0/20px 20px,
@@ -111,31 +128,46 @@
       linear-gradient(-45deg,#000 25%,transparent 25%) 0 0/20px 20px,
       linear-gradient(135deg,#fff 25%,#000 25%,#000 50%,transparent 50%,transparent 75%,#fff 75%);
       border:10px solid rgba(255,255,255,.92); box-shadow:inset 0 0 0 6px rgba(0,0,0,.08); opacity:.9}
-  .qr-text{margin-top:12px;text-align:center;font-size:12px;color:var(--muted);line-height:1.45}
+  .qr-text{margin-top:12px;text-align:center;font-size:12px;color:#374151;line-height:1.45}
   .cut{height:18px;position:relative;background:repeating-linear-gradient(90deg, transparent 0 12px, rgba(255,255,255,.16) 12px 24px)}
   .cut:before,.cut:after{content:'';position:absolute;top:50%;transform:translateY(-50%);width:18px;height:18px;border-radius:50%;background:#0c1721;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
   .cut:before{left:-9px}.cut:after{right:-9px}
   .barcode{margin-top:10px;height:68px;border-radius:14px;background:repeating-linear-gradient(90deg,#fff 0 3px, transparent 3px 8px);opacity:.88;border:1px solid rgba(255,255,255,.1)}
-  .timeline{margin-top:14px;padding:16px;border-radius:22px;background:linear-gradient(135deg, rgba(115,240,182,.10), rgba(123,216,255,.08));border:1px solid rgba(115,240,182,.16)}
-  .timer-label{font-size:12px;color:var(--muted)}
+  .timeline{margin-top:10px;padding:14px;border-radius:22px;background:linear-gradient(135deg, rgba(115,240,182,.20), rgba(123,216,255,.18));border:1px solid rgba(0,0,0,.10)}
+  .timer-label{font-size:12px;color:#374151}
   .timer-wrap{display:grid;place-items:center;margin-top:4px}
   .ring{width:min(280px,100%);aspect-ratio:1;border-radius:50%;background:conic-gradient(var(--accent) 0deg,var(--accent2) 120deg,#ffffff12 120deg 360deg);padding:12px;box-shadow:0 12px 30px rgba(0,0,0,.22)}
   .ring-inner{width:100%;height:100%;border-radius:50%;background:radial-gradient(circle at 30% 20%, rgba(255,255,255,.08), rgba(255,255,255,.03) 50%, rgba(0,0,0,.08) 100%);border:1px solid rgba(255,255,255,.10);display:flex;align-items:center;justify-content:center;flex-direction:column;position:relative;overflow:hidden}
   .ring-inner:before{content:'';position:absolute;inset:18px;border-radius:50%;border:1px dashed rgba(255,255,255,.12)}
   .timer{font-size:54px;font-weight:950;letter-spacing:.04em;color:var(--gold);line-height:1;z-index:1;text-shadow:0 0 24px rgba(255,211,107,.28)}
-  .timer-sub{font-size:12px;color:var(--muted);margin-top:8px;z-index:1}
+  .timer-sub{font-size:12px;color:#374151;margin-top:8px;z-index:1}
   .progress{height:12px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden;margin-top:14px}
   .bar{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:999px;transition:width .25s}
   .phases{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
-  .phase{padding:12px;border-radius:16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);text-align:center}
-  .phase .k{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
+  .phase{padding:12px;border-radius:16px;background:rgba(255,255,255,.78);border:1px solid rgba(0,0,0,.10);text-align:center}
+  .phase .k{font-size:11px;color:#4b5563;text-transform:uppercase;letter-spacing:.12em}
   .phase .v{margin-top:6px;font-size:14px;font-weight:900}
   .phase.active{border-color:rgba(255,211,107,.9);box-shadow:0 0 0 3px rgba(255,211,107,.12)}
-  .log{margin-top:14px;display:grid;gap:10px}
-  .log-item{padding:13px 14px;border-radius:18px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);line-height:1.5;color:#e9fbf7}
-  .mini{font-size:12px;color:var(--muted)}
-  @media (max-width: 1100px){.layout{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}.boarding{grid-template-columns:1fr}.qr{border-left:none;border-top:1px dashed rgba(255,255,255,.14)}}
-  @media (max-width: 640px){.grid-places,.time-row,.ticket-grid,.inputs,.phases{grid-template-columns:1fr}.topbar{flex-direction:column;align-items:flex-start}.stats{grid-template-columns:1fr 1fr}.timer{font-size:44px}.ring{width:min(260px,100%)}}
+  .log{margin-top:10px;display:grid;gap:8px}
+  .log-item{padding:11px 12px;border-radius:16px;background:rgba(255,255,255,.78);border:1px solid rgba(0,0,0,.10);line-height:1.4;color:#0e1116;font-size:13px}
+  @media (max-width: 1100px){
+    body{overflow:auto}
+    .app{height:auto;min-height:100vh}
+    .layout{grid-template-columns:1fr;height:auto}
+    .stats{grid-template-columns:repeat(2,1fr)}
+    .boarding{grid-template-columns:1fr}
+    .qr{border-left:none;border-top:1px dashed rgba(255,255,255,.14)}
+  }
+  @media (max-width: 640px){
+    body{overflow:auto}
+    .app{padding:10px}
+    .grid-places,.time-row,.ticket-grid,.inputs,.phases{grid-template-columns:1fr}
+    .topbar{flex-direction:column;align-items:flex-start}
+    .stats{grid-template-columns:1fr 1fr}
+    .timer{font-size:44px}
+    .ring{width:min(260px,100%)}
+    .hero,.panel,.ticket-shell{border-radius:22px}
+  }
 </style>
 </head>
 <body>
@@ -160,7 +192,7 @@
             <div class="logo">✈️</div>
             <div>
               <div class="title">Study Flight Ultimate</div>
-              <div class="subtitle">Choose where you want to study, book a flight with departure and takeoff place, date and time, and follow a real-looking ticket with break timer and mountain-view scenery.</div>
+              <div class="subtitle">Choose where you want to study, book a flight with departure and takeoff place, date and time, and follow a real-looking ticket with break timer and mountain-view scenery. It now scales to fit the screen better.</div>
             </div>
           </div>
           <div class="badge" id="statusBadge">Ready for departure</div>
@@ -241,7 +273,14 @@
 
         <div class="timeline">
           <div class="timer-label" id="timerLabel">Airport-style timer appears after booking</div>
-          <div class="timer-wrap"><div class="ring"><div class="ring-inner"><div class="timer" id="timer">00:00</div><div class="timer-sub" id="timerSub">Waiting for boarding</div></div></div></div>
+          <div class="timer-wrap">
+            <div class="ring">
+              <div class="ring-inner">
+                <div class="timer" id="timer">00:00</div>
+                <div class="timer-sub" id="timerSub">Waiting for boarding</div>
+              </div>
+            </div>
+          </div>
           <div class="progress"><div class="bar" id="progressBar"></div></div>
           <div class="phases">
             <div class="phase active" id="phaseStudy"><div class="k">Phase 1</div><div class="v">Study</div></div>
@@ -282,8 +321,43 @@ let flightNo = 'ST-000', gate = 'A12', seat = '12A';
 const now = new Date();
 const pad = n => String(n).padStart(2,'0');
 const els = {
-  placeGrid: document.getElementById('placeGrid'), timeGrid: document.getElementById('timeGrid'), fromInput: document.getElementById('fromInput'), takeoffInput: document.getElementById('takeoffInput'), dateInput: document.getElementById('dateInput'), timeInput: document.getElementById('timeInput'), subjectInput: document.getElementById('subjectInput'), noteInput: document.getElementById('noteInput'), startBtn: document.getElementById('startBtn'), resetBtn: document.getElementById('resetBtn'), statusBadge: document.getElementById('statusBadge'), gateName: document.getElementById('gateName'), airlineName: document.getElementById('airlineName'), summaryFlight: document.getElementById('summaryFlight'), summaryFrom: document.getElementById('summaryFrom'), summaryPlace: document.getElementById('summaryPlace'), summaryDate: document.getElementById('summaryDate'), summaryTime: document.getElementById('summaryTime'), summarySubject: document.getElementById('summarySubject'), summarySeat: document.getElementById('summarySeat'), timerLabel: document.getElementById('timerLabel'), timer: document.getElementById('timer'), timerSub: document.getElementById('timerSub'), progressBar: document.getElementById('progressBar'), phaseStudy: document.getElementById('phaseStudy'), phaseBreak: document.getElementById('phaseBreak'), phaseReturn: document.getElementById('phaseReturn'), sessions: document.getElementById('sessions'), points: document.getElementById('points'), streak: document.getElementById('streak'), bestTrip: document.getElementById('bestTrip'), log1: document.getElementById('log1'), log2: document.getElementById('log2'), log3: document.getElementById('log3') };
-els.dateInput.value = now.toISOString().split('T')[0]; els.timeInput.value = `${pad((now.getHours()+1)%24)}:${pad(now.getMinutes())}`;
+  placeGrid: document.getElementById('placeGrid'),
+  timeGrid: document.getElementById('timeGrid'),
+  fromInput: document.getElementById('fromInput'),
+  takeoffInput: document.getElementById('takeoffInput'),
+  dateInput: document.getElementById('dateInput'),
+  timeInput: document.getElementById('timeInput'),
+  subjectInput: document.getElementById('subjectInput'),
+  noteInput: document.getElementById('noteInput'),
+  startBtn: document.getElementById('startBtn'),
+  resetBtn: document.getElementById('resetBtn'),
+  statusBadge: document.getElementById('statusBadge'),
+  gateName: document.getElementById('gateName'),
+  airlineName: document.getElementById('airlineName'),
+  summaryFlight: document.getElementById('summaryFlight'),
+  summaryFrom: document.getElementById('summaryFrom'),
+  summaryPlace: document.getElementById('summaryPlace'),
+  summaryDate: document.getElementById('summaryDate'),
+  summaryTime: document.getElementById('summaryTime'),
+  summarySubject: document.getElementById('summarySubject'),
+  summarySeat: document.getElementById('summarySeat'),
+  timerLabel: document.getElementById('timerLabel'),
+  timer: document.getElementById('timer'),
+  timerSub: document.getElementById('timerSub'),
+  progressBar: document.getElementById('progressBar'),
+  phaseStudy: document.getElementById('phaseStudy'),
+  phaseBreak: document.getElementById('phaseBreak'),
+  phaseReturn: document.getElementById('phaseReturn'),
+  sessions: document.getElementById('sessions'),
+  points: document.getElementById('points'),
+  streak: document.getElementById('streak'),
+  bestTrip: document.getElementById('bestTrip'),
+  log1: document.getElementById('log1'),
+  log2: document.getElementById('log2'),
+  log3: document.getElementById('log3')
+};
+els.dateInput.value = now.toISOString().split('T')[0];
+els.timeInput.value = `${pad((now.getHours()+1)%24)}:${pad(now.getMinutes())}`;
 function renderPlaces(){ els.placeGrid.innerHTML=''; places.forEach(p=>{ const btn=document.createElement('button'); btn.className='card-btn'+(selectedPlace===p.name?' selected':''); btn.innerHTML=`<span class='emoji'>${p.emoji}</span><div class='place-name'>${p.name}</div><div class='place-desc'>${p.desc}</div>`; btn.onclick=()=>{ selectedPlace=p.name; renderPlaces(); updateSummary(); }; els.placeGrid.appendChild(btn); }); }
 function renderTimes(){ els.timeGrid.innerHTML=''; times.forEach(t=>{ const btn=document.createElement('button'); btn.className='slot'+(selectedTime===t?' selected':''); btn.textContent=`${t} min`; btn.onclick=()=>{ selectedTime=t; renderTimes(); updateSummary(); }; els.timeGrid.appendChild(btn); }); }
 function updateStats(){ els.sessions.textContent=sessions; els.points.textContent=points; els.streak.textContent=streak; els.bestTrip.textContent=bestTrip; }
@@ -295,7 +369,8 @@ function setIdleUI(){ bookingActive=false; clearInterval(timer); els.statusBadge
 function startSession(){ if(!selectedPlace) return alert('Please select a study destination first.'); const subject=els.subjectInput.value.trim(); if(!subject) return alert('Please enter a subject.'); bookingActive=true; sessions+=1; points+=selectedTime*2; streak+=1; bestTrip=bestTrip==='—'?`${selectedTime} min`:(selectedTime<Number(bestTrip)?`${selectedTime} min`:bestTrip); flightNo=`ST-${Math.floor(100+Math.random()*900)}`; gate=gates[Math.floor(Math.random()*gates.length)]; seat=seats[Math.floor(Math.random()*seats.length)]; localStorage.setItem('study_sessions', sessions); localStorage.setItem('study_points', points); localStorage.setItem('study_streak', streak); localStorage.setItem('study_best_trip', bestTrip); totalMs=selectedTime*60*1000; endAt=Date.now()+totalMs; els.statusBadge.textContent='Boarding'; updateStats(); updateSummary(); clearInterval(timer); timer=setInterval(()=>{ const left=endAt-Date.now(); const done=left<=0; els.timer.textContent=done?'00:00':fmt(left); const pct=done?100:((totalMs-left)/totalMs)*100; els.progressBar.style.width=Math.min(100,Math.max(0,pct))+'%'; const phase=phaseName(left); setPhase(phase); if(phase==='study'){ els.timerLabel.textContent='Study phase'; els.timerSub.textContent='Focus on your subject'; els.log1.innerHTML='<strong>Study phase:</strong> Work on notes, problems, or reading with full focus.'; els.log2.textContent='Stay locked in until the break phase begins.'; } else if(phase==='break'){ els.timerLabel.textContent='Break phase'; els.timerSub.textContent='Rest, stretch, hydrate'; els.log1.innerHTML='<strong>Break phase:</strong> Stand up, stretch, drink water, or take a short walk.'; els.log2.textContent='This pause helps your mind reset before landing.'; } else { els.timerLabel.textContent='Wrap-up phase'; els.timerSub.textContent='Review and land'; els.log1.innerHTML='<strong>Wrap-up:</strong> Review what you studied and prepare for the next session.'; els.log2.textContent='A quick recap makes the trip more useful.'; }
     if(done){ clearInterval(timer); bookingActive=false; els.statusBadge.textContent='Session complete'; els.timerLabel.textContent='Boarding complete — flight landed'; els.timerSub.textContent='Great job — session complete'; els.log3.textContent=`Great job! You earned ${selectedTime*2} points and completed the trip.`; setPhase('return'); }
   }, 1000); }
-els.startBtn.onclick=startSession; els.resetBtn.onclick=()=>{ selectedPlace=null; selectedTime=25; els.subjectInput.value=''; els.noteInput.value=''; sessions=Number(localStorage.getItem('study_sessions')||0); points=Number(localStorage.getItem('study_points')||0); streak=Number(localStorage.getItem('study_streak')||0); bestTrip=localStorage.getItem('study_best_trip')||'—'; flightNo='ST-000'; gate='A12'; seat='12A'; els.fromInput.value='Mountain Base'; els.takeoffInput.value='Cloud Peak'; els.dateInput.value=now.toISOString().split('T')[0]; els.timeInput.value=`${pad((now.getHours()+1)%24)}:${pad(now.getMinutes())}`; updateStats(); renderPlaces(); renderTimes(); setIdleUI(); els.log1.innerHTML='<strong>Tip:</strong> The ticket now includes departure, takeoff place, date, time, barcode, and QR look.'; els.log2.textContent='Use the break to reset your mind before landing.'; els.log3.textContent='You can earn points after each completed flight itinerary.'; };
+els.startBtn.onclick=startSession;
+els.resetBtn.onclick=()=>{ selectedPlace=null; selectedTime=25; els.subjectInput.value=''; els.noteInput.value=''; sessions=Number(localStorage.getItem('study_sessions')||0); points=Number(localStorage.getItem('study_points')||0); streak=Number(localStorage.getItem('study_streak')||0); bestTrip=localStorage.getItem('study_best_trip')||'—'; flightNo='ST-000'; gate='A12'; seat='12A'; els.fromInput.value='Mountain Base'; els.takeoffInput.value='Cloud Peak'; els.dateInput.value=now.toISOString().split('T')[0]; els.timeInput.value=`${pad((now.getHours()+1)%24)}:${pad(now.getMinutes())}`; updateStats(); renderPlaces(); renderTimes(); setIdleUI(); els.log1.innerHTML='<strong>Tip:</strong> The ticket now includes departure, takeoff place, date, time, barcode, and QR look.'; els.log2.textContent='Use the break to reset your mind before landing.'; els.log3.textContent='You can earn points after each completed flight itinerary.'; };
 ['fromInput','takeoffInput','dateInput','timeInput','subjectInput','noteInput'].forEach(id=>els[id].addEventListener('input', updateSummary));
 renderPlaces(); renderTimes(); updateStats(); setIdleUI();
 </script>
