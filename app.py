@@ -257,86 +257,65 @@ def verify_challenge_photo(filepath, challenge_title):
 
 # -------------------- WELCOME EMAIL --------------------
 def send_welcome_email(to_email, user_name):
-    """Send welcome pamphlet image to newly registered user."""
     try:
+        import sendgrid
+        from sendgrid.helpers.mail import Mail, Attachment, FileContent, FileName, FileType, Disposition, ContentId
+        import base64
+
+        sg = sendgrid.SendGridAPIClient(api_key=os.environ.get("SENDGRID_API_KEY"))
+
         html_body = f"""
-<div style="font-family: Arial, sans-serif; max-width: 650px; margin: auto;
-            background: #f9fef5; padding: 24px; border-radius: 12px;">
+        <div style="font-family: Arial, sans-serif; max-width: 650px; margin: auto;
+                    background: #f9fef5; padding: 24px; border-radius: 12px;">
+          <h2 style="color: #2d7a45;">Welcome to Zephyra, {user_name}! 🌱</h2>
+          <p style="font-size:15px; color:#2d5a3d;">
+            We're thrilled to have you join our eco-community! 🌍
+          </p>
+          <img src="cid:zephyra_pamphlet"
+               alt="Zephyra Welcome Pamphlet"
+               style="width:100%; max-width:600px; border-radius:10px; display:block; margin:16px auto;" />
+          <div style="text-align:center; margin-top:24px;">
+            <a href="https://www.zephyra.com"
+               style="background:#2d7a45; color:white; padding:13px 32px;
+                      border-radius:50px; text-decoration:none; font-size:15px; font-weight:bold;">
+              Start Playing Now →
+            </a>
+          </div>
+          <p style="font-size:13px; color:#888; text-align:center; margin-top:28px;">
+            Questions? <a href="mailto:zephyrarespawn@gmail.com" style="color:#2d7a45;">
+            zephyrarespawn@gmail.com</a><br/>
+            © Zephyra — Learn • Play • Protect the Planet 🌿
+          </p>
+        </div>
+        """
 
-  <!-- YOUR MESSAGE HERE -->
-  <h2 style="color: #2d7a45;">Welcome to Zephyra, {user_name}! 🌱</h2>
-
-  <p style="font-size:16px; color:#1a3d2b;">
-    We're thrilled to have you join our eco-community! 🌍
-  </p>
-
-  <p style="font-size:15px; color:#2d5a3d;">
-    At <strong>Zephyra</strong>, you can:
-  </p>
-
-  <ul style="color:#2d5a3d; font-size:15px; line-height:1.8;">
-    <li>🎮 Play fun eco-games like Turtle Rescue & Eco Catch</li>
-    <li>🏆 Complete green challenges and earn points</li>
-    <li>📊 Track your progress on the leaderboard</li>
-    <li>🌳 Build eco-friendly habits every day</li>
-  </ul>
-
-  <p style="font-size:15px; color:#2d5a3d; margin-top:16px;">
-    Check out your welcome guide below and get started today! 👇
-  </p>
-
-  <!-- Pamphlet shown inline -->
-  <img src="cid:zephyra_pamphlet"
-       alt="Zephyra Welcome Pamphlet"
-       style="width:100%; max-width:600px; border-radius:10px;
-              display:block; margin: 16px auto;" />
-
-  <!-- Button -->
-  <div style="text-align:center; margin-top:24px;">
-    <a href="https://www.zephyra.com"
-       style="background:#2d7a45; color:white; padding:13px 32px;
-              border-radius:50px; text-decoration:none;
-              font-size:15px; font-weight:bold;">
-      Start Playing Now →
-    </a>
-  </div>
-
-  <!-- Footer -->
-  <p style="font-size:13px; color:#888; text-align:center; margin-top:28px;">
-    Questions? <a href="mailto:zephyrarespawn@gmail.com" style="color:#2d7a45;">
-    zephyrarespawn@gmail.com</a><br/>
-    © Zephyra — Learn • Play • Protect the Planet 🌿
-  </p>
-
-</div>
-"""
-
-        msg = Message(
+        message = Mail(
+            from_email="zephyrarespawn@gmail.com",
+            to_emails=to_email,
             subject=f"Welcome to Zephyra, {user_name}! 🌱 Your eco-journey begins",
-            recipients=[to_email],
-            html=html_body,
-            body=f"Hi {user_name}, welcome to Zephyra! Visit https://www.zephyra.com to get started. 🌿"
+            html_content=html_body
         )
 
-        # Attach pamphlet image inline using CID
-        # zephyra_pamphlet.jpg must be in the same folder as app.py
+        # Attach pamphlet
         pamphlet_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "zephyra_pamphlet.jpg")
-        with open(pamphlet_path, "rb") as f:
-            msg.attach(
-                filename="Zephyra_Welcome_Pamphlet.jpg",
-                content_type="image/jpeg",
-                data=f.read(),
-                disposition="inline",
-                headers={"Content-ID": "<zephyra_pamphlet>"}
+        if os.path.exists(pamphlet_path):
+            with open(pamphlet_path, "rb") as f:
+                encoded = base64.b64encode(f.read()).decode()
+            attachment = Attachment(
+                FileContent(encoded),
+                FileName("Zephyra_Welcome_Pamphlet.jpg"),
+                FileType("image/jpeg"),
+                Disposition("inline"),
+                ContentId("zephyra_pamphlet")
             )
+            message.attachment = attachment
 
-        mail.send(msg)
+        sg.send(message)
         print(f"✅ Welcome email sent to {to_email}")
 
     except Exception as e:
-        # Never block registration if email fails — just log it
         print(f"❌ Welcome email failed for {to_email}: {e}")
-
+        
 # -------------------- HOME --------------------
 @app.route("/")
 def home():
