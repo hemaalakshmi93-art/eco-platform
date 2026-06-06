@@ -79,24 +79,6 @@ body::after {
   margin-bottom: 14px;
 }
 
-.back-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
-  background: var(--glass);
-  border: 1.5px solid var(--glass-border);
-  color: var(--accent-green);
-  font-size: 20px;
-  cursor: pointer;
-  text-decoration: none;
-  flex-shrink: 0;
-  transition: background 0.2s, border-color 0.2s, transform 0.15s;
-  backdrop-filter: blur(8px);
-}
-
 .title-block { flex: 1; }
 
 .title-block h1 {
@@ -232,12 +214,15 @@ body::after {
   backdrop-filter: blur(10px);
   width: 100%;
   overflow: hidden;
+  min-height: 320px;
 }
 
 .board {
   display: grid;
   gap: 3px;
   width: 100%;
+  align-items: stretch;
+  grid-auto-rows: 1fr;
 }
 
 .card {
@@ -269,6 +254,7 @@ body::after {
   border-radius: 10px;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
+  min-height: 56px;
 }
 
 .card-front {
@@ -468,13 +454,12 @@ body::after {
   .stats-bar { grid-template-columns: repeat(2, 1fr); gap: 5px; }
   .stat-chip { padding: 6px 3px; border-radius: 8px; }
   .stat-label { font-size: 7px; letter-spacing: 0.5px; }
-  .board-container { padding: 3px; }
+  .board-container { padding: 3px; min-height: 300px; }
   .board { gap: 2px; }
   .card-face { border-radius: 8px; }
-  .back-btn { width: 38px; height: 38px; font-size: 18px; }
   .popup-card { padding: 22px 16px; }
-  .card-front { font-size: 10px; }
-  .card-back { font-size: 12px; }
+  .card-front { font-size: 10px; min-height: 48px; }
+  .card-back { font-size: 12px; min-height: 48px; }
 }
 
 @media (max-width: 360px) {
@@ -485,7 +470,6 @@ body::after {
 <body>
 <div class="game-wrapper">
   <div class="header">
-    <a href="map.html" class="back-btn" title="Back to map" aria-label="Back">&#8249;</a>
     <div class="title-block"><h1>🧠 ECO MEMORY MATCH</h1><p>Deluxe Edition · v3</p></div>
   </div>
 
@@ -549,7 +533,7 @@ function startGame(){
   document.getElementById('popup').classList.remove('show');
   const cfg=getConfig(); totalPairs=cfg.pairs; maxTime=cfg.time;
   const icons=shuffle([...iconPool]).slice(0,cfg.pairs); const cards=shuffle([...icons,...icons]);
-  const board=document.getElementById('board'); board.style.gridTemplateColumns=`repeat(${cfg.cols}, minmax(0, 1fr))`; board.innerHTML='';
+  const board=document.getElementById('board'); board.style.gridTemplateColumns=`repeat(${cfg.cols}, minmax(0, 1fr))`; board.innerHTML=''; board.style.gridAutoRows='1fr';
   cards.forEach(icon=>{ const el=document.createElement('div'); el.className='card'; el.innerHTML=`<div class="card-inner"><div class="card-face card-front">🌍</div><div class="card-face card-back">${icon}</div></div>`; el.addEventListener('click',()=>onCardClick(el,icon)); board.appendChild(el); });
   updateUI(); loadBest();
   timer=setInterval(()=>{ elapsed++; updateUI(); const left=maxTime-elapsed; if(left===10)playTick(); if(left<=0){ clearInterval(timer); lock=true; playTimeout(); setTimeout(()=>showPopup(false),400); } },1000);
@@ -586,7 +570,7 @@ function showPopup(win){
     playVictory();
   } else {
     document.getElementById('popupEmoji').textContent='⏱️';
-    document.getElementById('popupTitle').textContent='Time\\'s Up!';
+    document.getElementById('popupTitle').textContent='Time\'s Up!';
     popCard.classList.add('timeout-card');
     badge.classList.remove('show');
     document.getElementById('popBest').textContent=stored||'—';

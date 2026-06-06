@@ -268,14 +268,18 @@ def send_welcome_email(to_email, user_name):
 
             html_body = f"""
 <div style="font-family: Arial, sans-serif; max-width: 650px; margin: auto;
-            background: #0a1a0f; padding: 24px; border-radius: 12px;">
+            background: #f9fef5; padding: 24px; border-radius: 12px;">
   <h2 style="color: #2d7a45;">Welcome to Zephyra, {user_name}! 🌱</h2>
   <p style="font-size:15px; color:#2d5a3d;">
     We're thrilled to have you join our eco-community! 🌍
   </p>
+
+  <!-- Direct URL instead of CID -->
   <img src="https://raw.githubusercontent.com/hemaalakshmi93-art/eco-platform/main/WhatsApp%20Image%202026-06-04%20at%2014.51.57.jpeg"
-       alt="Zephyra Welcome Pamphlet"
-       style="width:100%; max-width:600px; border-radius:10px; display:block; margin:16px auto;" />
+     alt="Zephyra Welcome Pamphlet"
+     style="width:100%; max-width:600px; border-radius:10px;
+            display:block; margin:16px auto;" />
+
   <div style="text-align:center; margin-top:24px;">
     <a href="https://eco-platform-3.onrender.com"
        style="background:#2d7a45; color:white; padding:13px 32px;
