@@ -29,9 +29,7 @@
         }
 
         .bg-canvas {
-            position: fixed;
-            inset: 0;
-            z-index: -1;
+            position: fixed; inset: 0; z-index: -1;
             background:
                 radial-gradient(ellipse 80% 60% at 10% 10%, rgba(34,211,238,0.12) 0%, transparent 60%),
                 radial-gradient(ellipse 60% 50% at 90% 80%, rgba(139,92,246,0.14) 0%, transparent 55%),
@@ -40,8 +38,7 @@
         }
         .bg-canvas::before {
             content: "";
-            position: absolute;
-            inset: 0;
+            position: absolute; inset: 0;
             background-image: radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px);
             background-size: 32px 32px;
         }
@@ -207,253 +204,57 @@
             .card-points { flex-direction: column; text-align: center; }
         }
 
-        /* ───────────────────────────────────────────
-           CHATBOT STYLES
-        ─────────────────────────────────────────── */
-
-        /* Floating button */
+        /* ── CHATBOT ── */
         #chatToggleBtn {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            border: none;
+            position: fixed; bottom: 24px; right: 24px;
+            width: 56px; height: 56px; border-radius: 50%; border: none;
             background: linear-gradient(135deg, #10b981, #22d3ee);
-            color: white;
-            font-size: 24px;
-            cursor: pointer;
-            z-index: 10000;
+            color: white; font-size: 24px; cursor: pointer; z-index: 10000;
             box-shadow: 0 4px 20px rgba(16,185,129,0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            display: flex; align-items: center; justify-content: center;
             transition: transform 0.2s, box-shadow 0.2s;
         }
-        #chatToggleBtn:hover {
-            transform: scale(1.1);
-            box-shadow: 0 6px 28px rgba(16,185,129,0.65);
-        }
-
-        /* Chat window */
+        #chatToggleBtn:hover { transform: scale(1.1); box-shadow: 0 6px 28px rgba(16,185,129,0.65); }
         #chatWindow {
-            position: fixed;
-            bottom: 90px;
-            right: 24px;
-            width: 340px;
-            background: rgba(10, 20, 40, 0.97);
-            border: 1px solid rgba(34,211,238,0.2);
-            border-radius: 18px;
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 12px 48px rgba(0,0,0,0.6);
-            animation: slideUp 0.25s ease;
-            height: 450px;
-            overflow: hidden;
-            display: none;
+            position: fixed; bottom: 90px; right: 24px; width: 340px;
+            background: rgba(10,20,40,0.97); border: 1px solid rgba(34,211,238,0.2);
+            border-radius: 18px; z-index: 9999; display: flex; flex-direction: column;
+            box-shadow: 0 12px 48px rgba(0,0,0,0.6); animation: slideUp 0.25s ease;
+            height: 450px; overflow: hidden; display: none;
         }
         #chatWindow.open { display: flex; }
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(16px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Header */
-        .chat-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 14px 16px;
-            background: linear-gradient(135deg, rgba(16,185,129,0.2), rgba(34,211,238,0.12));
-            border-bottom: 1px solid rgba(255,255,255,0.08);
-        }
-        .chat-header-avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #10b981, #22d3ee);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            flex-shrink: 0;
-        }
-        .chat-header-info { flex: 1; }
-        .chat-header-name {
-            font-family: 'Syne', sans-serif;
-            font-weight: 700;
-            font-size: 14px;
-            color: #fff;
-        }
-        .chat-header-status {
-            font-size: 11px;
-            color: #10b981;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .status-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: #10b981;
-            animation: blink-dot 2s infinite;
-        }
-        @keyframes blink-dot {
-            0%,100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
-        .chat-close-btn {
-            background: none;
-            border: none;
-            color: #94a3b8;
-            font-size: 18px;
-            cursor: pointer;
-            padding: 4px 8px;
-            border-radius: 6px;
-            transition: 0.2s;
-            line-height: 1;
-        }
-        .chat-close-btn:hover { color: #fff; background: rgba(255,255,255,0.08); }
-
-        /* Messages area */
-        #chatMessages {
-            flex: 1;
-            height: 300px;
-            max-height: 300px;
-            overflow-y: auto !important;
-            padding: 14px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            scroll-behavior: smooth;
-            scrollbar-width: thin;
-            scrollbar-color: rgba(34,211,238,0.2) transparent;
-        }
-        #chatMessages::-webkit-scrollbar { width: 4px; }
-        #chatMessages::-webkit-scrollbar-thumb { background: rgba(34,211,238,0.2); border-radius: 4px; }
-
-        /* Message bubbles */
-        .chat-msg {
-            max-width: 85%;
-            word-break: break-word;
-            line-height: 1.5;
-            font-size: 13px;
-            padding: 10px 13px;
-            border-radius: 14px;
-            animation: msgPop 0.2s ease;
-        }
-        @keyframes msgPop {
-            from { opacity: 0; transform: scale(0.95); }
-            to   { opacity: 1; transform: scale(1); }
-        }
-        .chat-msg.bot {
-            align-self: flex-start;
-            background: rgba(255,255,255,0.07);
-            border: 1px solid rgba(255,255,255,0.08);
-            color: #eef6ff;
-            border-radius: 4px 14px 14px 14px;
-        }
-        .chat-msg.user {
-            align-self: flex-end;
-            background: linear-gradient(135deg, #10b981, #22d3ee);
-            color: #022c22;
-            font-weight: 500;
-            border-radius: 14px 4px 14px 14px;
-        }
-
-        /* Typing indicator */
-        .typing-bubble {
-            align-self: flex-start;
-            background: rgba(255,255,255,0.07);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 4px 14px 14px 14px;
-            padding: 12px 16px;
-            display: flex;
-            gap: 5px;
-            align-items: center;
-        }
-        .typing-bubble span {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: #10b981;
-            animation: bounce 1.2s infinite;
-        }
-        .typing-bubble span:nth-child(2) { animation-delay: 0.2s; }
-        .typing-bubble span:nth-child(3) { animation-delay: 0.4s; }
-        @keyframes bounce {
-            0%, 60%, 100% { transform: translateY(0); }
-            30% { transform: translateY(-5px); }
-        }
-
-        /* Quick suggestions */
-        .chat-suggestions {
-            padding: 6px 14px 0;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-        }
-        .suggestion-chip {
-            background: rgba(16,185,129,0.1);
-            border: 1px solid rgba(16,185,129,0.25);
-            color: #10b981;
-            font-size: 11px;
-            padding: 5px 11px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-family: 'DM Sans', sans-serif;
-            transition: 0.2s;
-            white-space: nowrap;
-        }
-        .suggestion-chip:hover {
-            background: rgba(16,185,129,0.22);
-            border-color: #10b981;
-        }
-
-        /* Input area */
-        .chat-input-row {
-            display: flex;
-            gap: 8px;
-            padding: 12px 14px;
-            border-top: 1px solid rgba(255,255,255,0.06);
-            align-items: flex-end;
-        }
-        #chatInput {
-            flex: 1;
-            background: rgba(255,255,255,0.06);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 10px;
-            color: #eef6ff;
-            font-family: 'DM Sans', sans-serif;
-            font-size: 13px;
-            padding: 9px 12px;
-            resize: none;
-            outline: none;
-            max-height: 80px;
-            transition: border-color 0.2s;
-            line-height: 1.4;
-        }
-        #chatInput:focus { border-color: rgba(34,211,238,0.4); }
-        #chatInput::placeholder { color: #64748b; }
-        #chatSendBtn {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            border: none;
-            background: linear-gradient(135deg, #10b981, #22d3ee);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            transition: transform 0.2s;
-        }
-        #chatSendBtn:hover { transform: scale(1.1); }
-        #chatSendBtn:disabled { background: rgba(255,255,255,0.1); cursor: not-allowed; transform: none; }
-        #chatSendBtn svg { width: 16px; height: 16px; fill: white; }
+        @keyframes slideUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+        .chat-header { display:flex; align-items:center; gap:10px; padding:14px 16px; background:linear-gradient(135deg,rgba(16,185,129,.2),rgba(34,211,238,.12)); border-bottom:1px solid rgba(255,255,255,.08); }
+        .chat-header-avatar { width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#10b981,#22d3ee);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0; }
+        .chat-header-info { flex:1; }
+        .chat-header-name { font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:#fff; }
+        .chat-header-status { font-size:11px;color:#10b981;display:flex;align-items:center;gap:4px; }
+        .status-dot { width:6px;height:6px;border-radius:50%;background:#10b981;animation:blink-dot 2s infinite; }
+        @keyframes blink-dot { 0%,100%{opacity:1} 50%{opacity:.3} }
+        .chat-close-btn { background:none;border:none;color:#94a3b8;font-size:18px;cursor:pointer;padding:4px 8px;border-radius:6px;transition:.2s;line-height:1; }
+        .chat-close-btn:hover { color:#fff;background:rgba(255,255,255,.08); }
+        #chatMessages { flex:1;height:300px;max-height:300px;overflow-y:auto!important;padding:14px;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth;scrollbar-width:thin;scrollbar-color:rgba(34,211,238,.2) transparent; }
+        #chatMessages::-webkit-scrollbar { width:4px; }
+        #chatMessages::-webkit-scrollbar-thumb { background:rgba(34,211,238,.2);border-radius:4px; }
+        .chat-msg { max-width:85%;word-break:break-word;line-height:1.5;font-size:13px;padding:10px 13px;border-radius:14px;animation:msgPop .2s ease; }
+        @keyframes msgPop { from{opacity:0;transform:scale(.95)} to{opacity:1;transform:scale(1)} }
+        .chat-msg.bot { align-self:flex-start;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.08);color:#eef6ff;border-radius:4px 14px 14px 14px; }
+        .chat-msg.user { align-self:flex-end;background:linear-gradient(135deg,#10b981,#22d3ee);color:#022c22;font-weight:500;border-radius:14px 4px 14px 14px; }
+        .typing-bubble { align-self:flex-start;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.08);border-radius:4px 14px 14px 14px;padding:12px 16px;display:flex;gap:5px;align-items:center; }
+        .typing-bubble span { width:6px;height:6px;border-radius:50%;background:#10b981;animation:bounce 1.2s infinite; }
+        .typing-bubble span:nth-child(2){animation-delay:.2s} .typing-bubble span:nth-child(3){animation-delay:.4s}
+        @keyframes bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-5px)} }
+        .chat-suggestions { padding:6px 14px 0;display:flex;flex-wrap:wrap;gap:6px; }
+        .suggestion-chip { background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);color:#10b981;font-size:11px;padding:5px 11px;border-radius:20px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:.2s;white-space:nowrap; }
+        .suggestion-chip:hover { background:rgba(16,185,129,.22);border-color:#10b981; }
+        .chat-input-row { display:flex;gap:8px;padding:12px 14px;border-top:1px solid rgba(255,255,255,.06);align-items:flex-end; }
+        #chatInput { flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:#eef6ff;font-family:'DM Sans',sans-serif;font-size:13px;padding:9px 12px;resize:none;outline:none;max-height:80px;transition:border-color .2s;line-height:1.4; }
+        #chatInput:focus { border-color:rgba(34,211,238,.4); }
+        #chatInput::placeholder { color:#64748b; }
+        #chatSendBtn { width:36px;height:36px;border-radius:50%;border:none;background:linear-gradient(135deg,#10b981,#22d3ee);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform .2s; }
+        #chatSendBtn:hover { transform:scale(1.1); }
+        #chatSendBtn:disabled { background:rgba(255,255,255,.1);cursor:not-allowed;transform:none; }
+        #chatSendBtn svg { width:16px;height:16px;fill:white; }
     </style>
 </head>
 <body>
@@ -597,188 +398,141 @@
 
 </div>
 
-<!-- ─────────────────────────────────────────────────
-     CHATBOT
-───────────────────────────────────────────────── -->
-
-<!-- Toggle Button -->
+<!-- CHATBOT -->
 <button id="chatToggleBtn" onclick="toggleChat()" title="Chat with EcoBot">🌱</button>
 
-<!-- Chat Window -->
 <div id="chatWindow">
-
-    <!-- Header -->
     <div class="chat-header">
         <div class="chat-header-avatar">🌿</div>
         <div class="chat-header-info">
             <div class="chat-header-name">EcoBot</div>
-            <div class="chat-header-status">
-                <span class="status-dot"></span> Online
-            </div>
+            <div class="chat-header-status"><span class="status-dot"></span> Online</div>
         </div>
         <button class="chat-close-btn" onclick="toggleChat()">✕</button>
     </div>
-
-    <!-- Messages -->
     <div id="chatMessages">
         <div class="chat-msg bot">
             Hi there! 👋 I'm EcoBot, your environment assistant.<br><br>
             You can ask me anything about nature, pollution, climate, recycling — or just say hello!
         </div>
     </div>
-
-    <!-- Quick suggestions -->
     <div class="chat-suggestions" id="chatSuggestions">
         <button class="suggestion-chip" onclick="useSuggestion('What is carbon footprint?')">🌍 Carbon footprint?</button>
         <button class="suggestion-chip" onclick="useSuggestion('How to save water at home?')">💧 Save water?</button>
         <button class="suggestion-chip" onclick="useSuggestion('What causes global warming?')">🔥 Global warming?</button>
         <button class="suggestion-chip" onclick="useSuggestion('How to recycle properly?')">♻️ Recycling tips?</button>
     </div>
-
-    <!-- Input -->
     <div class="chat-input-row">
-        <textarea
-            id="chatInput"
-            placeholder="Type a message..."
-            rows="1"
-            onkeydown="handleKey(event)"
-            oninput="autoResize(this)"
-        ></textarea>
+        <textarea id="chatInput" placeholder="Type a message..." rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
         <button id="chatSendBtn" onclick="sendMessage()">
             <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
         </button>
     </div>
 </div>
 
-<!-- ─────────────────────────────────────────────────
-     SCRIPTS
-───────────────────────────────────────────────── -->
+<!-- ── MUSIC ENGINE — must come before other scripts ── -->
+<script src="music-engine.js"></script>
+
 <script>
-    // ── Progress bar ──
-    // Each level is 100 points. We show how far into the current level the user is.
+    // Progress bar
     let pts = Number("{{ points }}") || 0;
-    let levelSize = 100;
-    let progressPct = pts % levelSize;          // e.g. 445 % 100 = 45%
-    if (progressPct === 0 && pts > 0) progressPct = 100; // exactly on a level boundary = full bar
+    let progressPct = pts % 100;
+    if (progressPct === 0 && pts > 0) progressPct = 100;
     setTimeout(() => {
         document.getElementById("progressBar").style.width = progressPct + "%";
         document.getElementById("progressLabel").textContent = pts + " pts (" + progressPct + "% to next level)";
     }, 300);
 
-    // ── Sidebar ──
     function toggleSidebar() {
         document.getElementById("sidebar").classList.toggle("active");
     }
 
-    // ── Lucide icons ──
     lucide.createIcons();
 </script>
 
 <script>
-const GROQ_API_KEY = ""; // Your existing Groq key
-
-const SYSTEM_INSTRUCTION = `You are EcoBot, a friendly assistant on EcoLearn.
+    const SYSTEM_INSTRUCTION = `You are EcoBot, a friendly assistant on EcoLearn.
 - Reply in maximum 2-3 short sentences only. Never write long answers.
 - Be warm and friendly.
 - Only answer environment topics: pollution, climate, recycling, sustainability etc.
 - If asked unrelated topics, politely redirect.
 - No bullet points or lists. Short conversational answers only.`;
 
-let chatHistory = [];
-let isOpen = false;
+    let chatHistory = [];
+    let isOpen = false;
 
-function toggleChat() {
-    isOpen = !isOpen;
-    const win = document.getElementById("chatWindow");
-    if (isOpen) win.classList.add("open");
-    else win.classList.remove("open");
-}
+    function toggleChat() {
+        isOpen = !isOpen;
+        const win = document.getElementById("chatWindow");
+        if (isOpen) win.classList.add("open");
+        else win.classList.remove("open");
+    }
 
-function useSuggestion(text) {
-    document.getElementById("chatInput").value = text;
-    document.getElementById("chatSuggestions").style.display = "none";
-    sendMessage();
-}
-
-function handleKey(e) {
-    if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
+    function useSuggestion(text) {
+        document.getElementById("chatInput").value = text;
+        document.getElementById("chatSuggestions").style.display = "none";
         sendMessage();
     }
-}
 
-function autoResize(el) {
-    el.style.height = "auto";
-    el.style.height = Math.min(el.scrollHeight, 80) + "px";
-}
-
-function addMessage(text, role) {
-    const container = document.getElementById("chatMessages");
-    const div = document.createElement("div");
-    div.className = "chat-msg " + role;
-    div.innerHTML = text.replace(/\n/g, "<br>");
-    container.appendChild(div);
-    container.scrollTop = container.scrollHeight;
-}
-
-function showTyping() {
-    const container = document.getElementById("chatMessages");
-    const div = document.createElement("div");
-    div.className = "typing-bubble";
-    div.id = "typingIndicator";
-    div.innerHTML = "<span></span><span></span><span></span>";
-    container.appendChild(div);
-    container.scrollTop = container.scrollHeight;
-}
-
-function removeTyping() {
-    const el = document.getElementById("typingIndicator");
-    if (el) el.remove();
-}
-
-// இந்த line முழுக்க delete பண்ணு:
-// const GROQ_API_KEY = "";
-
-async function sendMessage() {
-    const input = document.getElementById("chatInput");
-    const text = input.value.trim();
-    if (!text) return;
-
-    document.getElementById("chatSuggestions").style.display = "none";
-    addMessage(text, "user");
-    input.value = "";
-    input.style.height = "auto";
-    document.getElementById("chatSendBtn").disabled = true;
-
-    chatHistory.push({ role: "user", content: text });
-    showTyping();
-
-    try {
-        const response = await fetch("/chat", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ messages: chatHistory })
-        });
-
-        const data = await response.json();
-        removeTyping();
-
-        if (data.error) {
-            addMessage("Error: " + data.error, "bot");
-            chatHistory.pop();
-        } else {
-            addMessage(data.reply, "bot");
-            chatHistory.push({ role: "assistant", content: data.reply });
-        }
-
-    } catch (err) {
-        removeTyping();
-        addMessage("Oops! Network error. Please check your connection.", "bot");
-        chatHistory.pop();
+    function handleKey(e) {
+        if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
     }
 
-    document.getElementById("chatSendBtn").disabled = false;
-}
+    function autoResize(el) {
+        el.style.height = "auto";
+        el.style.height = Math.min(el.scrollHeight, 80) + "px";
+    }
+
+    function addMessage(text, role) {
+        const container = document.getElementById("chatMessages");
+        const div = document.createElement("div");
+        div.className = "chat-msg " + role;
+        div.innerHTML = text.replace(/\n/g, "<br>");
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+    }
+
+    function showTyping() {
+        const container = document.getElementById("chatMessages");
+        const div = document.createElement("div");
+        div.className = "typing-bubble"; div.id = "typingIndicator";
+        div.innerHTML = "<span></span><span></span><span></span>";
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+    }
+
+    function removeTyping() {
+        const el = document.getElementById("typingIndicator");
+        if (el) el.remove();
+    }
+
+    async function sendMessage() {
+        const input = document.getElementById("chatInput");
+        const text = input.value.trim();
+        if (!text) return;
+        document.getElementById("chatSuggestions").style.display = "none";
+        addMessage(text, "user");
+        input.value = ""; input.style.height = "auto";
+        document.getElementById("chatSendBtn").disabled = true;
+        chatHistory.push({ role: "user", content: text });
+        showTyping();
+        try {
+            const response = await fetch("/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ messages: chatHistory })
+            });
+            const data = await response.json();
+            removeTyping();
+            if (data.error) { addMessage("Error: " + data.error, "bot"); chatHistory.pop(); }
+            else { addMessage(data.reply, "bot"); chatHistory.push({ role: "assistant", content: data.reply }); }
+        } catch (err) {
+            removeTyping();
+            addMessage("Oops! Network error. Please check your connection.", "bot");
+            chatHistory.pop();
+        }
+        document.getElementById("chatSendBtn").disabled = false;
+    }
 </script>
 </body>
 </html>

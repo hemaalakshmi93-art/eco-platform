@@ -148,28 +148,6 @@ select{
 .music-bars span:nth-child(5){height:6px;animation-delay:0.2s}
 .music-bars.paused span{animation-play-state:paused;height:4px !important}
 @keyframes bar{from{transform:scaleY(0.3)}to{transform:scaleY(1)}}
-#audio-unlock-banner{
-  display:flex;align-items:center;justify-content:space-between;gap:10px;
-  background:rgba(76,175,80,0.10);border-bottom:1px solid rgba(76,175,80,0.2);
-  padding:.6rem 1.25rem;transition:all .3s;
-}
-#audio-unlock-banner.hidden{display:none}
-.unlock-text{font-size:0.78rem;color:var(--text-muted);display:flex;align-items:center;gap:6px}
-.unlock-btn{
-  font-size:0.78rem;font-family:var(--fn);font-weight:600;
-  background:var(--accent);color:#fff;border:none;border-radius:8px;
-  padding:5px 14px;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:opacity .15s;
-}
-.unlock-btn:hover{opacity:0.85}
-.audio-ready-badge{
-  display:none;align-items:center;gap:5px;font-size:0.72rem;
-  font-family:'DM Mono',monospace;color:var(--accent);font-weight:600;
-  padding:.45rem 1.25rem;background:rgba(76,175,80,0.08);
-  border-bottom:1px solid rgba(76,175,80,0.15);
-}
-.audio-ready-badge.show{display:flex}
-.badge-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 1.5s ease-in-out infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
 </style>
 </head>
 <body>
@@ -183,17 +161,6 @@ select{
     </button>
     <span class="header-title" data-i18n="settings_title">Settings</span>
     <div class="header-spacer"></div>
-  </div>
-
-  <div id="audio-unlock-banner">
-    <span class="unlock-text">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
-      Tap to enable sound &amp; music
-    </span>
-    <button class="unlock-btn" id="unlock-audio-btn">🔊 Enable Audio</button>
-  </div>
-  <div class="audio-ready-badge" id="audio-ready-badge">
-    <span class="badge-dot"></span> Audio ready — sound &amp; music will work
   </div>
 
   <div class="section-label" data-i18n="appearance">Appearance</div>
@@ -261,9 +228,9 @@ select{
       <div class="row-label" style="font-size:0.8rem;color:var(--text-muted)" data-i18n="music_theme">Music theme</div>
     </div>
     <select id="sel-theme">
-      <option value="lofi">Lo-fi Chill</option>
-      <option value="ambient">Ambient</option>
-      <option value="upbeat">Upbeat</option>
+      <option value="lofi">🎷 Lo-fi Chill</option>
+      <option value="ambient">🌊 Ambient</option>
+      <option value="upbeat">🥁 Upbeat</option>
     </select>
   </div>
 
@@ -347,193 +314,81 @@ select{
 
 </div>
 
+<!-- Music engine (handles all audio + mini player) -->
+<script src="music-engine.js"></script>
+
 <script>
+/* ── i18n ── */
 const TR = {
   en:{back:'Back',settings_title:'Settings',appearance:'Appearance',dark_mode:'Dark mode',accent_color:'Accent colour',font_size:'Font size',font_sub:'Applies to whole page',compact_layout:'Compact layout',compact_sub:'Reduces spacing between items',sound_music_label:'Sound & Music',sound_effects:'Sound effects',sound_sub:'UI interaction sounds',bg_music:'Background music',music_sub:'Ambient soundtrack',music_theme:'Music theme',notifications:'Notifications',push_notif:'Push notifications',perm_status:'Permission: ',test_notif:'Send test notification',send:'Send',email_digest:'Email digest',email_sub:'Weekly summary email',region_lang:'Region & Language',language:'Language',date_format:'Date format',time_format:'Time format',time_sub:'12-hour or 24-hour clock',clock:'Clock',reset:'↺ Reset to defaults',saved:'Saved',theme_light:'Currently: Light',theme_dark:'Currently: Dark',perm_granted:'Allowed',perm_denied:'Blocked',perm_default:'Not set',reset_done:'Settings reset'},
   ta:{back:'பின்',settings_title:'அமைப்புகள்',appearance:'தோற்றம்',dark_mode:'இருண்ட முறை',accent_color:'வண்ண சாயல்',font_size:'எழுத்து அளவு',font_sub:'முழு பக்கத்திலும் பயன்படுத்தப்படும்',compact_layout:'சுருக்கமான தளவமைப்பு',compact_sub:'இடைவெளியை குறைக்கிறது',sound_music_label:'ஒலி & இசை',sound_effects:'ஒலி விளைவுகள்',sound_sub:'UI ஒலிகள்',bg_music:'பின்னணி இசை',music_sub:'சூழல் இசைப்பாடல்',music_theme:'இசை தீம்',notifications:'அறிவிப்புகள்',push_notif:'புஷ் அறிவிப்புகள்',perm_status:'அனுமதி: ',test_notif:'சோதனை அறிவிப்பு',send:'அனுப்பு',email_digest:'மின்னஞ்சல் சுருக்கம்',email_sub:'வாராந்திர சுருக்க மின்னஞ்சல்',region_lang:'பிராந்தியம் & மொழி',language:'மொழி',date_format:'தேதி வடிவம்',time_format:'நேர வடிவம்',time_sub:'12 அல்லது 24 மணி நேரம்',clock:'கடிகாரம்',reset:'↺ இயல்புநிலைக்கு மீட்டமை',saved:'சேமிக்கப்பட்டது',theme_light:'தற்போது: வெளிர்',theme_dark:'தற்போது: இருண்ட',perm_granted:'அனுமதிக்கப்பட்டது',perm_denied:'தடுக்கப்பட்டது',perm_default:'அமைக்கப்படவில்லை',reset_done:'அமைப்புகள் மீட்டமைக்கப்பட்டன'},
   hi:{back:'वापस',settings_title:'सेटिंग्स',appearance:'दिखावट',dark_mode:'डार्क मोड',accent_color:'एक्सेंट रंग',font_size:'फ़ॉन्ट आकार',font_sub:'पूरे पेज पर लागू होता है',compact_layout:'कॉम्पैक्ट लेआउट',compact_sub:'आइटम के बीच स्थान कम करता है',sound_music_label:'ध्वनि और संगीत',sound_effects:'ध्वनि प्रभाव',sound_sub:'UI ध्वनि',bg_music:'पृष्ठभूमि संगीत',music_sub:'परिवेश साउंडट्रैक',music_theme:'संगीत थीम',notifications:'सूचनाएं',push_notif:'पुश सूचनाएं',perm_status:'अनुमति: ',test_notif:'परीक्षण सूचना',send:'भेजें',email_digest:'ईमेल डाइजेस्ट',email_sub:'साप्ताहिक सारांश ईमेल',region_lang:'क्षेत्र और भाषा',language:'भाषा',date_format:'दिनांक प्रारूप',time_format:'समय प्रारूप',time_sub:'12 या 24 घंटे की घड़ी',clock:'घड़ी',reset:'↺ डिफ़ॉल्ट पर रीसेट',saved:'सहेजा गया',theme_light:'वर्तमान: लाइट',theme_dark:'वर्तमान: डार्क',perm_granted:'अनुमति है',perm_denied:'अवरुद्ध',perm_default:'सेट नहीं',reset_done:'सेटिंग्स रीसेट'},
-  te:{back:'వెనుకకు',settings_title:'సెట్టింగ్‌లు',appearance:'రూపం',dark_mode:'డార్క్ మోడ్',accent_color:'యాక్సెంట్ రంగు',font_size:'అక్షర పరిమాణం',font_sub:'మొత్తం పేజీకి వర్తిస్తుంది',compact_layout:'కాంపాక్ట్ లేఅవుట్',compact_sub:'అంశాల మధ్య స్థలాన్ని తగ్గిస్తుంది',sound_music_label:'ధ్వని & సంగీతం',sound_effects:'ధ్వని ప్రభావాలు',sound_sub:'UI ధ్వనులు',bg_music:'నేపథ్య సంగీతం',music_sub:'అంబియంట్ సౌండ్‌ట్రాక్',music_theme:'సంగీత థీమ్',notifications:'నోటిఫికేషన్లు',push_notif:'పుష్ నోటిఫికేషన్లు',perm_status:'అనుమతి: ',test_notif:'పరీక్ష నోటిఫికేషన్',send:'పంపు',email_digest:'ఇమెయిల్ సారాంశం',email_sub:'వారపు సారాంశ ఇమెయిల్',region_lang:'ప్రాంతం & భాష',language:'భాష',date_format:'తేదీ ఆకృతి',time_format:'సమయ ఆకృతి',time_sub:'12 లేదా 24 గంటల గడియారం',clock:'గడియారం',reset:'↺ డిఫాల్ట్‌కు రీసెట్',saved:'సేవ్ చేయబడింది',theme_light:'ప్రస్తుతం: లైట్',theme_dark:'ప్రస్తుతం: డార్క్',perm_granted:'అనుమతించబడింది',perm_denied:'నిరోధించబడింది',perm_default:'సెట్ చేయలేదు',reset_done:'సెట్టింగ్‌లు రీసెట్ చేయబడ్డాయి'},
-  kn:{back:'ಹಿಂದೆ',settings_title:'ಸೆಟ್ಟಿಂಗ್‌ಗಳು',appearance:'ನೋಟ',dark_mode:'ಡಾರ್ಕ್ ಮೋಡ್',accent_color:'ಆಕ್ಸೆಂಟ್ ಬಣ್ಣ',font_size:'ಅಕ್ಷರ ಗಾತ್ರ',font_sub:'ಇಡೀ ಪುಟಕ್ಕೆ ಅನ್ವಯಿಸುತ್ತದೆ',compact_layout:'ಕಾಂಪ್ಯಾಕ್ಟ್ ಲೇಔಟ್',compact_sub:'ಐಟಂಗಳ ನಡುವಿನ ಅಂತರ ಕಡಿಮೆ ಮಾಡುತ್ತದೆ',sound_music_label:'ಧ್ವನಿ & ಸಂಗೀತ',sound_effects:'ಧ್ವನಿ ಪರಿಣಾಮಗಳು',sound_sub:'UI ಧ್ವನಿಗಳು',bg_music:'ಹಿನ್ನೆಲೆ ಸಂಗೀತ',music_sub:'ಅಂಬಿಯಂಟ್ ಸೌಂಡ್‌ಟ್ರ್ಯಾಕ್',music_theme:'ಸಂಗೀತ ಥೀಮ್',notifications:'ಅಧಿಸೂಚನೆಗಳು',push_notif:'ಪುಶ್ ಅಧಿಸೂಚನೆಗಳು',perm_status:'ಅನುಮತಿ: ',test_notif:'ಪರೀಕ್ಷಾ ಅಧಿಸೂಚನೆ',send:'ಕಳುಹಿಸು',email_digest:'ಇಮೇಲ್ ಸಾರಾಂಶ',email_sub:'ವಾರದ ಸಾರಾಂಶ ಇಮೇಲ್',region_lang:'ಪ್ರದೇಶ & ಭಾಷೆ',language:'ಭಾಷೆ',date_format:'ದಿನಾಂಕ ಸ್ವರೂಪ',time_format:'ಸಮಯ ಸ್ವರೂಪ',time_sub:'12 ಅಥವಾ 24 ಗಂಟೆ ಗಡಿಯಾರ',clock:'ಗಡಿಯಾರ',reset:'↺ ಡಿಫಾಲ್ಟ್‌ಗೆ ರೀಸೆಟ್',saved:'ಉಳಿಸಲಾಗಿದೆ',theme_light:'ಪ್ರಸ್ತುತ: ಲೈಟ್',theme_dark:'ಪ್ರಸ್ತುತ: ಡಾರ್ಕ್',perm_granted:'ಅನುಮತಿಸಲಾಗಿದೆ',perm_denied:'ನಿರ್ಬಂಧಿಸಲಾಗಿದೆ',perm_default:'ಹೊಂದಿಸಿಲ್ಲ',reset_done:'ಸೆಟ್ಟಿಂಗ್‌ಗಳು ರೀಸೆಟ್ ಆಗಿವೆ'},
-  ml:{back:'തിരിച്ച്',settings_title:'ക്രമീകരണങ്ങൾ',appearance:'രൂപം',dark_mode:'ഡാർക്ക് മോഡ്',accent_color:'ആക്സന്റ് നിറം',font_size:'ഫോണ്ട് വലുപ്പം',font_sub:'മുഴുവൻ പേജിലും ബാധകം',compact_layout:'കംപാക്ട് ലേഔട്ട്',compact_sub:'ഇനങ്ങൾക്കിടയിലെ ഇടം കുറയ്ക്കുന്നു',sound_music_label:'ശബ്ദം & സംഗീതം',sound_effects:'ശബ്ദ ഇഫക്റ്റുകൾ',sound_sub:'UI ശബ്ദങ്ങൾ',bg_music:'പശ്ചാത്തല സംഗീതം',music_sub:'അംബിയന്റ് സൗണ്ട്ട്രാക്ക്',music_theme:'സംഗീത തീം',notifications:'അറിയിപ്പുകൾ',push_notif:'പുഷ് അറിയിപ്പുകൾ',perm_status:'അനുമതി: ',test_notif:'ടെസ്റ്റ് അറിയിപ്പ്',send:'അയക്കുക',email_digest:'ഇമെയിൽ ഡൈജസ്റ്റ്',email_sub:'പ്രതിവാര സംഗ്രഹ ഇമെയിൽ',region_lang:'പ്രദേശം & ഭാഷ',language:'ഭാഷ',date_format:'തീയതി ഫോർമാറ്റ്',time_format:'സമയ ഫോർമാറ്റ്',time_sub:'12 അല്ലെങ്കിൽ 24 മണിക്കൂർ ഘടികാരം',clock:'ഘടികാരം',reset:'↺ ഡിഫോൾട്ടിലേക്ക് റീസെറ്റ്',saved:'സംരക്ഷിച്ചു',theme_light:'നിലവിൽ: ലൈറ്റ്',theme_dark:'നിലവിൽ: ഡാർക്ക്',perm_granted:'അനുവദിച്ചു',perm_denied:'തടഞ്ഞു',perm_default:'സജ്ജമാക്കിയിട്ടില്ല',reset_done:'ക്രമീകരണങ്ങൾ റീസെറ്റ് ചെയ്തു'},
   fr:{back:'Retour',settings_title:'Paramètres',appearance:'Apparence',dark_mode:'Mode sombre',accent_color:"Couleur d'accent",font_size:'Taille police',font_sub:'Appliqué à toute la page',compact_layout:'Disposition compacte',compact_sub:"Réduit l'espacement",sound_music_label:'Son et musique',sound_effects:'Effets sonores',sound_sub:"Sons d'interface",bg_music:'Musique de fond',music_sub:'Bande sonore ambiante',music_theme:'Thème musical',notifications:'Notifications',push_notif:'Notifications push',perm_status:'Permission: ',test_notif:'Notification test',send:'Envoyer',email_digest:'Résumé email',email_sub:'Résumé hebdomadaire',region_lang:'Région & Langue',language:'Langue',date_format:'Format de date',time_format:"Format d'heure",time_sub:'Horloge 12h ou 24h',clock:'Horloge',reset:'↺ Réinitialiser',saved:'Enregistré',theme_light:'Actuel: Clair',theme_dark:'Actuel: Sombre',perm_granted:'Autorisé',perm_denied:'Bloqué',perm_default:'Non défini',reset_done:'Paramètres réinitialisés'},
   de:{back:'Zurück',settings_title:'Einstellungen',appearance:'Erscheinungsbild',dark_mode:'Dunkelmodus',accent_color:'Akzentfarbe',font_size:'Schriftgröße',font_sub:'Gilt für die gesamte Seite',compact_layout:'Kompaktes Layout',compact_sub:'Reduziert den Abstand',sound_music_label:'Ton & Musik',sound_effects:'Soundeffekte',sound_sub:'UI-Geräusche',bg_music:'Hintergrundmusik',music_sub:'Ambient-Soundtrack',music_theme:'Musikthema',notifications:'Benachrichtigungen',push_notif:'Push-Benachrichtigungen',perm_status:'Berechtigung: ',test_notif:'Testbenachrichtigung',send:'Senden',email_digest:'E-Mail-Zusammenfassung',email_sub:'Wöchentliche Zusammenfassung',region_lang:'Region & Sprache',language:'Sprache',date_format:'Datumsformat',time_format:'Zeitformat',time_sub:'12- oder 24-Stunden-Uhr',clock:'Uhr',reset:'↺ Zurücksetzen',saved:'Gespeichert',theme_light:'Aktuell: Hell',theme_dark:'Aktuell: Dunkel',perm_granted:'Erlaubt',perm_denied:'Blockiert',perm_default:'Nicht gesetzt',reset_done:'Einstellungen zurückgesetzt'},
   ja:{back:'戻る',settings_title:'設定',appearance:'外観',dark_mode:'ダークモード',accent_color:'アクセントカラー',font_size:'フォントサイズ',font_sub:'ページ全体に適用',compact_layout:'コンパクトレイアウト',compact_sub:'余白を削減します',sound_music_label:'サウンドと音楽',sound_effects:'サウンドエフェクト',sound_sub:'UI操作音',bg_music:'バックグラウンドミュージック',music_sub:'アンビエントサウンドトラック',music_theme:'音楽テーマ',notifications:'通知',push_notif:'プッシュ通知',perm_status:'許可: ',test_notif:'テスト通知',send:'送信',email_digest:'メールダイジェスト',email_sub:'週次サマリーメール',region_lang:'地域と言語',language:'言語',date_format:'日付形式',time_format:'時刻形式',time_sub:'12時間制または24時間制',clock:'時計',reset:'↺ デフォルトにリセット',saved:'保存済み',theme_light:'現在: ライト',theme_dark:'現在: ダーク',perm_granted:'許可済み',perm_denied:'ブロック済み',perm_default:'未設定',reset_done:'設定をリセットしました'}
 };
 
-/* ── AUDIO ENGINE ── */
-let audioCtx = null;
-let audioUnlocked = false;
-let musicPlaying = false;
-let musicTimers = [];
-let musicOscillators = [];
-let masterGainNode = null;
+/* ── SOUND FX (settings page only, separate from music engine) ── */
+let sfxCtx = null;
+let sfxUnlocked = false;
 
-async function unlockAudio() {
-  if (audioUnlocked) return true;
+async function ensureSfx() {
+  if (sfxUnlocked) return true;
   try {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    if (audioCtx.state === 'suspended') await audioCtx.resume();
-    const buf = audioCtx.createBuffer(1, 1, 22050);
-    const src = audioCtx.createBufferSource();
-    src.buffer = buf; src.connect(audioCtx.destination); src.start(0);
-    audioUnlocked = true;
-    document.getElementById('audio-unlock-banner')?.classList.add('hidden');
-    document.getElementById('audio-ready-badge')?.classList.add('show');
+    sfxCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (sfxCtx.state === 'suspended') await sfxCtx.resume();
+    sfxUnlocked = true;
     return true;
   } catch(e) { return false; }
 }
 
-async function ensureAudio() {
-  if (!audioUnlocked) return false;
-  if (audioCtx && audioCtx.state === 'suspended') await audioCtx.resume();
-  return !!audioCtx;
-}
-
 async function playClickSound() {
-  if (!S.sound || !await ensureAudio()) return;
+  if (!S.sound) return;
+  if (!await ensureSfx()) return;
   try {
-    const osc = audioCtx.createOscillator(), g = audioCtx.createGain();
-    osc.connect(g); g.connect(audioCtx.destination);
-    osc.frequency.setValueAtTime(880, audioCtx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.08);
-    g.gain.setValueAtTime(0.12, audioCtx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.12);
-    osc.start(); osc.stop(audioCtx.currentTime + 0.12);
+    const o = sfxCtx.createOscillator(), g = sfxCtx.createGain();
+    o.connect(g); g.connect(sfxCtx.destination);
+    o.frequency.setValueAtTime(880, sfxCtx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(440, sfxCtx.currentTime + 0.08);
+    g.gain.setValueAtTime(0.1, sfxCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, sfxCtx.currentTime + 0.12);
+    o.start(); o.stop(sfxCtx.currentTime + 0.12);
   } catch(e) {}
 }
 
 async function playToggleSound(on) {
-  if (!S.sound || !await ensureAudio()) return;
+  if (!S.sound) return;
+  if (!await ensureSfx()) return;
   try {
     const freq = on ? [440,660] : [660,440];
-    [0,0.08].forEach((t,i) => {
-      const osc = audioCtx.createOscillator(), g = audioCtx.createGain();
-      osc.connect(g); g.connect(audioCtx.destination);
-      osc.frequency.setValueAtTime(freq[i], audioCtx.currentTime + t);
-      g.gain.setValueAtTime(0.08, audioCtx.currentTime + t);
-      g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + t + 0.1);
-      osc.start(audioCtx.currentTime + t); osc.stop(audioCtx.currentTime + t + 0.1);
+    [0, 0.08].forEach((t, i) => {
+      const o = sfxCtx.createOscillator(), g = sfxCtx.createGain();
+      o.connect(g); g.connect(sfxCtx.destination);
+      o.frequency.setValueAtTime(freq[i], sfxCtx.currentTime + t);
+      g.gain.setValueAtTime(0.08, sfxCtx.currentTime + t);
+      g.gain.exponentialRampToValueAtTime(0.001, sfxCtx.currentTime + t + 0.1);
+      o.start(sfxCtx.currentTime + t); o.stop(sfxCtx.currentTime + t + 0.1);
     });
   } catch(e) {}
 }
 
 async function playNotifChime() {
-  if (!await ensureAudio()) return;
-  try {
-    [523.25,659.25,783.99].forEach((freq,i) => {
-      const osc = audioCtx.createOscillator(), g = audioCtx.createGain();
-      osc.type = 'sine'; osc.connect(g); g.connect(audioCtx.destination);
-      osc.frequency.setValueAtTime(freq, audioCtx.currentTime + i*0.12);
-      g.gain.setValueAtTime(0.15, audioCtx.currentTime + i*0.12);
-      g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + i*0.12 + 0.4);
-      osc.start(audioCtx.currentTime + i*0.12); osc.stop(audioCtx.currentTime + i*0.12 + 0.5);
-    });
-  } catch(e) {}
-}
-
-/* ── MUSIC ENGINE ── */
-function stopMusicNow() {
-  musicPlaying = false;
-  musicTimers.forEach(t => clearTimeout(t));
-  musicTimers = [];
-  musicOscillators.forEach(o => { try { o.stop(); o.disconnect(); } catch(e) {} });
-  musicOscillators = [];
-  if (masterGainNode) {
-    try { masterGainNode.disconnect(); } catch(e) {}
-    masterGainNode = null;
-  }
-}
-
-async function startMusic(theme) {
-  stopMusicNow();
-  if (!await ensureAudio()) { showToast('🔇 Enable audio first — tap the banner above'); return; }
-  const master = audioCtx.createGain();
-  master.gain.setValueAtTime(0, audioCtx.currentTime);
-  master.gain.setTargetAtTime(0.25, audioCtx.currentTime, 0.5);
-  master.connect(audioCtx.destination);
-  masterGainNode = master;
-  musicPlaying = true;
-  if (theme === 'lofi') playLofi(master);
-  else if (theme === 'ambient') playAmbient(master);
-  else playUpbeat(master);
-}
-
-function scheduleTimer(fn, ms) {
-  const t = setTimeout(fn, ms);
-  musicTimers.push(t);
-  return t;
-}
-
-function makeOsc(master, type, freq, gainVal, duration, startDelay) {
-  if (!musicPlaying) return;
-  try {
-    const osc = audioCtx.createOscillator(), g = audioCtx.createGain();
-    osc.type = type;
-    osc.frequency.setValueAtTime(freq, audioCtx.currentTime + (startDelay||0));
-    g.gain.setValueAtTime(gainVal, audioCtx.currentTime + (startDelay||0));
-    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + (startDelay||0) + duration);
-    osc.connect(g); g.connect(master);
-    osc.start(audioCtx.currentTime + (startDelay||0));
-    osc.stop(audioCtx.currentTime + (startDelay||0) + duration + 0.05);
-    musicOscillators.push(osc);
-  } catch(e) {}
-}
-
-function playLofi(master) {
-  const chords = [[261.63,329.63,392],[220,277.18,329.63],[196,246.94,293.66],[174.61,220,261.63]];
-  let beat = 0;
-  function step() {
-    if (!musicPlaying) return;
-    chords[beat % chords.length].forEach(freq => makeOsc(master,'triangle',freq*0.5,0.04,2.2));
-    makeOsc(master,'sine',chords[beat%chords.length][0]*0.25,0.07,1.8);
-    beat++;
-    scheduleTimer(step, 2000);
-  }
-  step();
-}
-
-function playAmbient(master) {
-  const drones = [110,165,220,277.18];
-  drones.forEach((freq,i) => {
-    const osc = audioCtx.createOscillator(), lfo = audioCtx.createOscillator();
-    const lfoG = audioCtx.createGain(), g = audioCtx.createGain();
-    osc.type = 'sine'; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-    lfo.type = 'sine'; lfo.frequency.setValueAtTime(0.05+i*0.02, audioCtx.currentTime);
-    lfoG.gain.setValueAtTime(freq*0.005, audioCtx.currentTime);
-    lfo.connect(lfoG); lfoG.connect(osc.frequency);
-    g.gain.setValueAtTime(0.03, audioCtx.currentTime);
-    osc.connect(g); g.connect(master);
-    lfo.start(); osc.start();
-    musicOscillators.push(osc, lfo);
+  if (!await ensureSfx()) return;
+  [523.25, 659.25, 783.99].forEach((freq, i) => {
+    try {
+      const o = sfxCtx.createOscillator(), g = sfxCtx.createGain();
+      o.type = 'sine'; o.connect(g); g.connect(sfxCtx.destination);
+      o.frequency.setValueAtTime(freq, sfxCtx.currentTime + i * 0.12);
+      g.gain.setValueAtTime(0.15, sfxCtx.currentTime + i * 0.12);
+      g.gain.exponentialRampToValueAtTime(0.001, sfxCtx.currentTime + i * 0.12 + 0.4);
+      o.start(sfxCtx.currentTime + i * 0.12); o.stop(sfxCtx.currentTime + i * 0.12 + 0.5);
+    } catch(e) {}
   });
-}
-
-function playUpbeat(master) {
-  const scale = [261.63,293.66,329.63,349.23,392,440,493.88,523.25];
-  const pattern = [0,2,4,7,4,2,0,5,4,2,4,7];
-  let step = 0;
-  function tick() {
-    if (!musicPlaying) return;
-    makeOsc(master,'square',scale[pattern[step%pattern.length]],0.04,0.18);
-    if (step%4===0) {
-      const kick = audioCtx.createOscillator(), kg = audioCtx.createGain();
-      kick.type='sine'; kick.frequency.setValueAtTime(150,audioCtx.currentTime);
-      kick.frequency.exponentialRampToValueAtTime(40,audioCtx.currentTime+0.15);
-      kg.gain.setValueAtTime(0.1,audioCtx.currentTime);
-      kg.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+0.15);
-      kick.connect(kg); kg.connect(master);
-      kick.start(); kick.stop(audioCtx.currentTime+0.2);
-      musicOscillators.push(kick);
-    }
-    step++;
-    scheduleTimer(tick, 220);
-  }
-  tick();
 }
 
 /* ── STATE ── */
 const STORAGE_KEY = 'app_s4';
-const DEFAULTS = {dark:false,accent:'#4CAF50',fontSize:'medium',compact:false,sound:true,music:false,musicTheme:'lofi',notif:true,email:false,lang:'en',date:'dmy',timeFormat:'12'};
+const DEFAULTS = {dark:false,accent:'#4CAF50',fontSize:'medium',compact:false,sound:true,music:true,musicTheme:'lofi',notif:true,email:false,lang:'en',date:'dmy',timeFormat:'12'};
 let S = {...DEFAULTS};
 
 function loadState() {
@@ -576,11 +431,15 @@ function applyCompact() {
   document.querySelectorAll('.row').forEach(r=>{ r.style.paddingTop=S.compact?'.35rem':'.7rem'; r.style.paddingBottom=S.compact?'.35rem':'.7rem'; });
 }
 function applySoundFX() { const t=document.getElementById('tog-sound'); if(t) t.checked=S.sound; }
-function applyMusicState() {
+
+function applyMusicUI() {
   const t=document.getElementById('tog-music'), s=document.getElementById('sel-theme');
   if(t) t.checked=S.music; if(s) s.value=S.musicTheme;
-  if(!S.music) document.getElementById('music-bars')?.classList.add('paused');
+  const playing = window.ZephyraMusic?.isPlaying() || false;
+  const bars = document.getElementById('music-bars');
+  if(bars) bars.classList.toggle('paused', !playing);
 }
+
 function applyLanguage() {
   const s=document.getElementById('sel-lang'); if(s) s.value=S.lang;
   document.querySelectorAll('[data-i18n]').forEach(el=>{
@@ -622,19 +481,19 @@ function applyNotif() {
   else{chip.textContent=tr('perm_default');chip.className='perm-chip default';}
 }
 
+/* ── SYNC MUSIC BARS with engine ── */
+function syncMusicBars() {
+  const playing = window.ZephyraMusic?.isPlaying() || false;
+  const bars = document.getElementById('music-bars');
+  if (bars) bars.classList.toggle('paused', !playing);
+  setTimeout(syncMusicBars, 500);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   loadState();
   applyTheme(); applyAccent(); applyFontSize(); applyCompact();
-  applySoundFX(); applyMusicState(); applyLanguage(); applyDateFormat();
-  startClock(); applyNotif();
-
-  document.getElementById('unlock-audio-btn')?.addEventListener('click', async () => {
-    const ok = await unlockAudio();
-    if (ok) {
-      showToast('🔊 Audio enabled!');
-      if (S.music) { await startMusic(S.musicTheme); document.getElementById('music-bars')?.classList.remove('paused'); }
-    } else { showToast('⚠️ Could not enable audio'); }
-  });
+  applySoundFX(); applyMusicUI(); applyLanguage(); applyDateFormat();
+  startClock(); applyNotif(); syncMusicBars();
 
   document.getElementById('tog-dark')?.addEventListener('change', e => {
     playToggleSound(e.target.checked);
@@ -656,33 +515,34 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.getElementById('tog-sound')?.addEventListener('change', async e => {
-    S.sound=e.target.checked;
-    if(!audioUnlocked) await unlockAudio();
-    if(S.sound) playToggleSound(true);
+    S.sound = e.target.checked;
+    await ensureSfx();
+    if (S.sound) playToggleSound(true);
     saveState(); showToast(S.sound?'🔊 Sound on':'🔇 Sound off');
   });
 
+  /* Music toggle — delegates entirely to music engine */
   document.getElementById('tog-music')?.addEventListener('change', async e => {
-    if(!audioUnlocked) await unlockAudio();
-    S.music=e.target.checked;
-    const bars=document.getElementById('music-bars');
-    if(S.music){
-      await startMusic(S.musicTheme);
-      bars?.classList.remove('paused');
+    S.music = e.target.checked;
+    saveState();
+    if (S.music) {
+      await window.ZephyraMusic?.unlock();
+      await window.ZephyraMusic?.start(S.musicTheme);
+      document.getElementById('music-bars')?.classList.remove('paused');
       showToast('🎵 Music on');
     } else {
-      stopMusicNow();
-      bars?.classList.add('paused');
+      window.ZephyraMusic?.stop();
+      document.getElementById('music-bars')?.classList.add('paused');
       showToast('🎵 Music off');
     }
-    saveState();
   });
 
-  document.getElementById('sel-theme')?.addEventListener('change', e => {
-    playClickSound(); S.musicTheme=e.target.value;
-    if(S.music) startMusic(S.musicTheme);
-    saveState();
-    if(S.music) showToast('🎵 Theme: '+e.target.value);
+  document.getElementById('sel-theme')?.addEventListener('change', async e => {
+    playClickSound(); S.musicTheme = e.target.value; saveState();
+    if (S.music) {
+      await window.ZephyraMusic?.setTheme(S.musicTheme);
+      showToast('🎵 Theme: ' + e.target.value);
+    }
   });
 
   document.getElementById('sel-lang')?.addEventListener('change', e => {
@@ -698,8 +558,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.getElementById('test-notif-btn')?.addEventListener('click', async () => {
-    if(!audioUnlocked) await unlockAudio();
-    playNotifChime();
+    await ensureSfx(); playNotifChime();
     if(!('Notification' in window)){showToast('Notifications not supported');return;}
     if(Notification.permission==='default'){await Notification.requestPermission();applyNotif();}
     if(Notification.permission==='granted'){new Notification('Settings',{body:'This is a test notification.'});showToast('🔔 Test notification sent!');}
@@ -718,10 +577,8 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('reset-btn')?.addEventListener('click', () => {
     playClickSound(); S={...DEFAULTS}; saveState();
     applyTheme(); applyAccent(); applyFontSize(); applyCompact();
-    applySoundFX(); stopMusicNow();
-    document.getElementById('music-bars')?.classList.add('paused');
-    const mt=document.getElementById('tog-music'); if(mt) mt.checked=false;
-    applyLanguage(); applyDateFormat(); applyNotif();
+    applySoundFX(); applyMusicUI(); applyLanguage(); applyDateFormat(); applyNotif();
+    window.ZephyraMusic?.stop();
     showToast(tr('reset_done'));
   });
 
