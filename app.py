@@ -272,10 +272,9 @@ def send_welcome_email(to_email, user_name):
   <p style="font-size:15px; color:#2d5a3d;">
     We're thrilled to have you join our eco-community! 🌍
   </p>
-  <img src="https://kommodo.ai/i/oWLU0ixKd373wp7vW42q"
-       alt="Zephyra Welcome Pamphlet"
-       style="width:100%; max-width:600px; border-radius:10px; display:block; margin:16px auto;" />
-  <div style="text-align:center; margin-top:24px;">
+  <img src="https://res.cloudinary.com/dayrulpjv/image/upload/f_auto,q_auto/WhatsApp_Image_2026-06-04_at_14.51.57_q0egt3"
+     alt="Zephyra Welcome Pamphlet"
+     style="width:100%; max-width:600px; border-radius:10px; display:block; margin:16px auto;" />
     <a href="https://eco-platform-3.onrender.com"
        style="background:#2d7a45; color:white; padding:13px 32px;
               border-radius:50px; text-decoration:none;
