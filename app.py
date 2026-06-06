@@ -276,9 +276,9 @@ def send_welcome_email(to_email, user_name):
 
   <!-- Direct URL instead of CID -->
   <img src="https://raw.githubusercontent.com/hemaalakshmi93-art/eco-platform/main/WhatsApp%20Image%202026-06-04%20at%2014.51.57.jpeg"
-     alt="Zephyra Welcome Pamphlet"
-     style="width:100%; max-width:600px; border-radius:10px;
-            display:block; margin:16px auto;" />
+       alt="Zephyra Welcome Pamphlet"
+       style="width:100%; max-width:600px; border-radius:10px;
+              display:block; margin:16px auto;" />
 
   <div style="text-align:center; margin-top:24px;">
     <a href="https://eco-platform-3.onrender.com"
