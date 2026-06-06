@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APEX 🐺</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --gold:#d4a843;--cream:#f0e8d0;--dark:#0d0d08;
+  --font-title:'Cinzel',serif;--font-body:'Crimson Pro',serif;
+}
+html,body{width:100%;height:100%;background:var(--dark);font-family:var(--font-body);color:var(--cream);overflow:hidden;user-select:none;}
+.screen{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .6s ease;}
+.screen.hidden{opacity:0;pointer-events:none;}
+
+#title-screen{background:radial-gradient(ellipse at center,#1a2a0a 0%,#0d0d08 70%);}
+.title-art{font-size:clamp(72px,12vw,140px);font-family:var(--font-title);font-weight:900;letter-spacing:16px;
+  background:linear-gradient(180deg,#e8d8b0 0%,#c8a050 50%,#6a3a10 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 0 40px rgba(200,160,80,0.3));animation:breathe 3s ease-in-out infinite;}
+@keyframes breathe{0%,100%{filter:drop-shadow(0 0 40px rgba(200,160,80,0.3))}50%{filter:drop-shadow(0 0 70px rgba(200,160,80,0.6))}}
+.title-sub{font-family:var(--font-body);font-style:italic;font-size:clamp(13px,2vw,18px);color:rgba(200,180,130,0.6);letter-spacing:6px;margin-top:8px;text-transform:uppercase;}
+.title-card{margin-top:40px;padding:36px 52px;max-width:520px;text-align:center;
+  background:rgba(255,255,255,0.03);border:1px solid rgba(200,160,80,0.2);border-radius:4px;backdrop-filter:blur(20px);}
+.title-lore{font-size:15px;line-height:1.9;color:rgba(220,200,150,0.75);font-style:italic;margin-bottom:28px;}
+.title-lore span{color:var(--gold);font-style:normal;}
+.btn-start{font-family:var(--font-title);font-size:14px;letter-spacing:5px;text-transform:uppercase;
+  padding:14px 44px;background:transparent;border:1px solid rgba(200,160,80,0.5);color:var(--gold);
+  cursor:pointer;transition:all .3s;border-radius:2px;outline:none;}
+.btn-start:hover{background:rgba(200,160,80,0.1);border-color:var(--gold);box-shadow:0 0 30px rgba(200,160,80,0.2);}
+.controls-hint{margin-top:20px;font-size:12px;color:rgba(200,180,130,0.4);letter-spacing:3px;}
+
+#hud{position:fixed;top:0;left:0;right:0;z-index:20;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 24px;background:rgba(10,12,6,0.85);border-bottom:1px solid rgba(200,160,80,0.15);
+  backdrop-filter:blur(12px);}
+.hud-left,.hud-right{display:flex;gap:24px;align-items:center;}
+.hud-stat{display:flex;flex-direction:column;align-items:center;}
+.hud-label{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(200,160,80,0.4);font-family:var(--font-title);}
+.hud-val{font-size:20px;font-weight:700;color:var(--gold);font-family:var(--font-title);line-height:1.2;}
+.cascade-bar-wrap{width:180px;}
+.cascade-label{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(100,200,100,0.5);font-family:var(--font-title);text-align:center;margin-bottom:4px;}
+.cascade-track{height:5px;background:rgba(255,255,255,0.06);border-radius:99px;overflow:hidden;}
+#cascade-fill{height:100%;width:0%;background:linear-gradient(90deg,#2d8b2d,#69f0ae);border-radius:99px;transition:width .8s ease;}
+
+#game-canvas{position:fixed;inset:0;z-index:5;}
+
+#pack-display{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:20;display:flex;gap:8px;align-items:center;}
+.pack-wolf{font-size:22px;opacity:0.2;transition:opacity .4s,transform .4s;transform:scale(0.8);}
+.pack-wolf.alive{opacity:1;transform:scale(1);}
+
+#eco-event{position:fixed;top:80px;left:50%;transform:translateX(-50%);z-index:25;
+  font-family:var(--font-body);font-style:italic;font-size:16px;color:rgba(105,240,174,0.9);
+  text-align:center;pointer-events:none;opacity:0;transition:opacity .4s;
+  background:rgba(0,0,0,0.6);padding:12px 28px;border-left:3px solid rgba(105,240,174,0.5);
+  max-width:520px;border-radius:2px;white-space:nowrap;}
+
+#result-screen{background:radial-gradient(ellipse at center,#0a1a06 0%,#050805 70%);}
+.result-inner{max-width:560px;width:90vw;text-align:center;padding:48px 40px;
+  background:rgba(255,255,255,0.02);border:1px solid rgba(200,160,80,0.15);border-radius:4px;}
+.result-title{font-family:var(--font-title);font-size:clamp(24px,4vw,42px);font-weight:900;
+  background:linear-gradient(180deg,#e8d8b0,#c8a050);-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px;}
+.result-sub{font-style:italic;color:rgba(200,180,130,0.5);letter-spacing:4px;font-size:13px;margin-bottom:32px;text-transform:uppercase;}
+.result-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:28px;}
+.rstat{background:rgba(255,255,255,0.03);border:1px solid rgba(200,160,80,0.1);border-radius:3px;padding:18px 12px;}
+.rstat .rv{font-family:var(--font-title);font-size:26px;color:var(--gold);}
+.rstat .rl{font-size:11px;color:rgba(200,180,130,0.4);letter-spacing:2px;text-transform:uppercase;margin-top:4px;}
+.eco-quote-box{background:rgba(40,80,40,0.15);border:1px solid rgba(105,240,174,0.15);border-radius:3px;
+  padding:20px 24px;margin-bottom:28px;font-style:italic;font-size:15px;
+  color:rgba(150,230,150,0.85);line-height:1.8;}
+.eco-quote-box cite{display:block;margin-top:8px;font-size:12px;color:rgba(105,240,174,0.5);font-style:normal;letter-spacing:2px;}
+.btn-row{display:flex;gap:16px;justify-content:center;}
+.btn-sec{font-family:var(--font-title);font-size:12px;letter-spacing:4px;text-transform:uppercase;
+  padding:12px 28px;background:transparent;border:1px solid rgba(200,160,80,0.2);color:rgba(200,160,80,0.6);
+  cursor:pointer;transition:all .3s;border-radius:2px;outline:none;}
+.btn-sec:hover{border-color:rgba(200,160,80,0.5);color:var(--gold);}
+
+#pause-overlay{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,0.7);
+  display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;}
+#pause-overlay.active{opacity:1;pointer-events:all;}
+.pause-text{font-family:var(--font-title);font-size:48px;letter-spacing:8px;color:var(--gold);}
+
+@media(max-width:480px){
+  .title-card{padding:24px 20px;}
+  #hud{padding:8px 12px;}
+  .hud-val{font-size:16px;}
+  .cascade-bar-wrap{width:110px;}
+  #eco-event{white-space:normal;font-size:13px;max-width:90vw;}
+}
+</style>
+</head>
+<body>
+
+<div class="screen" id="title-screen">
+  <div class="title-art">APEX</div>
+  <div class="title-sub">The Trophic Cascade</div>
+  <div class="title-card">
+    <p class="title-lore">
+      Yellowstone, 1995. You are the first wolf reintroduced after <span>70 years of silence</span>.<br><br>
+      Hunt. Survive. Build your pack.<br>
+      Watch as your presence <span>reshapes rivers, forests, the earth itself</span>.
+    </p>
+    <button class="btn-start" id="start-btn">BEGIN THE HUNT</button>
+    <div class="controls-hint">WASD · ARROW KEYS · SPACE = Howl · ESC = Pause</div>
+  </div>
+</div>
+
+<div id="hud" style="display:none;">
+  <div class="hud-left">
+    <div class="hud-stat"><span class="hud-label">Score</span><span class="hud-val" id="hud-score">0</span></div>
+    <div class="hud-stat"><span class="hud-label">Pack</span><span class="hud-val" id="hud-pack">1</span></div>
+    <div class="hud-stat"><span class="hud-label">Hunts</span><span class="hud-val" id="hud-hunts">0</span></div>
+  </div>
+  <div>
+    <div class="cascade-bar-wrap">
+      <div class="cascade-label">Trophic Cascade</div>
+      <div class="cascade-track"><div id="cascade-fill"></div></div>
+    </div>
+  </div>
+  <div class="hud-right">
+    <div class="hud-stat"><span class="hud-label">Season</span><span class="hud-val" id="hud-season">Spring</span></div>
+    <div class="hud-stat"><span class="hud-label">Year</span><span class="hud-val" id="hud-year">1995</span></div>
+  </div>
+</div>
+
+<canvas id="game-canvas"></canvas>
+<div id="eco-event"></div>
+<div id="pack-display"></div>
+
+<div id="pause-overlay"><div class="pause-text">PAUSED</div></div>
+
+<div class="screen hidden" id="result-screen">
+  <div class="result-inner">
+    <div class="result-title" id="res-title">THE PACK SURVIVES</div>
+    <div class="result-sub" id="res-sub">Trophic cascade complete</div>
+    <div class="result-stats">
+      <div class="rstat"><div class="rv" id="res-score">0</div><div class="rl">Score</div></div>
+      <div class="rstat"><div class="rv" id="res-pack">1</div><div class="rl">Pack Size</div></div>
+      <div class="rstat"><div class="rv" id="res-year">1995</div><div class="rl">Year</div></div>
+    </div>
+    <div class="eco-quote-box" id="eco-quote-box"></div>
+    <div class="btn-row">
+      <button class="btn-sec" id="menu-btn">MENU</button>
+      <button class="btn-start" id="retry-btn" style="padding:12px 28px;font-size:12px;letter-spacing:4px;">HUNT AGAIN</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const ECO_QUOTES=[
+  {q:"When wolves were reintroduced to Yellowstone in 1995, they changed the course of rivers. Deer avoided valleys, grasses grew, riverbanks stabilized. Fear itself reshaped the landscape.",cite:"— Trophic Cascade, Yellowstone 1995"},
+  {q:"The wolf does not merely hunt — it sculpts. Every chase redirects a deer, every redirect regrows a willow, every willow roots a riverbank. One predator. Infinite consequence.",cite:"— On Apex Predators"},
+  {q:"We exterminated the wolf thinking we were protecting our livestock. We were actually unraveling rivers, forests, and mountains. Nature is more connected than our fear allows us to see.",cite:"— George Monbiot, Rewilding"},
+  {q:"To remove an apex predator is to silence an orchestra's conductor. Every instrument plays on — but nothing is in harmony.",cite:"— On Ecological Balance"},
+  {q:"The kudu, the wolf, the whale — remove any apex and the world beneath them collapses in slow, invisible catastrophe. Rewilding is not about the past. It is the only future.",cite:"— On Rewilding"},
+  {q:"Wolves don't just kill deer. They give rivers life.",cite:"— How Wolves Change Rivers, 2014"},
+];
+const ECO_EVENTS=[
+  {cascade:10,msg:"🌿 Deer avoid the valley. Grasses begin to regrow along the riverbank."},
+  {cascade:25,msg:"🌊 Vegetation stabilizes the soil. The river's course begins to shift..."},
+  {cascade:40,msg:"🦅 Ravens and eagles follow the pack, scavenging the hunt's remains."},
+  {cascade:55,msg:"🌲 Willows and aspens shoot upward — ungrazed for the first time in decades."},
+  {cascade:70,msg:"🦦 Beavers return. Dams form. Wetlands emerge from the recovering forest."},
+  {cascade:85,msg:"🐻 Bears feast on berries growing in the wolf-protected undergrowth."},
+  {cascade:100,msg:"🌍 Trophic cascade complete. One pack rewilded an entire ecosystem."},
+];
+const SEASONS=["Spring","Summer","Autumn","Winter"];
+const SEASON_BG=["#0a1a06","#061208","#1a1206","#08100a"];
+
+const canvas=document.getElementById('game-canvas');
+const ctx=canvas.getContext('2d');
+let W,H;
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+window.addEventListener('resize',resize);resize();
+
+let gs={},running=false,paused=false,gameOver=false,animId=null;
+let triggeredEvents=new Set();
+
+function initGame(){
+  triggeredEvents=new Set();
+  gs={
+    score:0,hunts:0,packSize:1,cascade:0,year:1995,seasonIdx:0,seasonTimer:0,
+    wolf:{x:W/2,y:H/2,vx:0,vy:0,dir:0,stamina:100,howling:false,howlTimer:0},
+    deer:[],humans:[],trees:[],riverPts:[],
+    particles:[],bloodSplats:[],growthParts:[],packWolves:[],
+    spawnTimer:0,humanTimer:0,keys:{},lastTime:0,
+  };
+  spawnDeer(10);spawnTrees(45);buildRiver();
+  updatePackUI();
+}
+
+function spawnDeer(n){
+  for(let i=0;i<n;i++) gs.deer.push({x:Math.random()*W,y:80+Math.random()*(H-100),vx:(Math.random()-.5)*1.2,vy:(Math.random()-.5)*1.2,flee:false,fleeTimer:0,sz:10+Math.random()*5});
+}
+function spawnTrees(n){
+  gs.trees=[];
+  for(let i=0;i<n;i++) gs.trees.push({x:Math.random()*W,y:80+Math.random()*(H-100),r:6+Math.random()*14,grown:Math.random()*0.5,type:Math.random()>.5?'p':'b'});
+}
+function buildRiver(){
+  gs.riverPts=[];let rx=W*0.18;
+  for(let i=0;i<22;i++){gs.riverPts.push({x:rx+(Math.random()-.5)*70,y:i*(H/21)});rx+=( Math.random()-.5)*55;rx=Math.max(W*.04,Math.min(W*.36,rx));}
+}
+function spawnHuman(){
+  const s=Math.floor(Math.random()*4);let x,y;
+  if(s===0){x=Math.random()*W;y=-20;}else if(s===1){x=W+20;y=Math.random()*H;}
+  else if(s===2){x=Math.random()*W;y=H+20;}else{x=-20;y=Math.random()*H;}
+  gs.humans.push({x,y,vx:(W/2-x)*.002,vy:(H/2-y)*.002,alertT:0,flee:false});
+}
+function addPackWolf(){gs.packWolves.push({x:gs.wolf.x+(Math.random()-.5)*60,y:gs.wolf.y+(Math.random()-.5)*60,ox:(Math.random()-.5)*50,oy:(Math.random()-.5)*50,ph:Math.random()*Math.PI*2});}
+
+function spawnBlood(x,y){for(let i=0;i<8;i++)gs.bloodSplats.push({x,y,vx:(Math.random()-.5)*4,vy:(Math.random()-.5)*4,r:2+Math.random()*3,life:1});}
+function spawnGrow(x,y){for(let i=0;i<7;i++)gs.growthParts.push({x,y,vx:(Math.random()-.5)*2,vy:-1-Math.random()*2,r:3,life:1,h:100+Math.random()*40});}
+function spawnHowl(x,y){gs.particles.push({x,y,r:10,life:1});}
+
+function drawGnd(){
+  const t=gs.cascade/100;
+  ctx.fillStyle=SEASON_BG[gs.seasonIdx];
+  ctx.fillRect(0,0,W,H);
+  for(let gx=0;gx<W;gx+=32){
+    for(let gy=70;gy<H;gy+=32){
+      ctx.fillStyle=`rgba(28,${55+t*65},18,${0.08+t*0.35})`;
+      ctx.fillRect(gx,gy,30,30);
+    }
+  }
+  // River
+  if(gs.riverPts.length>1){
+    const rw=6+t*22;
+    ctx.beginPath();ctx.moveTo(gs.riverPts[0].x,gs.riverPts[0].y);
+    for(let i=1;i<gs.riverPts.length;i++){const p=gs.riverPts[i-1],c=gs.riverPts[i];ctx.quadraticCurveTo(p.x,p.y,(p.x+c.x)/2,(p.y+c.y)/2);}
+    ctx.strokeStyle=`rgba(25,75,160,${0.35+t*0.45})`;ctx.lineWidth=rw;ctx.lineCap='round';ctx.stroke();
+    ctx.strokeStyle=`rgba(80,160,255,${0.1+t*0.15})`;ctx.lineWidth=rw*.35;ctx.stroke();
+  }
+}
+function drawTrees(){
+  const t=gs.cascade/100;
+  gs.trees.forEach(tr=>{
+    const ar=tr.r*(0.35+tr.grown*.65);
+    if(tr.type==='p'){
+      ctx.beginPath();ctx.moveTo(tr.x,tr.y-ar*1.9);ctx.lineTo(tr.x-ar,tr.y+ar*.5);ctx.lineTo(tr.x+ar,tr.y+ar*.5);ctx.closePath();
+      ctx.fillStyle=`hsl(${118+t*22},${38+t*28}%,${22+t*13}%)`;ctx.fill();
+    }else{
+      ctx.beginPath();ctx.arc(tr.x,tr.y,ar,0,Math.PI*2);
+      ctx.fillStyle=`hsl(${112+t*26},${32+t*24}%,${18+t*14}%)`;ctx.fill();
+    }
+    ctx.fillStyle='#3a2a18';ctx.fillRect(tr.x-2,tr.y+ar*.4,4,ar*.8);
+  });
+}
+function drawWolf(x,y,dir,sz,alpha,howl){
+  ctx.save();ctx.translate(x,y);ctx.rotate(dir);ctx.globalAlpha=alpha;
+  ctx.beginPath();ctx.ellipse(2,4,sz*.8,sz*.4,0,0,Math.PI*2);ctx.fillStyle='rgba(0,0,0,0.25)';ctx.fill();
+  ctx.beginPath();ctx.ellipse(0,0,sz,sz*.65,0,0,Math.PI*2);ctx.fillStyle='#b0a090';ctx.fill();
+  ctx.beginPath();ctx.ellipse(sz*.85,0,sz*.55,sz*.45,.2,0,Math.PI*2);ctx.fillStyle='#c0b0a0';ctx.fill();
+  ctx.beginPath();ctx.ellipse(sz*1.35,sz*.05,sz*.28,sz*.2,0,0,Math.PI*2);ctx.fillStyle='#a09080';ctx.fill();
+  ctx.beginPath();ctx.arc(sz,sz*-.1,2.5,0,Math.PI*2);ctx.fillStyle='#f0d080';ctx.fill();
+  ctx.beginPath();ctx.arc(sz,sz*-.1,1.5,0,Math.PI*2);ctx.fillStyle='#1a1000';ctx.fill();
+  ctx.beginPath();ctx.moveTo(-sz,0);ctx.quadraticCurveTo(-sz*1.5,-sz*(howl?1.2:.6),-sz*.8,-sz*(howl?1.6:.9));
+  ctx.strokeStyle='#a09080';ctx.lineWidth=4;ctx.lineCap='round';ctx.stroke();
+  ctx.beginPath();ctx.moveTo(sz*.65,-sz*.4);ctx.lineTo(sz*.5,-sz*.85);ctx.lineTo(sz*.9,-sz*.45);ctx.closePath();ctx.fillStyle='#c0b0a0';ctx.fill();
+  ctx.restore();
+}
+function drawDeer(d){
+  ctx.save();ctx.translate(d.x,d.y);ctx.rotate(Math.atan2(d.vy,d.vx));ctx.globalAlpha=.9;
+  ctx.beginPath();ctx.ellipse(0,0,d.sz,d.sz*.6,0,0,Math.PI*2);ctx.fillStyle=d.flee?'#c47840':'#b07030';ctx.fill();
+  ctx.beginPath();ctx.ellipse(d.sz*.9,0,d.sz*.45,d.sz*.38,0,0,Math.PI*2);ctx.fillStyle='#c47830';ctx.fill();
+  ctx.strokeStyle='#8a5020';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(d.sz*.85,-d.sz*.3);ctx.lineTo(d.sz*.7,-d.sz*.9);ctx.moveTo(d.sz*.75,-d.sz*.65);ctx.lineTo(d.sz*.5,-d.sz*.85);ctx.stroke();
+  ctx.restore();
+}
+function drawHuman(h){
+  ctx.save();ctx.translate(h.x,h.y);ctx.globalAlpha=.8;
+  ctx.fillStyle=h.flee?'#ff6040':'#e8c090';
+  ctx.beginPath();ctx.arc(0,-14,6,0,Math.PI*2);ctx.fill();
+  ctx.fillRect(-5,-8,10,14);ctx.fillRect(-8,-6,5,10);ctx.fillRect(3,-6,5,10);ctx.fillRect(-4,6,4,10);ctx.fillRect(0,6,4,10);
+  if(h.alertT>0){ctx.font='14px serif';ctx.fillStyle='#ffcc00';ctx.fillText('!', -4,-22);}
+  ctx.restore();
+}
+function drawParticles(){
+  gs.particles.forEach(p=>{ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.strokeStyle=`rgba(200,200,255,${p.life*.35})`;ctx.lineWidth=2;ctx.stroke();});
+  gs.bloodSplats.forEach(b=>{ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);ctx.fillStyle=`rgba(140,30,30,${b.life})`;ctx.fill();});
+  gs.growthParts.forEach(g=>{ctx.beginPath();ctx.arc(g.x,g.y,g.r*g.life,0,Math.PI*2);ctx.fillStyle=`hsla(${g.h},70%,50%,${g.life})`;ctx.fill();});
+}
+
+const SPD=3.5,DSRD=2.2,HR=26;
+function update(dt){
+  if(!running||paused||gameOver)return;
+  const w=gs.wolf;
+  let dx=0,dy=0;
+  if(gs.keys['ArrowLeft']||gs.keys['a']||gs.keys['A'])dx--;
+  if(gs.keys['ArrowRight']||gs.keys['d']||gs.keys['D'])dx++;
+  if(gs.keys['ArrowUp']||gs.keys['w']||gs.keys['W'])dy--;
+  if(gs.keys['ArrowDown']||gs.keys['s']||gs.keys['S'])dy++;
+  const sp=SPD*(w.stamina>20?1:.5);
+  if(dx||dy){const m=Math.sqrt(dx*dx+dy*dy);w.vx=dx/m*sp;w.vy=dy/m*sp;w.dir=Math.atan2(dy,dx);w.stamina=Math.max(0,w.stamina-.15);}
+  else{w.vx*=.85;w.vy*=.85;w.stamina=Math.min(100,w.stamina+.3);}
+  w.x=Math.max(16,Math.min(W-16,w.x+w.vx));w.y=Math.max(70,Math.min(H-16,w.y+w.vy));
+  if(w.howling){w.howlTimer-=dt;if(w.howlTimer<=0)w.howling=false;}
+
+  gs.packWolves.forEach(pw=>{
+    const tx=w.x+pw.ox+Math.sin(gs.seasonTimer*.002+pw.ph)*18;
+    const ty=w.y+pw.oy+Math.cos(gs.seasonTimer*.002+pw.ph)*18;
+    pw.x+=(tx-pw.x)*.06;pw.y+=(ty-pw.y)*.06;
+  });
+
+  gs.deer.forEach(d=>{
+    const dist=Math.hypot(d.x-w.x,d.y-w.y);
+    const fr=120+gs.packSize*18;
+    if(dist<fr){d.flee=true;d.fleeTimer=90;const a=Math.atan2(d.y-w.y,d.x-w.x);d.vx=Math.cos(a)*(DSRD+gs.packSize*.25);d.vy=Math.sin(a)*(DSRD+gs.packSize*.25);}
+    gs.packWolves.forEach(pw=>{if(Math.hypot(d.x-pw.x,d.y-pw.y)<90){d.flee=true;d.fleeTimer=60;const a=Math.atan2(d.y-pw.y,d.x-pw.x);d.vx=Math.cos(a)*DSRD;d.vy=Math.sin(a)*DSRD;}});
+    if(d.fleeTimer>0)d.fleeTimer--;else{d.flee=false;d.vx*=.97;d.vy*=.97;}
+    if(!d.flee&&Math.random()<.02){d.vx=(Math.random()-.5)*1.2;d.vy=(Math.random()-.5)*1.2;}
+    d.x=Math.max(10,Math.min(W-10,d.x+d.vx));d.y=Math.max(80,Math.min(H-10,d.y+d.vy));
+  });
+
+  function doHunt(hx,hy){
+    for(let i=gs.deer.length-1;i>=0;i--){
+      if(Math.hypot(gs.deer[i].x-hx,gs.deer[i].y-hy)<HR){
+        spawnBlood(gs.deer[i].x,gs.deer[i].y);gs.deer.splice(i,1);
+        gs.hunts++;gs.score+=100+gs.packSize*15;
+        gs.cascade=Math.min(100,gs.cascade+3.5+gs.packSize*.5);
+        document.getElementById('hud-score').textContent=gs.score;
+        document.getElementById('hud-hunts').textContent=gs.hunts;
+        document.getElementById('cascade-fill').style.width=gs.cascade+'%';
+        if(gs.hunts%3===0&&gs.packSize<12){gs.packSize++;document.getElementById('hud-pack').textContent=gs.packSize;addPackWolf();updatePackUI();spawnGrow(w.x,w.y-30);}
+        const dead=gs.trees.filter(t=>t.grown<.8);
+        if(dead.length){const tr=dead[Math.floor(Math.random()*dead.length)];tr.grown=Math.min(1,tr.grown+.12);spawnGrow(tr.x,tr.y);}
+        if(gs.deer.length<5)spawnDeer(3);
+        checkEco();
+        if(gs.cascade>=100)endGame(true);
+        break;
+      }
+    }
+  }
+  doHunt(w.x,w.y);
+  gs.packWolves.forEach(pw=>doHunt(pw.x,pw.y));
+
+  gs.humans.forEach(h=>{
+    const dist=Math.hypot(h.x-w.x,h.y-w.y);
+    if(dist<160){h.flee=true;h.alertT=30;const a=Math.atan2(h.y-w.y,h.x-w.x);h.vx=Math.cos(a)*2.4;h.vy=Math.sin(a)*2.4;}
+    else h.flee=false;
+    if(h.alertT>0)h.alertT--;
+    h.x+=h.vx;h.y+=h.vy;
+  });
+  gs.humans=gs.humans.filter(h=>h.x>-150&&h.x<W+150&&h.y>-150&&h.y<H+150);
+  gs.humanTimer++;if(gs.humanTimer>450){gs.humanTimer=0;spawnHuman();}
+  gs.spawnTimer++;if(gs.spawnTimer>700){gs.spawnTimer=0;spawnDeer(2);}
+  gs.seasonTimer+=dt;
+  if(gs.seasonTimer>6000){gs.seasonTimer=0;gs.seasonIdx=(gs.seasonIdx+1)%4;if(gs.seasonIdx===0)gs.year++;document.getElementById('hud-season').textContent=SEASONS[gs.seasonIdx];document.getElementById('hud-year').textContent=gs.year;}
+
+  gs.particles.forEach(p=>{p.r+=3;p.life-=.02;});gs.particles=gs.particles.filter(p=>p.life>0);
+  gs.bloodSplats.forEach(b=>{b.x+=b.vx;b.y+=b.vy;b.life-=.04;b.vx*=.85;b.vy*=.85;});gs.bloodSplats=gs.bloodSplats.filter(b=>b.life>0);
+  gs.growthParts.forEach(g=>{g.x+=g.vx;g.y+=g.vy;g.life-=.03;});gs.growthParts=gs.growthParts.filter(g=>g.life>0);
+}
+
+function checkEco(){ECO_EVENTS.forEach(ev=>{if(gs.cascade>=ev.cascade&&!triggeredEvents.has(ev.cascade)){triggeredEvents.add(ev.cascade);showEco(ev.msg);}});}
+function showEco(msg){const el=document.getElementById('eco-event');el.textContent=msg;el.style.opacity='1';setTimeout(()=>el.style.opacity='0',3800);}
+function updatePackUI(){const el=document.getElementById('pack-display');el.innerHTML='';for(let i=0;i<12;i++){const s=document.createElement('span');s.className='pack-wolf'+(i<gs.packSize?' alive':'');s.textContent='🐺';el.appendChild(s);}}
+
+function draw(){
+  ctx.clearRect(0,0,W,H);drawGnd();drawTrees();drawParticles();
+  gs.deer.forEach(drawDeer);gs.humans.forEach(drawHuman);
+  gs.packWolves.forEach(pw=>drawWolf(pw.x,pw.y,Math.atan2(gs.wolf.y-pw.y,gs.wolf.x-pw.x),13,.75,false));
+  drawWolf(gs.wolf.x,gs.wolf.y,gs.wolf.dir,16,1,gs.wolf.howling);
+  if(gs.wolf.stamina<80){ctx.beginPath();ctx.arc(gs.wolf.x,gs.wolf.y-22,10,-Math.PI/2,-Math.PI/2+(gs.wolf.stamina/100)*Math.PI*2);ctx.strokeStyle=`rgba(255,${Math.floor(gs.wolf.stamina*2.5)},0,.8)`;ctx.lineWidth=3;ctx.stroke();}
+}
+
+function loop(ts){const dt=Math.min(ts-(gs.lastTime||ts),50);gs.lastTime=ts;update(dt);draw();if(running&&!gameOver)animId=requestAnimationFrame(loop);}
+
+function endGame(won){
+  running=false;gameOver=true;cancelAnimationFrame(animId);
+  const q=ECO_QUOTES[Math.floor(Math.random()*ECO_QUOTES.length)];
+  document.getElementById('res-title').textContent=won?'🐺 THE CASCADE IS COMPLETE':'THE HUNT ENDS';
+  document.getElementById('res-sub').textContent=won?'Yellowstone reborn':`Year ${gs.year} · ${gs.hunts} hunts`;
+  document.getElementById('res-score').textContent=gs.score;
+  document.getElementById('res-pack').textContent=gs.packSize;
+  document.getElementById('res-year').textContent=gs.year;
+  document.getElementById('eco-quote-box').innerHTML=`"${q.q}"<cite>${q.cite}</cite>`;
+  document.getElementById('hud').style.display='none';
+  document.getElementById('pack-display').style.display='none';
+  showScreen('result-screen');
+}
+
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));if(document.getElementById(id))document.getElementById(id).classList.remove('hidden');}
+
+document.addEventListener('keydown',e=>{
+  if(!gs.keys)return;gs.keys[e.key]=true;
+  if(e.key===' '&&running&&!paused){
+    gs.wolf.howling=true;gs.wolf.howlTimer=800;spawnHowl(gs.wolf.x,gs.wolf.y);
+    gs.deer.forEach(d=>{if(Math.hypot(d.x-gs.wolf.x,d.y-gs.wolf.y)<200){d.flee=true;d.fleeTimer=120;}});
+    gs.cascade=Math.min(100,gs.cascade+1);document.getElementById('cascade-fill').style.width=gs.cascade+'%';checkEco();
+    e.preventDefault();
+  }
+  if(e.key==='Escape'&&running){paused=!paused;document.getElementById('pause-overlay').classList.toggle('active',paused);}
+});
+document.addEventListener('keyup',e=>{if(gs.keys)gs.keys[e.key]=false;});
+
+let tx0=0,ty0=0;
+canvas.addEventListener('touchstart',e=>{tx0=e.touches[0].clientX;ty0=e.touches[0].clientY;},{passive:true});
+canvas.addEventListener('touchmove',e=>{
+  if(!gs.keys||!running)return;
+  const dx=e.touches[0].clientX-tx0,dy=e.touches[0].clientY-ty0;
+  gs.keys['ArrowLeft']=dx<-15;gs.keys['ArrowRight']=dx>15;gs.keys['ArrowUp']=dy<-15;gs.keys['ArrowDown']=dy>15;
+},{passive:true});
+canvas.addEventListener('touchend',()=>{if(!gs.keys)return;gs.keys['ArrowLeft']=gs.keys['ArrowRight']=gs.keys['ArrowUp']=gs.keys['ArrowDown']=false;});
+
+document.getElementById('start-btn').addEventListener('click',()=>{
+  document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));
+  document.getElementById('hud').style.display='flex';
+  document.getElementById('pack-display').style.display='flex';
+  initGame();running=true;gameOver=false;
+  showEco("🐺 You have been released into Yellowstone. Hunt. Survive. Restore.");
+  requestAnimationFrame(loop);
+});
+document.getElementById('menu-btn').addEventListener('click',()=>{
+  running=false;gameOver=false;cancelAnimationFrame(animId);
+  document.getElementById('hud').style.display='none';
+  document.getElementById('pack-display').style.display='none';
+  showScreen('title-screen');
+});
+document.getElementById('retry-btn').addEventListener('click',()=>{
+  document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));
+  document.getElementById('hud').style.display='flex';
+  document.getElementById('pack-display').style.display='flex';
+  initGame();running=true;gameOver=false;
+  requestAnimationFrame(loop);
+});
+
+showScreen('title-screen');
+</script>
+</body>
+</html>
