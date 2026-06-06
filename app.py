@@ -257,6 +257,7 @@ def verify_challenge_photo(filepath, challenge_title):
 
 # -------------------- WELCOME EMAIL --------------------
 def send_welcome_email(to_email, user_name):
+    print("SENDGRID KEY:", os.environ.get("SENDGRID_API_KEY", "NOT FOUND"))
     try:
         import sendgrid
         from sendgrid.helpers.mail import Mail, Attachment, FileContent, FileName, FileType, Disposition, ContentId
@@ -315,7 +316,7 @@ def send_welcome_email(to_email, user_name):
 
     except Exception as e:
         print(f"❌ Welcome email failed for {to_email}: {e}")
-        
+
 # -------------------- HOME --------------------
 @app.route("/")
 def home():
