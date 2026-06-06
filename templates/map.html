@@ -19,18 +19,29 @@ body{font-family:Arial,sans-serif;min-height:100vh;background:#0b1f2e;color:whit
 
 .page{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;padding:24px 16px 52px;}
 
+/* TOP BAR */
+.topbar{
+  width:100%;max-width:520px;
+  display:flex;align-items:center;
+  margin-bottom:20px;gap:12px;
+}
 .back-btn{
-  position:fixed;top:16px;left:16px;z-index:200;
   background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);
   color:white;font-size:26px;font-weight:300;width:42px;height:42px;
   border-radius:50%;display:flex;align-items:center;justify-content:center;
   cursor:pointer;transition:0.2s;padding-right:2px;
-  text-decoration:none;
+  text-decoration:none;border:1px solid rgba(255,255,255,0.18);
+  flex-shrink:0;
 }
 .back-btn:hover{background:rgba(255,255,255,0.22);}
+.topbar-title{
+  flex:1;text-align:center;
+  font-size:clamp(18px,5vw,24px);font-weight:700;
+  letter-spacing:1px;text-shadow:0 0 30px rgba(0,220,120,0.3);
+}
+.topbar-spacer{width:42px;flex-shrink:0;}
 
 .header{text-align:center;margin-bottom:10px;}
-h2{font-size:clamp(22px,5vw,34px);letter-spacing:1px;text-shadow:0 0 30px rgba(0,220,120,0.3);margin-bottom:6px;}
 .header-sub{font-size:13px;color:rgba(255,255,255,0.35);letter-spacing:0.3px;}
 
 .overall-wrap{width:100%;max-width:520px;margin:18px 0 26px;}
@@ -100,6 +111,7 @@ h2{font-size:clamp(22px,5vw,34px);letter-spacing:1px;text-shadow:0 0 30px rgba(0
 }
 .zone-card.complete .zone-badge{display:block;}
 
+/* POPUP */
 .popup-overlay{
   position:fixed;inset:0;background:rgba(0,0,0,0.75);
   display:none;justify-content:center;align-items:center;
@@ -193,10 +205,15 @@ h2{font-size:clamp(22px,5vw,34px);letter-spacing:1px;text-shadow:0 0 30px rgba(0
 <div class="grid"></div>
 
 <div class="page">
-  <a class="back-btn" id="backBtn" href="#" title="Back">&#8249;</a>
+
+  <!-- TOP BAR with working back button -->
+  <div class="topbar">
+    <a class="back-btn" id="backBtn" href="#" title="Back">&#8249;</a>
+    <div class="topbar-title">🌍 Eco Mission Map</div>
+    <div class="topbar-spacer"></div>
+  </div>
 
   <div class="header">
-    <h2>🌍 Eco Mission Map</h2>
     <div class="header-sub" id="headerSub">Choose a zone and start your eco missions</div>
   </div>
 
@@ -277,6 +294,7 @@ h2{font-size:clamp(22px,5vw,34px);letter-spacing:1px;text-shadow:0 0 30px rgba(0
   </div>
 </div>
 
+<!-- POPUP -->
 <div class="popup-overlay" id="popup" onclick="handleOverlayClick(event)">
   <div class="popup-box">
     <div class="popup-banner">
@@ -300,177 +318,201 @@ h2{font-size:clamp(22px,5vw,34px);letter-spacing:1px;text-shadow:0 0 30px rgba(0
 </div>
 
 <script>
-const STORAGE_PREFIX = 'eco_';
-const memStore = {};
+// ─── Read name & role from URL ───────────────────────────────────────────────
+// Supports BOTH patterns:
+//   1. Path params:  /eco-mission-map/Raja/student
+//   2. Query params: /eco-mission-map?name=Raja&role=student
+function getNameRole() {
+  // Try query params first
+  const qp = new URLSearchParams(window.location.search);
+  let name = qp.get('name') || '';
+  let role = qp.get('role') || '';
 
-function getParams(){
-  return new URLSearchParams(window.location.search);
-}
-
-const params = getParams();
-const name = params.get('name') || '';
-const role = params.get('role') || '';
-
-const ZONES = {
-  school:{
-    icon:'🏫', label:'School', title:'School Missions',
-    missions:[
-      {icon:'🃏', name:'Memory Match', tag:'Recycling', path:'/memory_match'},
-      {icon:'💡', name:'Lights Out Detective', tag:'Energy', path:'/lights_out'},
-      {icon:'🚰', name:'Leak Hunter', tag:'Water', path:'/leak_hunter'},
-      {icon:'🥗', name:'Green Canteen', tag:'Food', path:'/canteen'},
-      {icon:'🚴', name:'Cycle Dash', tag:'Transport', path:'/cycle-dash'}
-    ]
-  },
-  forest:{
-    icon:'🌲', label:'Forest', title:'Forest Missions',
-    missions:[
-      {icon:'🌱', name:'Seed Shooter', tag:'Planting', path:'/seed-shooter'},
-      {icon:'🌳', name:'Tree Doctor', tag:'Health', path:'/tree-doctor'},
-      {icon:'🔥', name:'Fire Rescue Run', tag:'Emergency', path:'/fire-rescue'},
-      {icon:'🦌', name:'Food Chain Puzzle', tag:'Ecology', path:'/food-chain'},
-      {icon:'🌧️', name:'Rain Puzzle', tag:'Weather', path:'/rain-puzzle'}
-    ]
-  },
-  ocean:{
-    icon:'🌊', label:'Ocean', title:'Ocean Missions',
-    missions:[
-      {icon:'♻️', name:'Plastic Catcher Dive', tag:'Cleanup', path:'/plastic-catcher'},
-      {icon:'🪸', name:'Coral Builder', tag:'Reef', path:'/coral-builder'},
-      {icon:'🐢', name:'Turtle Rescue', tag:'Wildlife', path:'/turtle-rescue'},
-      {icon:'🛢️', name:'Oil Spill Rush', tag:'Pollution', path:'/oil-spill'},
-      {icon:'🎣', name:'Smart Fishing', tag:'Fishing', path:'/smart-fishing'}
-    ]
-  }
-};
-
-function setupBackBtn(){
-  const backBtn = document.getElementById('backBtn');
-  backBtn.href = '#';
-  backBtn.onclick = function(){
-    const backTarget = params.get('return');
-    if (backTarget) {
-      window.location.href = decodeURIComponent(backTarget);
-    } else {
-      window.location.href = '/dashboard';
+  // Fallback: try path segments /eco-mission-map/NAME/ROLE
+  if (!name || !role) {
+    const parts = window.location.pathname.split('/').filter(Boolean);
+    // parts[0] = 'eco-mission-map', parts[1] = name, parts[2] = role
+    if (parts.length >= 3) {
+      name = decodeURIComponent(parts[1]);
+      role = decodeURIComponent(parts[2]);
     }
-    return false;
-  };
+  }
+  return { name, role };
 }
-setupBackBtn();
 
-(function setupHeader(){
-  if(name){
+const { name, role } = getNameRole();
+
+// ─── Set back button href dynamically ────────────────────────────────────────
+(function setupBackBtn() {
+  const btn = document.getElementById('backBtn');
+  if (name && role) {
+    btn.href = '/dashboard/' + encodeURIComponent(name) + '/' + encodeURIComponent(role);
+  } else {
+    // Fallback: just go back in browser history
+    btn.href = '#';
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      if (window.history.length > 1) {
+        window.history.back();
+      } else {
+        window.location.href = '/dashboard';
+      }
+    });
+  }
+})();
+
+// ─── Welcome subtitle ─────────────────────────────────────────────────────────
+(function setupHeader() {
+  if (name) {
     document.getElementById('headerSub').textContent =
       'Welcome, ' + name + ' — choose a zone to begin';
   }
 })();
 
-function safeGet(key){
+// ─── Storage helpers ──────────────────────────────────────────────────────────
+const STORAGE_PREFIX = 'eco_';
+const memStore = {};
+
+function safeGet(key) {
   try { return localStorage.getItem(key); }
-  catch(e){ return memStore[key] || null; }
+  catch(e) { return memStore[key] || null; }
 }
-
-function safeSet(key, value){
+function safeSet(key, value) {
   try { localStorage.setItem(key, value); }
-  catch(e){ memStore[key] = value; }
+  catch(e) { memStore[key] = value; }
 }
-
-function getState(zone){
+function getState(zone) {
   try { return JSON.parse(safeGet(STORAGE_PREFIX + zone) || '[]'); }
-  catch(e){ return []; }
+  catch(e) { return []; }
 }
-
-function saveState(zone, arr){
+function saveState(zone, arr) {
   safeSet(STORAGE_PREFIX + zone, JSON.stringify(arr));
 }
 
-(function checkReturn(){
+// ─── Check return from game ───────────────────────────────────────────────────
+(function checkReturn() {
+  const params = new URLSearchParams(window.location.search);
   const completed = params.get('completed');
-  if(!completed) return;
-
-  for(const [zone, z] of Object.entries(ZONES)){
+  if (!completed) return;
+  for (const [zone, z] of Object.entries(ZONES)) {
     const idx = z.missions.findIndex(m => m.path === completed);
-    if(idx !== -1){
+    if (idx !== -1) {
       const state = getState(zone);
       state[idx] = true;
       saveState(zone, state);
       break;
     }
   }
-
-  window.history.replaceState({}, '', window.location.pathname + (name ? '?name=' + encodeURIComponent(name) + '&role=' + encodeURIComponent(role) : ''));
+  window.history.replaceState({}, '', window.location.pathname +
+    (name ? '?name=' + encodeURIComponent(name) + '&role=' + encodeURIComponent(role) : ''));
 })();
 
-function calcStars(done){
-  if(done >= 5) return 3;
-  if(done >= 3) return 2;
-  if(done >= 1) return 1;
+// ─── Zone data ────────────────────────────────────────────────────────────────
+const ZONES = {
+  school: {
+    icon: '🏫', label: 'School', title: 'School Missions',
+    missions: [
+      { icon: '🃏', name: 'Memory Match',        tag: 'Recycling',  path: '/memory_match'  },
+      { icon: '💡', name: 'Lights Out Detective', tag: 'Energy',     path: '/lights_out'    },
+      { icon: '🚰', name: 'Leak Hunter',          tag: 'Water',      path: '/leak_hunter'   },
+      { icon: '🥗', name: 'Green Canteen',        tag: 'Food',       path: '/canteen'       },
+      { icon: '🚴', name: 'Cycle Dash',           tag: 'Transport',  path: '/cycle-dash'    }
+    ]
+  },
+  forest: {
+    icon: '🌲', label: 'Forest', title: 'Forest Missions',
+    missions: [
+      { icon: '🌱', name: 'Seed Shooter',     tag: 'Planting',   path: '/seed-shooter'  },
+      { icon: '🌳', name: 'Tree Doctor',       tag: 'Health',     path: '/tree-doctor'   },
+      { icon: '🔥', name: 'Fire Rescue Run',   tag: 'Emergency',  path: '/fire-rescue'   },
+      { icon: '🦌', name: 'Food Chain Puzzle', tag: 'Ecology',    path: '/food-chain'    },
+      { icon: '🌧️', name: 'Rain Puzzle',       tag: 'Weather',    path: '/rain-puzzle'   }
+    ]
+  },
+  ocean: {
+    icon: '🌊', label: 'Ocean', title: 'Ocean Missions',
+    missions: [
+      { icon: '♻️', name: 'Plastic Catcher Dive', tag: 'Cleanup',  path: '/plastic-catcher' },
+      { icon: '🪸', name: 'Coral Builder',         tag: 'Reef',     path: '/coral-builder'   },
+      { icon: '🐢', name: 'Turtle Rescue',         tag: 'Wildlife', path: '/turtle-rescue'   },
+      { icon: '🛢️', name: 'Oil Spill Rush',        tag: 'Pollution',path: '/oil-spill'       },
+      { icon: '🎣', name: 'Smart Fishing',          tag: 'Fishing',  path: '/smart-fishing'   }
+    ]
+  }
+};
+
+// ─── Stars helper ─────────────────────────────────────────────────────────────
+function calcStars(done) {
+  if (done >= 5) return 3;
+  if (done >= 3) return 2;
+  if (done >= 1) return 1;
   return 0;
 }
-
-function renderStars(container, count){
-  container.querySelectorAll('.star').forEach((s,i)=>{
+function renderStars(container, count) {
+  container.querySelectorAll('.star').forEach((s, i) => {
     s.className = 'star ' + (i < count ? 'filled' : 'empty');
   });
 }
 
-function updateZoneCard(zone){
+// ─── Update zone card ─────────────────────────────────────────────────────────
+function updateZoneCard(zone) {
   const done = getState(zone).filter(Boolean).length;
   renderStars(document.getElementById('stars-' + zone), calcStars(done));
   document.getElementById('prog-' + zone).textContent = done + ' / 5';
-  document.getElementById('bar-' + zone).style.width = (done/5*100) + '%';
-
-  const card = document.querySelector('.zone-card.' + zone);
+  document.getElementById('bar-' + zone).style.width = (done / 5 * 100) + '%';
+  const card  = document.querySelector('.zone-card.' + zone);
   const badge = document.getElementById('badge-' + zone);
-
-  if(done === 5){
-    card.classList.add('complete');
-    badge.style.display = 'block';
-  } else {
-    card.classList.remove('complete');
-    badge.style.display = 'none';
-  }
+  if (done === 5) { card.classList.add('complete');    badge.style.display = 'block'; }
+  else            { card.classList.remove('complete'); badge.style.display = 'none';  }
 }
 
-function updateOverall(){
+// ─── Update overall bar ───────────────────────────────────────────────────────
+function updateOverall() {
   let total = 0;
-  ['school','forest','ocean'].forEach(z => {
+  ['school', 'forest', 'ocean'].forEach(z => {
     total += getState(z).filter(Boolean).length;
   });
   document.getElementById('overallCount').textContent = total + ' / 15 missions';
-  document.getElementById('overallFill').style.width = (total/15*100) + '%';
+  document.getElementById('overallFill').style.width = (total / 15 * 100) + '%';
 }
 
-function openZone(zone){
-  const z = ZONES[zone];
+// ─── Open zone popup ──────────────────────────────────────────────────────────
+function openZone(zone) {
+  const z     = ZONES[zone];
   const state = getState(zone);
-  const done = state.filter(Boolean).length;
+  const done  = state.filter(Boolean).length;
 
-  document.getElementById('popupIcon').textContent = z.icon;
+  document.getElementById('popupIcon').textContent  = z.icon;
   document.getElementById('popupTitle').textContent = z.title;
   renderStars(document.getElementById('popupStars'), calcStars(done));
 
   const hints = [
-    'Play any 2 missions to earn your first star.',
+    'Play any mission to earn your first star.',
     '⭐ 1 star! Play 2 more missions to earn the second star.',
     '⭐ 1 star! Play 2 more missions to earn the second star.',
     '⭐⭐ 2 stars! Play the last mission to unlock all 3 stars.',
     '⭐⭐ 2 stars! Play the last mission to unlock all 3 stars.',
     '⭐⭐⭐ Zone complete — all missions done!'
   ];
-  document.getElementById('progressHint').textContent = hints[Math.min(done,5)];
+  document.getElementById('progressHint').textContent = hints[Math.min(done, 5)];
 
   const list = document.getElementById('missionList');
   list.innerHTML = '';
 
   z.missions.forEach((m, i) => {
     const isDone = !!state[i];
-    const item = document.createElement('div');
+    const item   = document.createElement('div');
     item.className = 'mission-item' + (isDone ? ' done' : '');
 
-    const currentMap = window.location.pathname + '?name=' + encodeURIComponent(name) + '&role=' + encodeURIComponent(role);
-    const gameUrl = m.path + '?name=' + encodeURIComponent(name) + '&role=' + encodeURIComponent(role) + '&return=' + encodeURIComponent(currentMap);
+    // Build return URL so the game can redirect back here with ?completed=
+    const mapPath   = window.location.pathname;
+    const returnUrl = encodeURIComponent(
+      mapPath +
+      '?name='      + encodeURIComponent(name) +
+      '&role='      + encodeURIComponent(role) +
+      '&completed=' + encodeURIComponent(m.path)
+    );
+    const gameUrl = m.path + '?return=' + returnUrl;
 
     item.innerHTML =
       '<div class="mission-icon">' + m.icon + '</div>' +
@@ -483,27 +525,24 @@ function openZone(zone){
         : '<div class="mission-play">▶ Play</div><div class="mission-check"></div>'
       );
 
-    if(!isDone){
-      item.addEventListener('click', () => {
-        window.location.href = gameUrl;
-      });
+    if (!isDone) {
+      item.addEventListener('click', () => { window.location.href = gameUrl; });
     }
-
     list.appendChild(item);
   });
 
   document.getElementById('popup').style.display = 'flex';
 }
 
-function closePopup(){
+function closePopup() {
   document.getElementById('popup').style.display = 'none';
 }
-
-function handleOverlayClick(e){
-  if(e.target === document.getElementById('popup')) closePopup();
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById('popup')) closePopup();
 }
 
-['school','forest','ocean'].forEach(updateZoneCard);
+// ─── Init ─────────────────────────────────────────────────────────────────────
+['school', 'forest', 'ocean'].forEach(updateZoneCard);
 updateOverall();
 </script>
 </body>
