@@ -290,7 +290,7 @@ def send_welcome_email(to_email, user_name):
         """
 
         message = Mail(
-            from_email="hemaalakshmi93@gmail.com",
+            from_email="hemaalakshmiaka.bam25@rathinam.in",
             to_emails=to_email,
             subject=f"Welcome to Zephyra, {user_name}! 🌱 Your eco-journey begins",
             html_content=html_body
