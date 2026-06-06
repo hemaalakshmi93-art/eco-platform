@@ -24,7 +24,6 @@
 html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-family:'Nunito',sans-serif;color:var(--text);user-select:none;}
 body{display:flex;flex-direction:column;}
 
-/* ── HEADER ── */
 #hdr{
   display:flex;align-items:center;gap:8px;flex-wrap:wrap;
   padding:8px 14px;
@@ -63,14 +62,11 @@ select option{background:#2d6a4f;}
 .hbtn:hover{transform:translateY(-1px);box-shadow:0 3px 10px rgba(0,0,0,.3);}
 .hbtn:active{transform:scale(.95);}
 
-/* ── PROGRESS ── */
 #progbar{height:4px;background:rgba(255,255,255,.08);flex-shrink:0;}
 #progfill{height:4px;background:linear-gradient(90deg,var(--green-light),var(--green-accent));width:0%;transition:width .35s;}
 
-/* ── GAME AREA ── */
 #game{display:flex;flex:1;min-height:0;overflow:hidden;}
 
-/* ── LEFT PANEL: PREVIEW ── */
 #leftpanel{
   width:clamp(110px,18vw,160px);flex-shrink:0;
   display:flex;flex-direction:column;
@@ -97,7 +93,6 @@ select option{background:#2d6a4f;}
 #prevStats{font-size:.7rem;color:var(--text2);text-align:center;line-height:1.7;}
 #prevStats strong{color:var(--green-accent);}
 
-/* ── BOARD ── */
 #boardwrap{
   flex:1;display:flex;align-items:center;justify-content:center;
   padding:10px;overflow:hidden;min-width:0;
@@ -109,7 +104,6 @@ select option{background:#2d6a4f;}
   box-shadow:0 8px 32px rgba(0,0,0,.5);
 }
 
-/* ── RIGHT PANEL: TRAY ── */
 #rightpanel{
   width:clamp(110px,20vw,155px);flex-shrink:0;
   display:flex;flex-direction:column;
@@ -136,10 +130,8 @@ select option{background:#2d6a4f;}
   font-size:.7rem;color:var(--text2);text-align:center;padding:4px 0 6px;flex-shrink:0;
 }
 
-/* ── DRAG GHOST ── */
 #ghost{position:fixed;pointer-events:none;z-index:9999;display:none;}
 
-/* ── PREVIEW MODAL ── */
 #previewModal{
   display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);
   align-items:center;justify-content:center;z-index:9990;backdrop-filter:blur(6px);
@@ -156,7 +148,6 @@ select option{background:#2d6a4f;}
 #previewBox p{font-size:.78rem;color:var(--text2);margin-top:8px;}
 .close-modal{margin-top:10px;font-family:'Nunito',sans-serif;font-weight:800;font-size:.85rem;padding:6px 18px;border-radius:50px;background:var(--green-accent);color:var(--green-dark);border:none;cursor:pointer;}
 
-/* ── WIN OVERLAY ── */
 #winlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);z-index:9980;align-items:center;justify-content:center;}
 #winlay.show{display:flex;animation:popIn .4s cubic-bezier(.34,1.56,.64,1);}
 @keyframes popIn{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:scale(1)}}
@@ -180,7 +171,6 @@ select option{background:#2d6a4f;}
 </head>
 <body>
 
-<!-- HEADER -->
 <div id="hdr">
   <a class="back-btn" href="javascript:history.back()">&#8249; Back</a>
   <span class="game-title">🌿 Food Chain Jigsaw</span>
@@ -198,10 +188,7 @@ select option{background:#2d6a4f;}
 </div>
 <div id="progbar"><div id="progfill"></div></div>
 
-<!-- GAME -->
 <div id="game">
-
-  <!-- LEFT: preview panel -->
   <div id="leftpanel">
     <div id="prevlbl">📷 Reference</div>
     <div id="prevWrap" onclick="openPreview()" title="Click to enlarge">
@@ -215,12 +202,10 @@ select option{background:#2d6a4f;}
     </div>
   </div>
 
-  <!-- CENTER: board -->
   <div id="boardwrap">
     <canvas id="boardCanvas"></canvas>
   </div>
 
-  <!-- RIGHT: tray -->
   <div id="rightpanel">
     <div id="traylbl">🧩 Pieces</div>
     <div id="trayBox">
@@ -228,13 +213,10 @@ select option{background:#2d6a4f;}
     </div>
     <div id="trayCount">— remaining</div>
   </div>
-
 </div>
 
-<!-- DRAG GHOST -->
 <canvas id="ghost"></canvas>
 
-<!-- PREVIEW MODAL -->
 <div id="previewModal">
   <div id="previewBox">
     <h3>🖼 Reference Image</h3>
@@ -244,7 +226,6 @@ select option{background:#2d6a4f;}
   </div>
 </div>
 
-<!-- WIN -->
 <div id="winlay">
   <div id="winbox">
     <span class="win-emoji">🎉</span>
@@ -257,17 +238,11 @@ select option{background:#2d6a4f;}
 </div>
 
 <script>
-// ═══════════════════════════════════════════════════════
-// SCENES  — changes every session (random on load)
-// ═══════════════════════════════════════════════════════
 const SCENE_NAMES = ['Jungle Food Chain','Ocean Food Chain','Desert Food Chain','Forest Food Chain'];
-
 const SCENES = [drawJungle, drawOcean, drawDesert, drawForest];
-
-// Pick a random scene index on load — changes every page load
 let currentSceneIdx = Math.floor(Math.random() * SCENES.length);
 
-// ── HELPER PRIMITIVES ──────────────────────────────────
+// ── HELPER PRIMITIVES ──
 function rrect(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.arcTo(x+w,y,x+w,y+r,r);ctx.lineTo(x+w,y+h-r);ctx.arcTo(x+w,y+h,x+w-r,y+h,r);ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();}
 function cloud(ctx,cx,cy,sz){ctx.fillStyle='rgba(255,255,255,0.88)';[[0,0,1],[-.35,.06,.7],[.36,.05,.66],[-.18,-.28,.58],[.2,-.25,.54]].forEach(([dx,dy,s])=>{ctx.beginPath();ctx.arc(cx+dx*sz,cy+dy*sz,sz*s*.5,0,Math.PI*2);ctx.fill();});}
 function tree(ctx,cx,by,r,h,c1,c2){ctx.fillStyle='#5d4037';ctx.fillRect(cx-r*.18,by-h,r*.36,h);ctx.fillStyle=c1;ctx.beginPath();ctx.arc(cx,by-h,r,0,Math.PI*2);ctx.fill();ctx.fillStyle=c2;ctx.beginPath();ctx.arc(cx+r*.4,by-h+r*.25,r*.62,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(cx-r*.4,by-h+r*.2,r*.58,0,Math.PI*2);ctx.fill();}
@@ -276,11 +251,31 @@ function lbl(ctx,t,cx,cy,W){ctx.save();const fs=Math.max(9,~~(W*.027));ctx.font=
 function arr(ctx,x1,y1,x2,y2){ctx.save();ctx.strokeStyle='rgba(239,35,60,0.92)';ctx.lineWidth=2.2;ctx.setLineDash([5,3]);ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.setLineDash([]);const a=Math.atan2(y2-y1,x2-x1);ctx.fillStyle='rgba(239,35,60,0.92)';ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-10*Math.cos(a-.42),y2-10*Math.sin(a-.42));ctx.lineTo(x2-10*Math.cos(a+.42),y2-10*Math.sin(a+.42));ctx.fill();ctx.restore();}
 function titleBar(ctx,text,W,H,col){ctx.fillStyle=col;rrect(ctx,W*.06,H*.03,W*.88,H*.1,5);ctx.fill();ctx.fillStyle='rgba(255,255,255,0.92)';ctx.font=`bold ${~~(H*.056)}px 'Fredoka One',cursive`;ctx.textAlign='center';ctx.shadowColor='rgba(0,0,0,.35)';ctx.shadowBlur=4;ctx.fillText(text,W*.5,H*.1);ctx.shadowBlur=0;}
 
-// ── CHARACTERS ────────────────────────────────────────
+// ── CHARACTERS ──
 function drawLeaf(ctx,cx,cy,sz){ctx.save();ctx.translate(cx,cy);ctx.fillStyle='#4caf50';ctx.beginPath();ctx.moveTo(0,-sz*.55);ctx.bezierCurveTo(sz*.45,-sz*.4,sz*.5,sz*.2,0,sz*.52);ctx.bezierCurveTo(-sz*.5,sz*.2,-sz*.45,-sz*.4,0,-sz*.55);ctx.fill();ctx.strokeStyle='#1b5e20';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(0,-sz*.5);ctx.lineTo(0,sz*.5);ctx.stroke();ctx.beginPath();ctx.moveTo(0,-sz*.05);ctx.lineTo(sz*.3,sz*.12);ctx.moveTo(0,-sz*.05);ctx.lineTo(-sz*.3,sz*.12);ctx.stroke();ctx.restore();}
 function drawCaterpillar(ctx,cx,cy,sz){['#9ccc65','#aed581','#9ccc65','#aed581'].forEach((c,i)=>{ctx.fillStyle=c;ctx.beginPath();ctx.arc(cx-i*sz*.22,cy,sz*.28,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#558b2f';ctx.lineWidth=1;ctx.stroke();});ctx.fillStyle='#8bc34a';ctx.beginPath();ctx.arc(cx+sz*.1,cy,sz*.32,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#33691e';ctx.lineWidth=1;ctx.stroke();ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(cx+sz*.18,cy-sz*.1,sz*.09,0,Math.PI*2);ctx.fill();ctx.fillStyle='#1a237e';ctx.beginPath();ctx.arc(cx+sz*.19,cy-sz*.1,sz*.055,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#33691e';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(cx+sz*.14,cy+sz*.08,sz*.1,.2,Math.PI-.2);ctx.stroke();ctx.strokeStyle='#558b2f';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(cx+sz*.07,cy-sz*.3);ctx.lineTo(cx+sz*.01,cy-sz*.55);ctx.stroke();ctx.beginPath();ctx.moveTo(cx+sz*.17,cy-sz*.3);ctx.lineTo(cx+sz*.25,cy-sz*.55);ctx.stroke();ctx.fillStyle='#dcedc8';ctx.beginPath();ctx.arc(cx+sz*.01,cy-sz*.57,sz*.07,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(cx+sz*.25,cy-sz*.57,sz*.07,0,Math.PI*2);ctx.fill();}
 function drawFrog(ctx,cx,cy,sz){ctx.fillStyle='#66bb6a';ctx.beginPath();ctx.ellipse(cx,cy,sz*.54,sz*.38,0,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#388e3c';ctx.lineWidth=1.5;ctx.stroke();[[-1],[1]].forEach(([d])=>{ctx.fillStyle='#a5d6a7';ctx.beginPath();ctx.arc(cx+d*sz*.32,cy-sz*.38,sz*.21,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#2e7d32';ctx.lineWidth=1;ctx.stroke();ctx.fillStyle='#1b5e20';ctx.beginPath();ctx.arc(cx+d*sz*.32,cy-sz*.38,sz*.11,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(cx+d*sz*.32+2,cy-sz*.38-2,sz*.048,0,Math.PI*2);ctx.fill();});ctx.fillStyle='#c8e6c9';ctx.beginPath();ctx.ellipse(cx,cy+sz*.05,sz*.29,sz*.2,0,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#388e3c';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(cx,cy+sz*.05,sz*.18,.3,Math.PI-.3);ctx.stroke();[[-1],[1]].forEach(([d])=>{ctx.fillStyle='#66bb6a';ctx.beginPath();ctx.ellipse(cx+d*sz*.62,cy+sz*.22,sz*.18,sz*.1,d*.35,0,Math.PI*2);ctx.fill();});}
-function drawEagle(ctx,cx,cy,sz){ctx.fillStyle='#4e342e';ctx.beginPath();ctx.moveTo(cx,cy);ctx.bezierCurveTo(cx-sz*.45,cy-sz*.25,cx-sz*.82,cy+sz*.05,cx-sz*.74,cy+sz*.26);ctx.bezierCurveTo(cx-sz*.45,cy+sz*.36,cx-sz*.12,cy+sz*.12,cx,cy);ctx.fill();ctx.beginPath();ctx.moveTo(cx,cy);ctx.bezierCurveTo(cx+sz*.45,cy-sz*.25,cx+sz*.82,cy+sz*.05,cx+sz*.74,cy+sz*.26);ctx.bezierCurveTo(cx+sz*.45,cy+sz*.36,cx+sz*.12,cy+sz*.12,cx,cy);ctx.fill();ctx.fillStyle='#eceff1';ctx.beginPath();ctx.arc(cx,cy-sz*.18,sz*.2,0,Math.PI*2);ctx.fill();ctx.fillStyle='#ffa000';ctx.beginPath();ctx.moveTo(cx+sz*.17,cy-sz*.22);ctx.lineTo(cx+sz*.36,cy-sz*.15);ctx.lineTo(cx+sz*.17,cy-sz*.08);ctx.fill();ctx.fillStyle='#1a237e';ctx.beginPath();ctx.arc(cx+sz*.07,cy-sz*.23,sz*.055,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(cx+sz*.08,cy-sz*.236,sz*.022,0,Math.PI*2);ctx.fill();ctx.fillStyle='#5d4037';ctx.beginPath();ctx.moveTo(cx-sz*.06,cy+sz*.32);ctx.lineTo(cx-sz*.1,cy+sz*.52);ctx.lineTo(cx+sz*.01,cy+sz*.51);ctx.fill();ctx.beginPath();ctx.moveTo(cx+sz*.06,cy+sz*.32);ctx.lineTo(cx+sz*.1,cy+sz*.52);ctx.lineTo(cx-.01*sz,cy+sz*.51);ctx.fill();}
+
+// FIX: Eagle drawn more compact so it fits within its piece without bleeding
+function drawEagle(ctx,cx,cy,sz){
+  // Scale down slightly and make more compact
+  const s=sz*0.85;
+  ctx.fillStyle='#4e342e';
+  ctx.beginPath();ctx.moveTo(cx,cy);
+  ctx.bezierCurveTo(cx-s*.4,cy-s*.22,cx-s*.72,cy+s*.04,cx-s*.65,cy+s*.22);
+  ctx.bezierCurveTo(cx-s*.4,cy+s*.32,cx-s*.1,cy+s*.1,cx,cy);ctx.fill();
+  ctx.beginPath();ctx.moveTo(cx,cy);
+  ctx.bezierCurveTo(cx+s*.4,cy-s*.22,cx+s*.72,cy+s*.04,cx+s*.65,cy+s*.22);
+  ctx.bezierCurveTo(cx+s*.4,cy+s*.32,cx+s*.1,cy+s*.1,cx,cy);ctx.fill();
+  ctx.fillStyle='#eceff1';ctx.beginPath();ctx.arc(cx,cy-s*.16,s*.18,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#ffa000';ctx.beginPath();ctx.moveTo(cx+s*.15,cy-s*.2);ctx.lineTo(cx+s*.32,cy-s*.14);ctx.lineTo(cx+s*.15,cy-s*.07);ctx.fill();
+  ctx.fillStyle='#1a237e';ctx.beginPath();ctx.arc(cx+s*.06,cy-s*.21,s*.05,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(cx+s*.07,cy-s*.215,s*.02,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#5d4037';
+  ctx.beginPath();ctx.moveTo(cx-s*.05,cy+s*.28);ctx.lineTo(cx-s*.09,cy+s*.45);ctx.lineTo(cx+s*.01,cy+s*.44);ctx.fill();
+  ctx.beginPath();ctx.moveTo(cx+s*.05,cy+s*.28);ctx.lineTo(cx+s*.09,cy+s*.45);ctx.lineTo(cx-.01*s,cy+s*.44);ctx.fill();
+}
+
 function drawFish(ctx,cx,cy,sz,col,dir){ctx.fillStyle=col;ctx.beginPath();ctx.ellipse(cx,cy,sz*.5,sz*.26,0,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.moveTo(cx+dir*sz*.48,cy);ctx.lineTo(cx+dir*sz*.75,cy-sz*.2);ctx.lineTo(cx+dir*sz*.75,cy+sz*.2);ctx.fill();ctx.fillStyle='rgba(255,255,255,.18)';ctx.beginPath();ctx.ellipse(cx-dir*sz*.1,cy-sz*.06,sz*.2,sz*.12,-.3,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(cx-dir*sz*.25,cy-sz*.06,sz*.09,0,Math.PI*2);ctx.fill();ctx.fillStyle='#1a237e';ctx.beginPath();ctx.arc(cx-dir*sz*.24,cy-sz*.055,sz*.055,0,Math.PI*2);ctx.fill();}
 function drawShark(ctx,cx,cy,sz){ctx.fillStyle='#546e7a';ctx.beginPath();ctx.moveTo(cx-sz*.75,cy);ctx.bezierCurveTo(cx-sz*.4,cy-sz*.22,cx+sz*.25,cy-sz*.18,cx+sz*.75,cy);ctx.bezierCurveTo(cx+sz*.25,cy+sz*.18,cx-sz*.4,cy+sz*.18,cx-sz*.75,cy);ctx.fill();ctx.fillStyle='#78909c';ctx.beginPath();ctx.ellipse(cx-sz*.05,cy+sz*.04,sz*.32,sz*.14,0,0,Math.PI*2);ctx.fill();ctx.fillStyle='#546e7a';ctx.beginPath();ctx.moveTo(cx-sz*.08,cy-sz*.16);ctx.lineTo(cx+sz*.02,cy-sz*.44);ctx.lineTo(cx+sz*.12,cy-sz*.16);ctx.fill();ctx.beginPath();ctx.moveTo(cx+sz*.45,cy-sz*.05);ctx.lineTo(cx+sz*.58,cy-sz*.22);ctx.lineTo(cx+sz*.62,cy+sz*.02);ctx.fill();ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(cx+sz*.4,cy-sz*.04,sz*.09,0,Math.PI*2);ctx.fill();ctx.fillStyle='#1a237e';ctx.beginPath();ctx.arc(cx+sz*.41,cy-sz*.035,sz*.055,0,Math.PI*2);ctx.fill();}
 function drawCactus(ctx,cx,by,h){ctx.fillStyle='#388e3c';ctx.fillRect(cx-h*.13,by-h,h*.26,h);ctx.fillRect(cx-h*.36,by-h*.58,h*.22,h*.13);ctx.fillRect(cx-h*.36,by-h*.68,h*.13,h*.22);ctx.fillRect(cx+h*.14,by-h*.47,h*.22,h*.13);ctx.fillRect(cx+h*.23,by-h*.62,h*.13,h*.25);ctx.fillStyle='#2e7d32';ctx.beginPath();ctx.arc(cx,by-h,h*.13,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(cx-h*.36,by-h*.68,h*.1,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(cx+h*.23,by-h*.62,h*.1,0,Math.PI*2);ctx.fill();}
@@ -292,12 +287,10 @@ function drawDeer(ctx,cx,cy,sz){ctx.fillStyle='#8d6e63';ctx.beginPath();ctx.elli
 function drawWolf(ctx,cx,cy,sz){ctx.fillStyle='#757575';ctx.beginPath();ctx.ellipse(cx,cy,sz*.5,sz*.28,0,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.ellipse(cx+sz*.42,cy-sz*.12,sz*.24,sz*.2,-.3,0,Math.PI*2);ctx.fill();ctx.fillStyle='#9e9e9e';ctx.beginPath();ctx.moveTo(cx+sz*.38,cy-sz*.28);ctx.lineTo(cx+sz*.44,cy-sz*.48);ctx.lineTo(cx+sz*.5,cy-sz*.28);ctx.fill();ctx.beginPath();ctx.moveTo(cx+sz*.52,cy-sz*.26);ctx.lineTo(cx+sz*.6,cy-sz*.45);ctx.lineTo(cx+sz*.65,cy-sz*.24);ctx.fill();ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(cx+sz*.56,cy-sz*.18,sz*.07,0,Math.PI*2);ctx.fill();ctx.fillStyle='#1a237e';ctx.beginPath();ctx.arc(cx+sz*.565,cy-sz*.175,sz*.04,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#424242';ctx.lineWidth=sz*.09;ctx.lineCap='round';[[-sz*.25,sz*.28],[sz*.25,sz*.28],[0,sz*.28],[-.1,sz*.28]].forEach(([dx,dy])=>{ctx.beginPath();ctx.moveTo(cx+dx,cy+sz*.1);ctx.lineTo(cx+dx,cy+dy);ctx.stroke();});}
 function drawBear(ctx,cx,cy,sz){ctx.fillStyle='#6d4c41';ctx.beginPath();ctx.ellipse(cx,cy,sz*.52,sz*.35,0,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(cx+sz*.4,cy-sz*.28,sz*.22,0,Math.PI*2);ctx.fill();ctx.fillStyle='#795548';ctx.beginPath();ctx.arc(cx+sz*.32,cy-sz*.4,sz*.1,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(cx+sz*.5,cy-sz*.38,sz*.1,0,Math.PI*2);ctx.fill();ctx.fillStyle='#d7ccc8';ctx.beginPath();ctx.ellipse(cx+sz*.44,cy-sz*.22,sz*.12,sz*.1,0,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(cx+sz*.52,cy-sz*.3,sz*.07,0,Math.PI*2);ctx.fill();ctx.fillStyle='#1a237e';ctx.beginPath();ctx.arc(cx+sz*.525,cy-sz*.295,sz*.04,0,Math.PI*2);ctx.fill();}
 
-// ── SCENES ─────────────────────────────────────────────
+// ── SCENES ──
 function drawJungle(ctx,W,H){
-  // sky
   let sky=ctx.createLinearGradient(0,0,0,H*.6);sky.addColorStop(0,'#87ceeb');sky.addColorStop(1,'#b3e0f5');
   ctx.fillStyle=sky;ctx.fillRect(0,0,W,H*.6);
-  // ground
   ctx.fillStyle='#4caf50';ctx.fillRect(0,H*.55,W,H*.45);
   ctx.fillStyle='#388e3c';ctx.fillRect(0,H*.7,W,H*.3);
   ctx.fillStyle='#2e7d32';ctx.fillRect(0,H*.83,W,H*.17);
@@ -311,8 +304,9 @@ function drawJungle(ctx,W,H){
   drawLeaf(ctx,W*.13,H*.73,H*.09);lbl(ctx,'Leaf',W*.13,H*.91,W);
   drawCaterpillar(ctx,W*.36,H*.72,H*.09);lbl(ctx,'Caterpillar',W*.36,H*.93,W);
   drawFrog(ctx,W*.59,H*.7,H*.09);lbl(ctx,'Frog',W*.59,H*.91,W);
-  drawEagle(ctx,W*.82,H*.27,H*.13);lbl(ctx,'Eagle',W*.82,H*.46,W);
-  arr(ctx,W*.21,H*.73,W*.29,H*.73);arr(ctx,W*.44,H*.72,W*.52,H*.71);arr(ctx,W*.65,H*.65,W*.77,H*.37);
+  // Eagle positioned squarely inside top-right quadrant to avoid bleeding
+  drawEagle(ctx,W*.82,H*.28,H*.11);lbl(ctx,'Eagle',W*.82,H*.46,W);
+  arr(ctx,W*.21,H*.73,W*.29,H*.73);arr(ctx,W*.44,H*.72,W*.52,H*.71);arr(ctx,W*.65,H*.65,W*.77,H*.38);
   titleBar(ctx,'🌿 JUNGLE FOOD CHAIN',W,H,'rgba(27,94,32,0.9)');
 }
 function drawOcean(ctx,W,H){
@@ -343,8 +337,9 @@ function drawDesert(ctx,W,H){
   drawSmallCactus(ctx,W*.16,H*.74,H*.09);lbl(ctx,'Cactus',W*.16,H*.93,W);
   drawLizard(ctx,W*.39,H*.75,H*.09);lbl(ctx,'Lizard',W*.39,H*.93,W);
   drawSnake(ctx,W*.62,H*.74,H*.09);lbl(ctx,'Snake',W*.62,H*.93,W);
-  drawEagle(ctx,W*.83,H*.26,H*.13);lbl(ctx,'Hawk',W*.83,H*.46,W);
-  arr(ctx,W*.24,H*.75,W*.32,H*.76);arr(ctx,W*.48,H*.75,W*.56,H*.75);arr(ctx,W*.68,H*.68,W*.79,H*.36);
+  // FIX: Hawk placed at W*.83, H*.3 so it stays firmly in the top-right quadrant (not bleeding into adjacent piece)
+  drawEagle(ctx,W*.83,H*.3,H*.11);lbl(ctx,'Hawk',W*.83,H*.47,W);
+  arr(ctx,W*.24,H*.75,W*.32,H*.76);arr(ctx,W*.48,H*.75,W*.56,H*.75);arr(ctx,W*.68,H*.68,W*.79,H*.38);
   titleBar(ctx,'🏜 DESERT FOOD CHAIN',W,H,'rgba(230,81,0,0.9)');
 }
 function drawForest(ctx,W,H){
@@ -369,13 +364,13 @@ function drawForest(ctx,W,H){
 }
 
 // ═══════════════════════════════════════════════════════
-// JIGSAW ENGINE
+// JIGSAW ENGINE — SEAMLESS PIECE RENDERING (NO GAPS)
 // ═══════════════════════════════════════════════════════
 let G=4, IW=360, IH=270, PW=90, PH=67;
 let pieces=[], tray=[], board=[];
 let edgeMap={};
 const TAB=0.21;
-let fullImg=null; // the rendered scene canvas
+let fullImg=null;
 
 function getEdge(r,c,side){
   const k=`${r}_${c}_${side}`;
@@ -401,32 +396,44 @@ function makePath(ctx,pw,ph,t,ri,b,l){
 
 function buildPieces(imgCanvas){
   edgeMap={}; pieces=[];
-  const pad=Math.ceil(Math.max(PW,PH)*TAB*1.45)+4;
+  // FIX: Use larger pad to fully capture tab overhangs, no clipping artifacts
+  const pad=Math.ceil(Math.max(PW,PH)*TAB*1.6)+6;
   for(let r=0;r<G;r++){
     for(let c=0;c<G;c++){
       const t=getEdge(r,c,'top'),ri=getEdge(r,c,'right'),b=getEdge(r,c,'bottom'),l=getEdge(r,c,'left');
       const cw=PW+pad*2, ch=PH+pad*2;
       const pc=document.createElement('canvas'); pc.width=cw; pc.height=ch;
       const px=pc.getContext('2d');
+
+      // FIX: Draw clipped piece image WITHOUT anti-alias bleed / dark border
       px.save();
       px.translate(pad,pad);
       makePath(px,PW,PH,t,ri,b,l);
       px.clip();
-      // draw image section including tab overhangs
-      const srcX=Math.max(0,c*PW-pad), srcY=Math.max(0,r*PH-pad);
-      const srcW=Math.min(imgCanvas.width-srcX,PW+pad*2);
-      const srcH=Math.min(imgCanvas.height-srcY,PH+pad*2);
-      const dstX=c*PW-pad-srcX-pad, dstY=r*PH-pad-srcY-pad;
-      px.drawImage(imgCanvas,srcX,srcY,srcW,srcH,dstX,dstY,srcW,srcH);
-      makePath(px,PW,PH,t,ri,b,l);
-      px.strokeStyle='rgba(255,255,255,0.65)'; px.lineWidth=1.5; px.stroke();
+      // Draw the source image region into this piece (offset by pad so tabs get image too)
+      px.drawImage(imgCanvas,
+        c*PW - pad, r*PH - pad,          // src x,y
+        PW + pad*2, PH + pad*2,           // src w,h
+        -pad, -pad,                        // dst x,y
+        PW + pad*2, PH + pad*2            // dst w,h
+      );
       px.restore();
+
+      // FIX: Draw seam outline ONLY — very subtle, white, thin, no dark fill
+      px.save();
+      px.translate(pad,pad);
+      makePath(px,PW,PH,t,ri,b,l);
+      px.strokeStyle='rgba(255,255,255,0.55)';
+      px.lineWidth=1.2;
+      px.stroke();
+      px.restore();
+
       pieces.push({r,c,cv:pc,pad,placed:false,tX:0,tY:0,tS:1});
     }
   }
 }
 
-// ── SIZING ─────────────────────────────────────────────
+// ── SIZING ──
 function calcSizes(){
   const bw=document.getElementById('boardwrap');
   const aw=bw.clientWidth-20, ah=bw.clientHeight-20;
@@ -446,7 +453,6 @@ function updatePreviewPanel(){
   pc.style.width=pw+'px'; pc.style.height='auto';
   if(fullImg) pc.getContext('2d').drawImage(fullImg,0,0);
   document.getElementById('sceneNameLbl').textContent=SCENE_NAMES[currentSceneIdx%SCENE_NAMES.length];
-  // modal canvas
   const mc=document.getElementById('modalCanvas');
   mc.width=IW; mc.height=IH;
   if(fullImg) mc.getContext('2d').drawImage(fullImg,0,0);
@@ -466,24 +472,33 @@ function layoutTray(){
   document.getElementById('trayCount').textContent=tray.length+' remaining';
 }
 
-// ── RENDER ─────────────────────────────────────────────
+// ── RENDER ──
+// FIX: Board renders the full scene image first as background, then pieces on top
+// This eliminates ALL gaps — placed pieces are seamless because the same image is underneath
 function renderBoard(){
   const bc=document.getElementById('boardCanvas'),ctx=bc.getContext('2d');
   ctx.clearRect(0,0,IW,IH);
-  // checkerboard bg
-  for(let r=0;r<G;r++)for(let c=0;c<G;c++){
-    ctx.fillStyle=(r+c)%2===0?'rgba(255,255,255,0.04)':'rgba(0,0,0,0.06)';
-    ctx.fillRect(c*PW,r*PH,PW,PH);
+
+  // FIX: Draw full background image so gaps between pieces show the correct image, not black
+  if(fullImg){
+    ctx.globalAlpha=0.18; // dim unplaced area slightly
+    ctx.drawImage(fullImg,0,0,IW,IH);
+    ctx.globalAlpha=1.0;
   }
-  ctx.strokeStyle='rgba(149,213,178,0.12)'; ctx.lineWidth=1;
+
+  // Grid guides (very subtle)
+  ctx.strokeStyle='rgba(149,213,178,0.1)'; ctx.lineWidth=1;
   for(let r=0;r<=G;r++){ctx.beginPath();ctx.moveTo(0,r*PH);ctx.lineTo(IW,r*PH);ctx.stroke();}
   for(let c=0;c<=G;c++){ctx.beginPath();ctx.moveTo(c*PW,0);ctx.lineTo(c*PW,IH);ctx.stroke();}
+
+  // Draw placed pieces — they sit on top and look perfectly seamless
   board.forEach(p=>{
     if(p===hintP){ctx.save();ctx.filter='drop-shadow(0 0 9px #ffd166)';}
-    ctx.drawImage(p.cv,p.c*PW-p.pad,p.r*PH-p.pad);
+    ctx.drawImage(p.cv, p.c*PW - p.pad, p.r*PH - p.pad);
     if(p===hintP)ctx.restore();
   });
 }
+
 function renderTray(){
   const tc=document.getElementById('trayCanvas'),ctx=tc.getContext('2d');
   ctx.clearRect(0,0,tc.width,tc.height);
@@ -497,7 +512,7 @@ function renderTray(){
 }
 function render(){renderBoard();renderTray();}
 
-// ── DRAG ───────────────────────────────────────────────
+// ── DRAG ──
 let drag=null,hintP=null,hintT=null;
 const ghost=document.getElementById('ghost');
 
@@ -533,7 +548,6 @@ function dropAt(cx,cy){
   if(board.length===pieces.length)setTimeout(onWin,350);
 }
 
-// Board events
 const bc=document.getElementById('boardCanvas');
 function pickBoard(cx,cy){
   const br=bc.getBoundingClientRect();
@@ -549,7 +563,6 @@ function pickBoard(cx,cy){
 bc.addEventListener('mousedown',e=>{e.preventDefault();pickBoard(e.clientX,e.clientY);});
 bc.addEventListener('touchstart',e=>{e.preventDefault();pickBoard(e.touches[0].clientX,e.touches[0].clientY);},{passive:false});
 
-// Tray events
 const tc=document.getElementById('trayCanvas');
 function pickTray(cx,cy){
   const r=tc.getBoundingClientRect();
@@ -569,7 +582,7 @@ window.addEventListener('touchmove',e=>{if(!drag)return;e.preventDefault();moveG
 window.addEventListener('mouseup',e=>dropAt(e.clientX,e.clientY));
 window.addEventListener('touchend',e=>{if(!drag)return;dropAt(e.changedTouches[0].clientX,e.changedTouches[0].clientY);},{passive:false});
 
-// ── TIMER / UI ─────────────────────────────────────────
+// ── TIMER / UI ──
 let secs=0,moves=0,tid=null;
 function fmt(s){const m=~~(s/60),sc=s%60;return m?`${m}m${sc<10?'0':''}${sc}s`:`${sc}s`;}
 function hsKey(){return `fcjig_${G}`;}
@@ -600,18 +613,15 @@ function onWin(){
 }
 function closeWin(){document.getElementById('winlay').classList.remove('show');}
 
-// ── PREVIEW MODAL ──────────────────────────────────────
 function openPreview(){document.getElementById('previewModal').classList.add('show');}
 function closePreview(){document.getElementById('previewModal').classList.remove('show');}
 document.getElementById('previewModal').addEventListener('click',function(e){if(e.target===this)closePreview();});
 
-// ── GAME START ─────────────────────────────────────────
 function restart(){
   clearInterval(tid); drag=null; hintP=null; moves=0; board=[]; tray=[];
   ghost.style.display='none';
   document.getElementById('winlay').classList.remove('show');
   calcSizes();
-  // render scene to offscreen canvas
   fullImg=document.createElement('canvas'); fullImg.width=IW; fullImg.height=IH;
   SCENES[currentSceneIdx % SCENES.length](fullImg.getContext('2d'), IW, IH);
   buildPieces(fullImg);
