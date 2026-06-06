@@ -873,6 +873,9 @@ def apex(): return render_template("apex.html")
 @app.route("/wildlife_tracker.html")
 def wildlife_tracker(): return render_template("wildlife_tracker.html")
 
+@app.route("/study_flight.html")
+def study_flight(): return render_template("study_flight.html")
+
 # -------------------- SEND PROGRESS EMAIL --------------------
 @app.route("/send-progress-email/<username>")
 def send_progress_email(username):

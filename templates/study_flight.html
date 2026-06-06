@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Study Flight Ultimate</title>
+<style>
+  :root{
+    --text:#f6fbf8; --muted:#a9c0c7; --accent:#72f0b6; --accent2:#7bd8ff; --gold:#ffd36b; --danger:#ff7d7d;
+    --line:rgba(255,255,255,.12); --glass:rgba(255,255,255,.10); --glass2:rgba(255,255,255,.06);
+    --shadow:0 28px 70px rgba(0,0,0,.42);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;overflow:hidden;color:var(--text);background:#06131d}
+  .scene{position:fixed;inset:0;overflow:hidden}
+  .sky{position:absolute;inset:0;background:linear-gradient(180deg,#76cfff 0%,#d5f2ff 18%,#edf9ff 34%,#b8e7ff 52%,#5aa8d8 74%,#23435f 100%)}
+  .sun{position:absolute;top:8%;left:11%;width:130px;height:130px;border-radius:50%;background:radial-gradient(circle,#fff7cc 0%,#ffd36b 42%,rgba(255,211,107,.12) 70%,transparent 72%);box-shadow:0 0 90px rgba(255,211,107,.55);animation:floatSun 12s ease-in-out infinite}
+  @keyframes floatSun{0%,100%{transform:translateY(0)}50%{transform:translateY(10px)}}
+  .cloud{position:absolute;opacity:.86;animation:drift linear infinite}
+  .cloud:before,.cloud:after{content:'';position:absolute;background:inherit;border-radius:50%}
+  .cloud.one{top:12%;left:-20%;width:220px;height:70px;background:rgba(255,255,255,.92);border-radius:70px;animation-duration:55s}
+  .cloud.one:before{width:90px;height:90px;left:28px;top:-38px;background:rgba(255,255,255,.92)}
+  .cloud.one:after{width:110px;height:110px;left:86px;top:-52px;background:rgba(255,255,255,.86)}
+  .cloud.two{top:26%;left:-25%;width:290px;height:84px;background:rgba(255,255,255,.72);border-radius:84px;animation-duration:78s;animation-delay:-16s}
+  .cloud.two:before{width:110px;height:110px;left:38px;top:-46px;background:rgba(255,255,255,.76)}
+  .cloud.two:after{width:130px;height:130px;left:118px;top:-58px;background:rgba(255,255,255,.70)}
+  .cloud.three{top:44%;left:-20%;width:190px;height:60px;background:rgba(255,255,255,.65);border-radius:60px;animation-duration:70s;animation-delay:-30s}
+  .cloud.three:before{width:80px;height:80px;left:25px;top:-34px;background:rgba(255,255,255,.68)}
+  .cloud.three:after{width:96px;height:96px;left:76px;top:-44px;background:rgba(255,255,255,.62)}
+  @keyframes drift{from{transform:translateX(0)}to{transform:translateX(160vw)}}
+  .birds{position:absolute;inset:0;pointer-events:none}
+  .bird{position:absolute;width:18px;height:10px;border-top:2px solid rgba(255,255,255,.95);border-radius:50% 50% 0 0;opacity:.75;animation:fly 24s linear infinite}
+  .bird:before{content:'';position:absolute;left:7px;top:0;width:18px;height:10px;border-top:2px solid rgba(255,255,255,.95);border-radius:50% 50% 0 0;transform:translateX(11px)}
+  .bird.b1{top:20%;left:-10%;animation-duration:28s}.bird.b2{top:28%;left:-16%;animation-duration:34s;animation-delay:-10s}.bird.b3{top:18%;left:-22%;animation-duration:30s;animation-delay:-20s}
+  @keyframes fly{from{transform:translateX(0)}to{transform:translateX(130vw)}}
+  .plane{position:absolute;top:14%;left:-14%;font-size:44px;filter:drop-shadow(0 8px 14px rgba(0,0,0,.2));animation:planeFly 26s linear infinite;pointer-events:none}
+  @keyframes planeFly{0%{transform:translate(0,0) rotate(8deg)}35%{transform:translate(46vw,-5vh) rotate(7deg)}70%{transform:translate(92vw,-2vh) rotate(6deg)}100%{transform:translate(132vw,0) rotate(4deg)}}
+  .mountains{position:absolute;left:0;right:0;bottom:0;height:58vh}
+  .mountain{position:absolute;bottom:0;width:0;height:0;border-left:24vw solid transparent;border-right:24vw solid transparent;border-bottom:44vh solid #3f5b5f;filter:drop-shadow(0 -10px 20px rgba(0,0,0,.18));animation:slowFloat 10s ease-in-out infinite}
+  .mountain.m1{left:-2vw;border-bottom-color:#48686c;transform:scale(1.1);z-index:1}.mountain.m2{left:18vw;border-bottom-color:#34515a;transform:scale(1.25);z-index:2}.mountain.m3{left:42vw;border-bottom-color:#27404b;transform:scale(1.35);z-index:3}.mountain.m4{left:66vw;border-bottom-color:#3a5864;transform:scale(1.18);z-index:2}
+  .mountain:after{content:'';position:absolute;left:-6vw;top:5vh;width:0;height:0;border-left:10vw solid transparent;border-right:10vw solid transparent;border-bottom:16vh solid rgba(255,255,255,.72);clip-path:polygon(50% 0,0 100%,100% 100%);opacity:.8}
+  .ridge{position:absolute;left:-5%;right:-5%;bottom:12vh;height:24vh;background:linear-gradient(180deg,#5e7a5e,#34513f 60%,#22352a);clip-path:polygon(0 58%, 10% 50%, 19% 56%, 29% 45%, 40% 54%, 50% 42%, 60% 50%, 70% 39%, 80% 48%, 90% 42%, 100% 50%, 100% 100%, 0 100%);z-index:4;animation:ridgeMove 14s ease-in-out infinite}
+  @keyframes ridgeMove{0%,100%{transform:translateX(0)}50%{transform:translateX(8px)}}
+  .trees{position:absolute;left:0;right:0;bottom:10vh;height:18vh;z-index:5}
+  .tree{position:absolute;bottom:0;width:0;height:0;border-left:18px solid transparent;border-right:18px solid transparent;border-bottom:48px solid #2d5a3f;filter:drop-shadow(0 6px 10px rgba(0,0,0,.18));animation:sway 5s ease-in-out infinite}
+  .tree:before{content:'';position:absolute;left:-3px;bottom:-58px;width:6px;height:16px;background:#5c3f2d;border-radius:2px}
+  .tree.t1{left:6%;transform:scale(.9)}.tree.t2{left:14%;transform:scale(1.05);animation-delay:-1s}.tree.t3{left:24%;transform:scale(.75);animation-delay:-2s}.tree.t4{left:76%;transform:scale(.95);animation-delay:-1.4s}.tree.t5{left:86%;transform:scale(.82);animation-delay:-2.4s}
+  @keyframes sway{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-3px) rotate(1deg)}}
+  .river{position:absolute;left:0;right:0;bottom:0;height:12vh;background:linear-gradient(180deg, rgba(123,216,255,.15), rgba(40,115,155,.52));clip-path:polygon(0 20%, 12% 28%, 25% 18%, 38% 30%, 52% 20%, 66% 32%, 80% 22%, 100% 30%, 100% 100%, 0 100%);z-index:6;animation:waterMove 8s ease-in-out infinite}
+  .river:before,.river:after{content:'';position:absolute;left:0;right:0;height:100%;background:repeating-linear-gradient(90deg, transparent 0 42px, rgba(255,255,255,.08) 42px 52px);opacity:.65;animation:waterFlow 3s linear infinite}
+  .river:after{opacity:.35;transform:translateY(10px)}
+  @keyframes waterMove{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+  @keyframes waterFlow{from{transform:translateX(0)}to{transform:translateX(80px)}}
+  .overlay{position:fixed;inset:0;background:linear-gradient(180deg, rgba(3,10,15,.08), rgba(3,10,15,.28) 75%, rgba(3,10,15,.62));pointer-events:none}
+  .app{position:relative;z-index:10;width:min(1400px,100%);height:100%;display:flex;align-items:center;justify-content:center;padding:18px}
+  .layout{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
+  .hero{grid-column:1 / -1;background:rgba(255,255,255,.08);border:1px solid var(--line);border-radius:30px;padding:18px 20px;box-shadow:var(--shadow);backdrop-filter:blur(16px)}
+  .topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:14px}
+  .logo{width:58px;height:58px;border-radius:20px;display:grid;place-items:center;background:linear-gradient(135deg, rgba(123,216,255,.24), rgba(115,240,182,.24));border:1px solid rgba(255,255,255,.14);font-size:28px;box-shadow:0 12px 30px rgba(0,0,0,.18)}
+  .title{font-size:clamp(24px,4vw,38px);font-weight:950;letter-spacing:-.04em}
+  .subtitle{font-size:13px;color:var(--muted);margin-top:4px;line-height:1.55;max-width:800px}
+  .badge{padding:10px 14px;border-radius:999px;background:linear-gradient(135deg,var(--accent),#2dc08a);color:#032017;font-weight:900;font-size:12px;white-space:nowrap;box-shadow:0 10px 26px rgba(0,0,0,.18)}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .stat{background:rgba(255,255,255,.08);border:1px solid var(--line);border-radius:22px;padding:14px 16px;backdrop-filter:blur(10px);box-shadow:var(--shadow)}
+  .stat .k{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
+  .stat .v{font-size:24px;font-weight:950;margin-top:6px}
+  .panel{background:rgba(255,255,255,.08);border:1px solid var(--line);border-radius:28px;box-shadow:var(--shadow);backdrop-filter:blur(16px);overflow:hidden}
+  .section{padding:18px}
+  .section + .section{border-top:1px solid var(--line)}
+  .section h2{font-size:18px;margin-bottom:10px}
+  .helper{font-size:13px;color:var(--muted);line-height:1.55;margin-bottom:14px}
+  .grid-places{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+  .card-btn{border:none;text-align:left;border-radius:22px;padding:16px;cursor:pointer;color:var(--text);background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.05));border:1px solid rgba(255,255,255,.10);transition:.18s transform,.18s box-shadow,.18s border-color;min-height:112px;position:relative;overflow:hidden}
+  .card-btn:hover{transform:translateY(-3px);box-shadow:0 16px 30px rgba(0,0,0,.25)}
+  .card-btn.selected{border-color:rgba(123,216,255,.95);box-shadow:0 0 0 3px rgba(123,216,255,.14),0 16px 30px rgba(0,0,0,.25)}
+  .emoji{font-size:30px;display:block;margin-bottom:10px}
+  .place-name{font-size:16px;font-weight:900}
+  .place-desc{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.45}
+  .time-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .slot{border:none;border-radius:18px;padding:14px 12px;cursor:pointer;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.10);color:var(--text);font-weight:900;font-size:14px;transition:.18s transform,.18s border-color,.18s box-shadow}
+  .slot:hover{transform:translateY(-2px);box-shadow:0 12px 20px rgba(0,0,0,.20)}
+  .slot.selected{border-color:rgba(115,240,182,.95);box-shadow:0 0 0 3px rgba(115,240,182,.12)}
+  .inputs{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .field{display:flex;flex-direction:column;gap:8px}
+  .field label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
+  input, select{width:100%;padding:14px 16px;border-radius:18px;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.07);color:var(--text);outline:none;font-size:14px}
+  input::placeholder{color:#758f8a}
+  .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+  .btn{border:none;border-radius:18px;padding:13px 16px;font-weight:950;cursor:pointer;transition:.18s transform,.18s opacity;box-shadow:0 12px 24px rgba(0,0,0,.18)}
+  .btn:hover{transform:translateY(-2px)}
+  .btn.primary{background:linear-gradient(135deg,var(--accent),#2cbc84);color:#022019}
+  .btn.secondary{background:rgba(255,255,255,.08);color:var(--text);border:1px solid rgba(255,255,255,.10)}
+  .ticket{padding:18px}
+  .ticket-shell{background:linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.05));border:1px solid rgba(255,255,255,.13);border-radius:28px;overflow:hidden;box-shadow:0 16px 34px rgba(0,0,0,.24)}
+  .ticket-topbar{display:flex;justify-content:space-between;align-items:center;padding:16px 18px;background:linear-gradient(135deg, rgba(115,240,182,.14), rgba(123,216,255,.10));border-bottom:1px solid rgba(255,255,255,.10)}
+  .airline{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+  .airline-name{font-size:18px;font-weight:950;margin-top:4px}
+  .boarding{padding:0;display:grid;grid-template-columns:1.18fr .82fr;gap:0}
+  .ticket-main{padding:18px;display:grid;gap:14px}
+  .ticket-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+  .info{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);border-radius:18px;padding:12px}
+  .info .k{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
+  .info .v{margin-top:7px;font-size:16px;font-weight:900;line-height:1.35}
+  .qr{display:grid;place-items:center;min-height:100%;background:radial-gradient(circle at 50% 30%, rgba(255,255,255,.08), rgba(255,255,255,.03));border-left:1px dashed rgba(255,255,255,.14);padding:16px}
+  .qr-box{width:160px;height:160px;border-radius:18px;background:
+      linear-gradient(90deg,#fff 10px,transparent 10px) 0 0/20px 20px,
+      linear-gradient(#fff 10px,transparent 10px) 0 0/20px 20px,
+      linear-gradient(45deg,#000 25%,transparent 25%) 0 0/20px 20px,
+      linear-gradient(-45deg,#000 25%,transparent 25%) 0 0/20px 20px,
+      linear-gradient(135deg,#fff 25%,#000 25%,#000 50%,transparent 50%,transparent 75%,#fff 75%);
+      border:10px solid rgba(255,255,255,.92); box-shadow:inset 0 0 0 6px rgba(0,0,0,.08); opacity:.9}
+  .qr-text{margin-top:12px;text-align:center;font-size:12px;color:var(--muted);line-height:1.45}
+  .cut{height:18px;position:relative;background:repeating-linear-gradient(90deg, transparent 0 12px, rgba(255,255,255,.16) 12px 24px)}
+  .cut:before,.cut:after{content:'';position:absolute;top:50%;transform:translateY(-50%);width:18px;height:18px;border-radius:50%;background:#0c1721;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+  .cut:before{left:-9px}.cut:after{right:-9px}
+  .barcode{margin-top:10px;height:68px;border-radius:14px;background:repeating-linear-gradient(90deg,#fff 0 3px, transparent 3px 8px);opacity:.88;border:1px solid rgba(255,255,255,.1)}
+  .timeline{margin-top:14px;padding:16px;border-radius:22px;background:linear-gradient(135deg, rgba(115,240,182,.10), rgba(123,216,255,.08));border:1px solid rgba(115,240,182,.16)}
+  .timer-label{font-size:12px;color:var(--muted)}
+  .timer-wrap{display:grid;place-items:center;margin-top:4px}
+  .ring{width:min(280px,100%);aspect-ratio:1;border-radius:50%;background:conic-gradient(var(--accent) 0deg,var(--accent2) 120deg,#ffffff12 120deg 360deg);padding:12px;box-shadow:0 12px 30px rgba(0,0,0,.22)}
+  .ring-inner{width:100%;height:100%;border-radius:50%;background:radial-gradient(circle at 30% 20%, rgba(255,255,255,.08), rgba(255,255,255,.03) 50%, rgba(0,0,0,.08) 100%);border:1px solid rgba(255,255,255,.10);display:flex;align-items:center;justify-content:center;flex-direction:column;position:relative;overflow:hidden}
+  .ring-inner:before{content:'';position:absolute;inset:18px;border-radius:50%;border:1px dashed rgba(255,255,255,.12)}
+  .timer{font-size:54px;font-weight:950;letter-spacing:.04em;color:var(--gold);line-height:1;z-index:1;text-shadow:0 0 24px rgba(255,211,107,.28)}
+  .timer-sub{font-size:12px;color:var(--muted);margin-top:8px;z-index:1}
+  .progress{height:12px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden;margin-top:14px}
+  .bar{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:999px;transition:width .25s}
+  .phases{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+  .phase{padding:12px;border-radius:16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);text-align:center}
+  .phase .k{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
+  .phase .v{margin-top:6px;font-size:14px;font-weight:900}
+  .phase.active{border-color:rgba(255,211,107,.9);box-shadow:0 0 0 3px rgba(255,211,107,.12)}
+  .log{margin-top:14px;display:grid;gap:10px}
+  .log-item{padding:13px 14px;border-radius:18px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);line-height:1.5;color:#e9fbf7}
+  .mini{font-size:12px;color:var(--muted)}
+  @media (max-width: 1100px){.layout{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}.boarding{grid-template-columns:1fr}.qr{border-left:none;border-top:1px dashed rgba(255,255,255,.14)}}
+  @media (max-width: 640px){.grid-places,.time-row,.ticket-grid,.inputs,.phases{grid-template-columns:1fr}.topbar{flex-direction:column;align-items:flex-start}.stats{grid-template-columns:1fr 1fr}.timer{font-size:44px}.ring{width:min(260px,100%)}}
+</style>
+</head>
+<body>
+  <div class="scene">
+    <div class="sky"></div>
+    <div class="sun"></div>
+    <div class="cloud one"></div><div class="cloud two"></div><div class="cloud three"></div>
+    <div class="birds"><div class="bird b1"></div><div class="bird b2"></div><div class="bird b3"></div></div>
+    <div class="plane">✈️</div>
+    <div class="mountains"><div class="mountain m1"></div><div class="mountain m2"></div><div class="mountain m3"></div><div class="mountain m4"></div></div>
+    <div class="ridge"></div>
+    <div class="trees"><div class="tree t1"></div><div class="tree t2"></div><div class="tree t3"></div><div class="tree t4"></div><div class="tree t5"></div></div>
+    <div class="river"></div>
+    <div class="overlay"></div>
+  </div>
+
+  <div class="app">
+    <div class="layout">
+      <div class="hero">
+        <div class="topbar">
+          <div class="brand">
+            <div class="logo">✈️</div>
+            <div>
+              <div class="title">Study Flight Ultimate</div>
+              <div class="subtitle">Choose where you want to study, book a flight with departure and takeoff place, date and time, and follow a real-looking ticket with break timer and mountain-view scenery.</div>
+            </div>
+          </div>
+          <div class="badge" id="statusBadge">Ready for departure</div>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><div class="k">Sessions</div><div class="v" id="sessions">0</div></div>
+        <div class="stat"><div class="k">Focus Points</div><div class="v" id="points">0</div></div>
+        <div class="stat"><div class="k">Streak</div><div class="v" id="streak">0</div></div>
+        <div class="stat"><div class="k">Best Trip</div><div class="v" id="bestTrip">—</div></div>
+      </div>
+
+      <div class="panel">
+        <div class="section">
+          <h2>Choose study destination</h2>
+          <p class="helper">Pick the place where you want to study. This becomes the destination on the ticket.</p>
+          <div class="grid-places" id="placeGrid"></div>
+        </div>
+        <div class="section">
+          <h2>Choose flight duration</h2>
+          <p class="helper">The flight includes study, break, and wrap-up phases.</p>
+          <div class="time-row" id="timeGrid"></div>
+        </div>
+        <div class="section">
+          <h2>Book flight details</h2>
+          <p class="helper">Set departure, takeoff place, date, time, subject, and note.</p>
+          <div class="inputs">
+            <div class="field"><label>Departure place</label><select id="fromInput"><option>Mountain Base</option><option>Campus Gate</option><option>City Station</option><option>Valley Stop</option></select></div>
+            <div class="field"><label>Takeoff place</label><select id="takeoffInput"><option>Cloud Peak</option><option>Forest Ridge</option><option>River Cliff</option><option>Sunrise Deck</option><option>Lakeside Peak</option><option>Green Valley</option></select></div>
+            <div class="field"><label>Flight date</label><input id="dateInput" type="date" /></div>
+            <div class="field"><label>Flight time</label><input id="timeInput" type="time" /></div>
+            <div class="field"><label>Subject</label><input id="subjectInput" type="text" placeholder="Subject, e.g. Maths" /></div>
+            <div class="field"><label>Note</label><input id="noteInput" type="text" placeholder="Optional note, e.g. finish chapter 3" /></div>
+          </div>
+          <div class="actions">
+            <button class="btn primary" id="startBtn">Generate Real Ticket</button>
+            <button class="btn secondary" id="resetBtn">Reset Booking</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel ticket">
+        <div class="ticket-shell">
+          <div class="ticket-topbar">
+            <div>
+              <div class="airline">AIR STUDY EXPRESS</div>
+              <div class="airline-name" id="airlineName">Study Flight Ticket</div>
+            </div>
+            <div style="text-align:right">
+              <div class="airline">GATE</div>
+              <div class="airline-name" id="gateName">A12</div>
+            </div>
+          </div>
+          <div class="boarding">
+            <div class="ticket-main">
+              <div class="ticket-grid">
+                <div class="info"><div class="k">Passenger</div><div class="v">Student</div></div>
+                <div class="info"><div class="k">Flight No.</div><div class="v" id="summaryFlight">ST-000</div></div>
+                <div class="info"><div class="k">From</div><div class="v" id="summaryFrom">Mountain Base</div></div>
+                <div class="info"><div class="k">To</div><div class="v" id="summaryPlace">—</div></div>
+                <div class="info"><div class="k">Date</div><div class="v" id="summaryDate">—</div></div>
+                <div class="info"><div class="k">Takeoff Time</div><div class="v" id="summaryTime">—</div></div>
+                <div class="info"><div class="k">Subject</div><div class="v" id="summarySubject">—</div></div>
+                <div class="info"><div class="k">Seat</div><div class="v" id="summarySeat">12A</div></div>
+              </div>
+              <div class="cut"></div>
+              <div class="barcode"></div>
+            </div>
+            <div class="qr">
+              <div>
+                <div class="qr-box"></div>
+                <div class="qr-text">Scan to board the study flight<br/>and begin the mountain session.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="timeline">
+          <div class="timer-label" id="timerLabel">Airport-style timer appears after booking</div>
+          <div class="timer-wrap"><div class="ring"><div class="ring-inner"><div class="timer" id="timer">00:00</div><div class="timer-sub" id="timerSub">Waiting for boarding</div></div></div></div>
+          <div class="progress"><div class="bar" id="progressBar"></div></div>
+          <div class="phases">
+            <div class="phase active" id="phaseStudy"><div class="k">Phase 1</div><div class="v">Study</div></div>
+            <div class="phase" id="phaseBreak"><div class="k">Phase 2</div><div class="v">Break</div></div>
+            <div class="phase" id="phaseReturn"><div class="k">Phase 3</div><div class="v">Wrap-up</div></div>
+          </div>
+        </div>
+
+        <div class="log">
+          <div class="log-item" id="log1"><strong>Tip:</strong> The ticket includes departure, takeoff place, date, time, barcode, and QR look.</div>
+          <div class="log-item" id="log2">Study phase = focus, break phase = rest, wrap-up = quick review before landing.</div>
+          <div class="log-item" id="log3">Beautiful mountain scenery, an animated plane, and a premium ticket layout make it feel more real.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+const places = [
+  { name:'Cloud Peak', emoji:'⛰️', desc:'Highest study spot with calm air and wide views.' },
+  { name:'Forest Ridge', emoji:'🌲', desc:'A peaceful route surrounded by trees.' },
+  { name:'River Cliff', emoji:'🏞️', desc:'Study beside water with a relaxing breeze.' },
+  { name:'Sunrise Deck', emoji:'🌅', desc:'Warm morning light and a fresh focus vibe.' },
+  { name:'Snow View', emoji:'❄️', desc:'Cool, quiet, and perfect for deep concentration.' },
+  { name:'Sky Terrace', emoji:'☁️', desc:'A floating-style view above the world.' },
+  { name:'Lakeside Peak', emoji:'🌊', desc:'A peaceful water-and-mountain destination.' },
+  { name:'Green Valley', emoji:'🌿', desc:'Fresh nature energy for longer study trips.' }
+];
+const times = [15, 25, 45, 60];
+const gates = ['A12','B07','C18','D04','E21','F11'];
+const seats = ['12A','14C','08F','21B','09D','16A'];
+let selectedPlace = null, selectedTime = 25, bookingActive = false, timer = null, endAt = 0, totalMs = 0;
+let sessions = Number(localStorage.getItem('study_sessions') || 0);
+let points = Number(localStorage.getItem('study_points') || 0);
+let streak = Number(localStorage.getItem('study_streak') || 0);
+let bestTrip = localStorage.getItem('study_best_trip') || '—';
+let flightNo = 'ST-000', gate = 'A12', seat = '12A';
+const now = new Date();
+const pad = n => String(n).padStart(2,'0');
+const els = {
+  placeGrid: document.getElementById('placeGrid'), timeGrid: document.getElementById('timeGrid'), fromInput: document.getElementById('fromInput'), takeoffInput: document.getElementById('takeoffInput'), dateInput: document.getElementById('dateInput'), timeInput: document.getElementById('timeInput'), subjectInput: document.getElementById('subjectInput'), noteInput: document.getElementById('noteInput'), startBtn: document.getElementById('startBtn'), resetBtn: document.getElementById('resetBtn'), statusBadge: document.getElementById('statusBadge'), gateName: document.getElementById('gateName'), airlineName: document.getElementById('airlineName'), summaryFlight: document.getElementById('summaryFlight'), summaryFrom: document.getElementById('summaryFrom'), summaryPlace: document.getElementById('summaryPlace'), summaryDate: document.getElementById('summaryDate'), summaryTime: document.getElementById('summaryTime'), summarySubject: document.getElementById('summarySubject'), summarySeat: document.getElementById('summarySeat'), timerLabel: document.getElementById('timerLabel'), timer: document.getElementById('timer'), timerSub: document.getElementById('timerSub'), progressBar: document.getElementById('progressBar'), phaseStudy: document.getElementById('phaseStudy'), phaseBreak: document.getElementById('phaseBreak'), phaseReturn: document.getElementById('phaseReturn'), sessions: document.getElementById('sessions'), points: document.getElementById('points'), streak: document.getElementById('streak'), bestTrip: document.getElementById('bestTrip'), log1: document.getElementById('log1'), log2: document.getElementById('log2'), log3: document.getElementById('log3') };
+els.dateInput.value = now.toISOString().split('T')[0]; els.timeInput.value = `${pad((now.getHours()+1)%24)}:${pad(now.getMinutes())}`;
+function renderPlaces(){ els.placeGrid.innerHTML=''; places.forEach(p=>{ const btn=document.createElement('button'); btn.className='card-btn'+(selectedPlace===p.name?' selected':''); btn.innerHTML=`<span class='emoji'>${p.emoji}</span><div class='place-name'>${p.name}</div><div class='place-desc'>${p.desc}</div>`; btn.onclick=()=>{ selectedPlace=p.name; renderPlaces(); updateSummary(); }; els.placeGrid.appendChild(btn); }); }
+function renderTimes(){ els.timeGrid.innerHTML=''; times.forEach(t=>{ const btn=document.createElement('button'); btn.className='slot'+(selectedTime===t?' selected':''); btn.textContent=`${t} min`; btn.onclick=()=>{ selectedTime=t; renderTimes(); updateSummary(); }; els.timeGrid.appendChild(btn); }); }
+function updateStats(){ els.sessions.textContent=sessions; els.points.textContent=points; els.streak.textContent=streak; els.bestTrip.textContent=bestTrip; }
+function updateSummary(){ els.summaryPlace.textContent=selectedPlace||'—'; els.summaryFrom.textContent=els.fromInput.value; els.summaryDate.textContent=els.dateInput.value || '—'; els.summaryTime.textContent=els.timeInput.value || '—'; els.summarySubject.textContent=els.subjectInput.value.trim()||'—'; els.summarySeat.textContent=seat; els.summaryFlight.textContent=flightNo; els.gateName.textContent=gate; els.airlineName.textContent=`Study Flight • ${selectedPlace || 'Mountain View'}`; }
+function fmt(ms){ const total=Math.max(0,Math.ceil(ms/1000)); const m=String(Math.floor(total/60)).padStart(2,'0'); const s=String(total%60).padStart(2,'0'); return `${m}:${s}`; }
+function phaseName(leftMs){ const elapsed=totalMs-leftMs; const studyEnd=totalMs*0.7; const breakEnd=totalMs*0.88; return elapsed<studyEnd?'study':elapsed<breakEnd?'break':'return'; }
+function setPhase(name){ els.phaseStudy.classList.remove('active'); els.phaseBreak.classList.remove('active'); els.phaseReturn.classList.remove('active'); if(name==='study') els.phaseStudy.classList.add('active'); if(name==='break') els.phaseBreak.classList.add('active'); if(name==='return') els.phaseReturn.classList.add('active'); }
+function setIdleUI(){ bookingActive=false; clearInterval(timer); els.statusBadge.textContent='Ready for departure'; els.timerLabel.textContent='Airport-style timer appears after booking'; els.timer.textContent='00:00'; els.timerSub.textContent='Waiting for boarding'; els.progressBar.style.width='0%'; setPhase('study'); updateSummary(); }
+function startSession(){ if(!selectedPlace) return alert('Please select a study destination first.'); const subject=els.subjectInput.value.trim(); if(!subject) return alert('Please enter a subject.'); bookingActive=true; sessions+=1; points+=selectedTime*2; streak+=1; bestTrip=bestTrip==='—'?`${selectedTime} min`:(selectedTime<Number(bestTrip)?`${selectedTime} min`:bestTrip); flightNo=`ST-${Math.floor(100+Math.random()*900)}`; gate=gates[Math.floor(Math.random()*gates.length)]; seat=seats[Math.floor(Math.random()*seats.length)]; localStorage.setItem('study_sessions', sessions); localStorage.setItem('study_points', points); localStorage.setItem('study_streak', streak); localStorage.setItem('study_best_trip', bestTrip); totalMs=selectedTime*60*1000; endAt=Date.now()+totalMs; els.statusBadge.textContent='Boarding'; updateStats(); updateSummary(); clearInterval(timer); timer=setInterval(()=>{ const left=endAt-Date.now(); const done=left<=0; els.timer.textContent=done?'00:00':fmt(left); const pct=done?100:((totalMs-left)/totalMs)*100; els.progressBar.style.width=Math.min(100,Math.max(0,pct))+'%'; const phase=phaseName(left); setPhase(phase); if(phase==='study'){ els.timerLabel.textContent='Study phase'; els.timerSub.textContent='Focus on your subject'; els.log1.innerHTML='<strong>Study phase:</strong> Work on notes, problems, or reading with full focus.'; els.log2.textContent='Stay locked in until the break phase begins.'; } else if(phase==='break'){ els.timerLabel.textContent='Break phase'; els.timerSub.textContent='Rest, stretch, hydrate'; els.log1.innerHTML='<strong>Break phase:</strong> Stand up, stretch, drink water, or take a short walk.'; els.log2.textContent='This pause helps your mind reset before landing.'; } else { els.timerLabel.textContent='Wrap-up phase'; els.timerSub.textContent='Review and land'; els.log1.innerHTML='<strong>Wrap-up:</strong> Review what you studied and prepare for the next session.'; els.log2.textContent='A quick recap makes the trip more useful.'; }
+    if(done){ clearInterval(timer); bookingActive=false; els.statusBadge.textContent='Session complete'; els.timerLabel.textContent='Boarding complete — flight landed'; els.timerSub.textContent='Great job — session complete'; els.log3.textContent=`Great job! You earned ${selectedTime*2} points and completed the trip.`; setPhase('return'); }
+  }, 1000); }
+els.startBtn.onclick=startSession; els.resetBtn.onclick=()=>{ selectedPlace=null; selectedTime=25; els.subjectInput.value=''; els.noteInput.value=''; sessions=Number(localStorage.getItem('study_sessions')||0); points=Number(localStorage.getItem('study_points')||0); streak=Number(localStorage.getItem('study_streak')||0); bestTrip=localStorage.getItem('study_best_trip')||'—'; flightNo='ST-000'; gate='A12'; seat='12A'; els.fromInput.value='Mountain Base'; els.takeoffInput.value='Cloud Peak'; els.dateInput.value=now.toISOString().split('T')[0]; els.timeInput.value=`${pad((now.getHours()+1)%24)}:${pad(now.getMinutes())}`; updateStats(); renderPlaces(); renderTimes(); setIdleUI(); els.log1.innerHTML='<strong>Tip:</strong> The ticket now includes departure, takeoff place, date, time, barcode, and QR look.'; els.log2.textContent='Use the break to reset your mind before landing.'; els.log3.textContent='You can earn points after each completed flight itinerary.'; };
+['fromInput','takeoffInput','dateInput','timeInput','subjectInput','noteInput'].forEach(id=>els[id].addEventListener('input', updateSummary));
+renderPlaces(); renderTimes(); updateStats(); setIdleUI();
+</script>
+</body>
+</html>
