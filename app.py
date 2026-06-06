@@ -870,6 +870,9 @@ def worm(): return render_template("worm.html")
 @app.route("/apex.html")
 def apex(): return render_template("apex.html")
 
+@app.route("/wildlife_tracker.html")
+def wildlife_tracker(): return render_template("wildlife_tracker.html")
+
 # -------------------- SEND PROGRESS EMAIL --------------------
 @app.route("/send-progress-email/<username>")
 def send_progress_email(username):

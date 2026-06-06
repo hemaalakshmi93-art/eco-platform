@@ -4,622 +4,74 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Eco Puzzle</title>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  :root {
-    --gd: #1a3d07; --gm: #2d5c12; --gl: #4a8c1c;
-    --gb: #7ec832; --gp: #e8f5d0; --cream: #f2f8eb;
-    --border: #b8d97a; --gold: #f0a500; --text: #1e2e0e;
-  }
-
-  body {
-    background: var(--cream);
-    font-family: 'Nunito', sans-serif;
-    min-height: 100vh;
-    color: var(--text);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding-bottom: 30px;
-  }
-
-  .header {
-    width: 100%;
-    background: linear-gradient(135deg, var(--gm), var(--gl));
-    padding: 14px 20px;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    box-shadow: 0 3px 12px rgba(0,0,0,0.18);
-    position: relative;
-  }
-
-  .back-btn {
-    width: 38px; height: 38px;
-    border-radius: 50%;
-    border: 2px solid rgba(255,255,255,0.5);
-    background: rgba(255,255,255,0.15);
-    color: #fff;
-    font-size: 20px; font-weight: 800;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    text-decoration: none;
-    transition: background .15s, transform .1s;
-    flex-shrink: 0;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .back-btn:hover  { background: rgba(255,255,255,0.28); transform: scale(1.08); }
-  .back-btn:active { transform: scale(0.92); }
-
-  .header-title {
-    flex: 1;
-    color: #fff;
-    font-size: 20px; font-weight: 900;
-    letter-spacing: -0.3px;
-  }
+  :root { --gd:#1a3d07; --gm:#2d5c12; --gl:#4a8c1c; --gb:#7ec832; --gp:#e8f5d0; --cream:#f2f8eb; --border:#b8d97a; --gold:#f0a500; --text:#1e2e0e; }
+  body { background: var(--cream); font-family: system-ui, -apple-system, sans-serif; min-height: 100vh; color: var(--text); display: flex; flex-direction: column; align-items: center; padding-bottom: 24px; }
+  .header { width: 100%; background: linear-gradient(135deg, var(--gm), var(--gl)); padding: 14px 20px; display: flex; align-items: center; gap: 14px; box-shadow: 0 3px 12px rgba(0,0,0,0.18); }
+  .back-btn { width: 38px; height: 38px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.5); background: rgba(255,255,255,0.15); color: #fff; font-size: 20px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; text-decoration: none; flex-shrink: 0; }
+  .header-title { flex: 1; color: #fff; font-size: 20px; font-weight: 900; }
   .header-title span { font-size: 12px; font-weight: 600; opacity: 0.8; display: block; }
-
-  .diff-badge {
-    padding: 5px 14px;
-    border-radius: 20px;
-    font-size: 12px; font-weight: 800;
-    letter-spacing: .05em;
-    text-transform: uppercase;
-    border: 2px solid rgba(255,255,255,0.5);
-    color: #fff;
-    flex-shrink: 0;
-  }
-  .diff-badge.easy   { background: rgba(80,200,100,0.35); }
-  .diff-badge.medium { background: rgba(240,165,0,0.35); }
-  .diff-badge.hard   { background: rgba(220,60,40,0.35); }
-
-  .stats-row {
-    display: flex;
-    gap: 10px;
-    padding: 12px 16px 0;
-    width: 100%;
-    max-width: 680px;
-    flex-wrap: wrap;
-  }
-  .stat-pill {
-    background: #fff;
-    border: 1.5px solid var(--border);
-    border-radius: 10px;
-    padding: 8px 16px;
-    display: flex; align-items: center; gap: 7px;
-    font-weight: 700; font-size: 14px; color: var(--gd);
-    flex: 1; min-width: 110px;
-  }
-  .stat-pill .icon { font-size: 16px; }
-  .stat-pill .val  { font-size: 16px; font-weight: 800; color: var(--gm); }
+  .diff-badge { padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; border: 2px solid rgba(255,255,255,0.5); color: #fff; }
+  .diff-badge.easy { background: rgba(80,200,100,0.35); } .diff-badge.medium { background: rgba(240,165,0,0.35); } .diff-badge.hard { background: rgba(220,60,40,0.35); }
+  .stats-row { display: flex; gap: 10px; padding: 12px 16px 0; width: 100%; max-width: 680px; flex-wrap: wrap; }
+  .stat-pill { background: #fff; border: 1.5px solid var(--border); border-radius: 10px; padding: 8px 16px; display: flex; align-items: center; gap: 7px; font-weight: 700; font-size: 14px; color: var(--gd); flex: 1; min-width: 110px; }
+  .stat-pill .val { font-size: 16px; font-weight: 800; color: var(--gm); }
   .stat-pill.gold .val { color: var(--gold); }
-
-  .diff-tip {
-    margin: 10px 16px 0;
-    padding: 8px 14px;
-    border-radius: 10px;
-    font-size: 12px; font-weight: 700;
-    display: flex; align-items: center; gap: 7px;
-    max-width: 680px; width: calc(100% - 32px);
-  }
-  .diff-tip.easy   { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
-  .diff-tip.medium { background: #fff8e1; color: #e65100; border: 1px solid #ffcc80; }
-  .diff-tip.hard   { background: #fce4ec; color: #b71c1c; border: 1px solid #ef9a9a; }
-
-  .preview-wrap {
-    margin: 14px 16px 6px;
-    border-radius: 12px;
-    overflow: hidden;
-    border: 2px solid var(--border);
-    box-shadow: 0 2px 10px rgba(0,0,0,0.12);
-    max-width: 280px;
-    position: relative;
-  }
-  .preview-wrap::after {
-    content: 'Target 🎯';
-    position: absolute; top: 7px; left: 7px;
-    background: rgba(0,0,0,0.55);
-    color: #fff; font-size: 10px; font-weight: 700;
-    padding: 3px 8px; border-radius: 6px;
-    letter-spacing: .04em;
-  }
-  #preview {
-    width: 100%; display: block;
-    max-height: 160px; object-fit: cover;
-  }
-
-  .puzzle-label {
-    font-size: 11px; font-weight: 700; color: var(--gl);
-    text-transform: uppercase; letter-spacing: .08em;
-    margin: 4px 0 8px;
-    text-align: center;
-  }
-  .eco-name {
-    font-size: 13px; font-weight: 800; color: var(--gd);
-    margin-bottom: 10px; text-align: center;
-    background: var(--gp); display: inline-block;
-    padding: 4px 14px; border-radius: 20px;
-    border: 1px solid var(--border);
-  }
-
-  #game {
-    display: grid;
-    gap: 4px;
-    justify-content: center;
-    padding: 0 10px;
-  }
-
-  .tile {
-    border-radius: 8px;
-    cursor: grab;
-    transition: transform .12s, box-shadow .12s, outline .1s;
-    outline: 2px solid transparent;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-    touch-action: none;
-    user-select: none;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .tile:active { transform: scale(0.96); }
-  .tile.dragging {
-    outline: 3px solid var(--gb);
-    transform: scale(1.06);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.28);
-    z-index: 10;
-  }
-  .tile.drag-over {
-    outline: 3px solid var(--gold);
-    transform: scale(1.03);
-  }
-
-  #overlay {
-    position: fixed; inset: 0;
-    background: rgba(5,20,0,0.65);
-    backdrop-filter: blur(4px);
-    display: none;
-    align-items: center; justify-content: center;
-    z-index: 100; padding: 20px;
-  }
+  .diff-tip { margin: 10px 16px 0; padding: 8px 14px; border-radius: 10px; font-size: 12px; font-weight: 700; max-width: 680px; width: calc(100% - 32px); }
+  .diff-tip.easy { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; } .diff-tip.medium { background: #fff8e1; color: #e65100; border: 1px solid #ffcc80; } .diff-tip.hard { background: #fce4ec; color: #b71c1c; border: 1px solid #ef9a9a; }
+  .preview-wrap { margin: 14px 16px 6px; border-radius: 12px; overflow: hidden; border: 2px solid var(--border); box-shadow: 0 2px 10px rgba(0,0,0,0.12); max-width: 280px; position: relative; }
+  .preview-wrap::after { content: 'Target 🎯'; position: absolute; top: 7px; left: 7px; background: rgba(0,0,0,0.55); color: #fff; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 6px; }
+  #preview { width: 100%; display: block; height: 160px; object-fit: cover; }
+  .puzzle-label { font-size: 11px; font-weight: 700; color: var(--gl); text-transform: uppercase; letter-spacing: .08em; margin: 4px 0 8px; text-align: center; }
+  .eco-name { font-size: 13px; font-weight: 800; color: var(--gd); margin-bottom: 10px; text-align: center; background: var(--gp); display: inline-block; padding: 4px 14px; border-radius: 20px; border: 1px solid var(--border); }
+  #game { display: grid; gap: 4px; justify-content: center; padding: 0 10px; }
+  .tile { border-radius: 8px; cursor: grab; transition: transform .12s, box-shadow .12s, outline .1s; outline: 2px solid transparent; box-shadow: 0 2px 6px rgba(0,0,0,0.15); touch-action: none; user-select: none; -webkit-tap-highlight-color: transparent; background-size: cover; background-position: center; }
+  .tile:active { transform: scale(0.96); } .tile.dragging { outline: 3px solid var(--gb); transform: scale(1.06); box-shadow: 0 8px 20px rgba(0,0,0,0.28); z-index: 10; } .tile.drag-over { outline: 3px solid var(--gold); transform: scale(1.03); }
+  .tile::after { content: ''; position: absolute; inset: 0; border-radius: 8px; background: linear-gradient(135deg, rgba(255,255,255,0.12), transparent 65%); pointer-events: none; }
+  #overlay { position: fixed; inset: 0; background: rgba(5,20,0,0.65); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
   #overlay.show { display: flex; }
-
-  .popup-box {
-    background: #fff;
-    border-radius: 20px;
-    padding: 32px 28px;
-    text-align: center;
-    max-width: 340px; width: 100%;
-    box-shadow: 0 12px 40px rgba(0,0,0,0.22);
-    animation: popIn .3s cubic-bezier(.34,1.56,.64,1);
-  }
-  @keyframes popIn { from{transform:scale(.7);opacity:0} to{transform:scale(1);opacity:1} }
-
-  .popup-icon   { font-size: 52px; margin-bottom: 10px; }
-  .popup-title  { font-size: 24px; font-weight: 900; color: var(--gd); margin-bottom: 6px; }
-  .popup-sub    { font-size: 13px; color: #555; margin-bottom: 18px; line-height: 1.6; }
-  .popup-best   { font-size: 13px; font-weight: 700; color: var(--gold); margin-bottom: 18px; }
-
-  .popup-btns   { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
-  .pop-btn {
-    padding: 11px 24px; border-radius: 99px; border: none;
-    font-family: 'Nunito', sans-serif; font-size: 14px; font-weight: 800;
-    cursor: pointer; transition: transform .1s, background .15s;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .pop-btn:active { transform: scale(0.94); }
-  .pop-btn.primary { background: var(--gm); color: #fff; box-shadow: 0 3px 0 var(--gd); }
-  .pop-btn.primary:hover { background: var(--gd); }
-  .pop-btn.secondary { background: var(--gp); color: var(--gd); border: 1.5px solid var(--border); }
-  .pop-btn.secondary:hover { background: var(--border); }
-
-  .eco-tag {
-    display: inline-block;
-    background: linear-gradient(135deg, var(--gm), var(--gl));
-    color: #fff; font-size: 11px; font-weight: 700;
-    padding: 3px 10px; border-radius: 20px;
-    margin-bottom: 14px; letter-spacing: .05em;
-  }
+  .popup-box { background: #fff; border-radius: 20px; padding: 32px 28px; text-align: center; max-width: 340px; width: 100%; box-shadow: 0 12px 40px rgba(0,0,0,0.22); }
+  .popup-icon { font-size: 52px; margin-bottom: 10px; } .popup-title { font-size: 24px; font-weight: 900; color: var(--gd); margin-bottom: 6px; } .popup-sub { font-size: 13px; color: #555; margin-bottom: 18px; line-height: 1.6; } .popup-best { font-size: 13px; font-weight: 700; color: var(--gold); margin-bottom: 18px; }
+  .popup-btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .pop-btn { padding: 11px 24px; border-radius: 99px; border: none; font-family: inherit; font-size: 14px; font-weight: 800; cursor: pointer; }
+  .pop-btn.primary { background: var(--gm); color: #fff; } .pop-btn.secondary { background: var(--gp); color: var(--gd); border: 1.5px solid var(--border); }
 </style>
 </head>
 <body>
-
-<div class="header">
-  <a href="#" class="back-btn" title="Back"
-     onclick="event.preventDefault(); goBack();">&#8249;</a>
-  <div class="header-title">
-    🌿 Eco Puzzle
-    <span>Piece together nature</span>
-  </div>
-  <div class="diff-badge" id="diff-badge">Easy</div>
-</div>
-
-<div class="stats-row">
-  <div class="stat-pill">
-    <span class="icon">⏳</span>
-    <span>Time</span>
-    <span class="val" id="s-timer">—</span>
-  </div>
-  <div class="stat-pill">
-    <span class="icon">🔀</span>
-    <span>Moves</span>
-    <span class="val" id="s-moves">0</span>
-  </div>
-  <div class="stat-pill gold">
-    <span class="icon">🏆</span>
-    <span>Best</span>
-    <span class="val" id="s-best">—</span>
-  </div>
-</div>
-
-<div class="diff-tip" id="diff-tip">
-  <span id="diff-tip-text"></span>
-</div>
-
-<div style="text-align:center">
-  <div class="preview-wrap">
-    <img id="preview" alt="Eco scene">
-  </div>
-  <div class="eco-name" id="eco-name">🌱 Loading…</div>
-  <div class="puzzle-label">Arrange tiles to match ↑</div>
-</div>
-
+<div class="header"><a href="#" class="back-btn" onclick="event.preventDefault(); goBack();">&#8249;</a><div class="header-title">🌿 Eco Puzzle<span>Piece together nature</span></div><div class="diff-badge" id="diff-badge">Easy</div></div>
+<div class="stats-row"><div class="stat-pill">⏳ <span>Time</span> <span class="val" id="s-timer">—</span></div><div class="stat-pill">🔀 <span>Moves</span> <span class="val" id="s-moves">0</span></div><div class="stat-pill gold">🏆 <span>Best</span> <span class="val" id="s-best">—</span></div></div>
+<div class="diff-tip" id="diff-tip"><span id="diff-tip-text"></span></div>
+<div style="text-align:center"><div class="preview-wrap"><img id="preview" alt="Nature preview"></div><div class="eco-name" id="eco-name">🌱 Loading…</div><div class="puzzle-label">Arrange tiles to match ↑</div></div>
 <div id="game"></div>
-
-<div id="overlay">
-  <div class="popup-box">
-    <div class="popup-icon" id="pop-icon">🎉</div>
-    <div class="popup-title" id="pop-title">Well Done!</div>
-    <div class="popup-sub"  id="pop-sub"></div>
-    <div class="popup-best" id="pop-best"></div>
-    <div class="popup-btns">
-      <button class="pop-btn primary"   onclick="playAgain()">🔄 Play Again</button>
-      <button class="pop-btn secondary" onclick="goBack()">⬅️ Menu</button>
-    </div>
-  </div>
-</div>
-
+<div id="overlay"><div class="popup-box"><div class="popup-icon" id="pop-icon">🎉</div><div class="popup-title" id="pop-title">Well Done!</div><div class="popup-sub" id="pop-sub"></div><div class="popup-best" id="pop-best"></div><div class="popup-btns"><button class="pop-btn primary" onclick="playAgain()">🔄 Play Again</button><button class="pop-btn secondary" onclick="goBack()">⬅️ Menu</button></div></div></div>
 <script>
-// ═══════════════════════════════════════
-//  URL PARAMS
-// ═══════════════════════════════════════
-const params = new URLSearchParams(window.location.search);
-let size = parseInt(params.get('size')) || 3;
-if (isNaN(size) || size < 2 || size > 6) size = 3;
-const name = params.get('name') || '';
-const role = params.get('role') || '';
-
-// ═══════════════════════════════════════
-//  DIFFICULTY CONFIG
-// ═══════════════════════════════════════
+const params = new URLSearchParams(location.search);
+let size = parseInt(params.get('size')) || 3; if (isNaN(size) || size < 2 || size > 6) size = 3;
 const DIFF = size <= 3 ? 'easy' : size === 4 ? 'medium' : 'hard';
-
-const DIFF_CONFIG = {
-  easy:   { label: '🟢 Easy',   badgeClass: 'easy',   tip: '🌱 Simple close-up eco scenes — perfect for beginners!', tipClass: 'easy' },
-  medium: { label: '🟡 Medium', badgeClass: 'medium', tip: '🌿 Moderate scenes — look carefully at each tile!',       tipClass: 'medium' },
-  hard:   { label: '🔴 Hard',   badgeClass: 'hard',   tip: '🔥 Dense, complex nature scenes — very challenging!',    tipClass: 'hard' }
-};
-
-const ECO_IMAGES = {
-  easy: [
-    { url: 'https://images.unsplash.com/photo-1504569353012-91f0e63b7e3f?w=600&q=80', label: '🌻 Sunflower Close-Up' },
-    { url: 'https://images.unsplash.com/photo-1490750967868-88df5691cc6e?w=600&q=80', label: '🌺 Red Poppy' },
-    { url: 'https://images.unsplash.com/photo-1524055988636-436cfa46e59e?w=600&q=80', label: '🍃 Leaf Macro' },
-    { url: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80', label: '🐞 Ladybug on Leaf' },
-    { url: 'https://images.unsplash.com/photo-1457089328109-e5d9bd499191?w=600&q=80', label: '🌼 White Daisy' },
-    { url: 'https://images.unsplash.com/photo-1527090526205-beaac8dc3c62?w=600&q=80', label: '🌿 Fern Frond' },
-    { url: 'https://images.unsplash.com/photo-1516912481808-3406841bd33c?w=600&q=80', label: '💧 Dewdrops on Leaf' },
-    { url: 'https://images.unsplash.com/photo-1462275646964-a0e3386b89fa?w=600&q=80', label: '🌷 Orange Tulip' },
-    { url: 'https://images.unsplash.com/photo-1516594915697-87eb3b1c14ea?w=600&q=80', label: '🍄 Forest Mushroom' },
-    { url: 'https://images.unsplash.com/photo-1558470598-a5dda9640f68?w=600&q=80', label: '🦋 Butterfly on Bloom' }
-  ],
-  medium: [
-    { url: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=600&q=80', label: '🌻 Sunflower Field' },
-    { url: 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=600&q=80', label: '🦋 Wildflower Meadow' },
-    { url: 'https://images.unsplash.com/photo-1560493676-04071c5f467b?w=600&q=80', label: '🥬 Organic Garden' },
-    { url: 'https://images.unsplash.com/photo-1524594154908-edd348ccff8f?w=600&q=80', label: '🐝 Bee on Lavender' },
-    { url: 'https://images.unsplash.com/photo-1471194402529-8e0f5a675de6?w=600&q=80', label: '🌱 Young Seedlings' },
-    { url: 'https://images.unsplash.com/photo-1473448912268-2022ce9509d8?w=600&q=80', label: '🍂 Autumn Canopy' },
-    { url: 'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=600&q=80', label: '💨 Wind Turbines' },
-    { url: 'https://images.unsplash.com/photo-1509099863731-ef4bff19e808?w=600&q=80', label: '⚡ Solar Farm' },
-    { url: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=600&q=80', label: '🌳 Lonely Tree' },
-    { url: 'https://images.unsplash.com/photo-1500534314211-0a24cd710c6e?w=600&q=80', label: '🏞️ River Valley' }
-  ],
-  hard: [
-    { url: 'https://images.unsplash.com/photo-1500534314211-0a24cd710c6e?w=600&q=80', label: '🌴 Tropical Rainforest' },
-    { url: 'https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&q=80', label: '🌲 Ancient Forest' },
-    { url: 'https://images.unsplash.com/photo-1540539234-c14a20fb7c7b?w=600&q=80', label: '🐠 Coral Reef' },
-    { url: 'https://images.unsplash.com/photo-1504618223053-559bdef9ad5f?w=600&q=80', label: '💦 Rushing Waterfall' },
-    { url: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=600&q=80', label: '🏔️ Misty Mountains' },
-    { url: 'https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&q=80', label: '🌿 Mossy Forest Floor' },
-    { url: 'https://images.unsplash.com/photo-1497250681960-ef046c08a56e?w=600&q=80', label: '🌺 Rainforest Bloom' },
-    { url: 'https://images.unsplash.com/photo-1455218873509-8097305ee378?w=600&q=80', label: '🌊 Ocean Waves' },
-    { url: 'https://images.unsplash.com/photo-1475274047050-1d0c0975de51?w=600&q=80', label: '🌌 Starry Forest Night' },
-    { url: 'https://images.unsplash.com/photo-1522383225653-ed111181a951?w=600&q=80', label: '🌸 Cherry Blossom Canopy' }
-  ]
-};
-
-// ═══════════════════════════════════════
-//  SOUNDS
-// ═══════════════════════════════════════
-const moveSound = new Audio('https://cdn.pixabay.com/audio/2022/03/15/audio_115b9bce2b.mp3');
-const winSound  = new Audio('https://cdn.pixabay.com/audio/2022/10/25/audio_946b7f1b2c.mp3');
-
-document.body.addEventListener('click', () => {
-  moveSound.play().then(() => moveSound.pause()).catch(() => {});
-  winSound.play().then(() => winSound.pause()).catch(() => {});
-}, { once: true });
-
-// ═══════════════════════════════════════
-//  STATE
-// ═══════════════════════════════════════
-let tiles = [], currentImage = null;
-let timeLeft = 0, totalTime = 0, interval = null;
-let moves = 0;
-let dragIdx = null, touchDragIdx = null;
-let gameOver = false;   // ← NEW: blocks swaps once puzzle is solved or time runs out
-
-// ── HIGH SCORE ──────────────────────────
-const HS_KEY = `ecoPuzzle_best_${size}`;
-function getBest() { return localStorage.getItem(HS_KEY) || null; }
-function saveBest(movesCount, secs) {
-  const cur = getBest();
-  const value = `${movesCount}|${secs}`;
-  if (!cur) { localStorage.setItem(HS_KEY, value); return true; }
-  const [bm, bt] = cur.split('|').map(Number);
-  if (movesCount < bm || (movesCount === bm && secs < bt)) {
-    localStorage.setItem(HS_KEY, value); return true;
-  }
-  return false;
-}
-function bestLabel() {
-  const cur = getBest();
-  if (!cur) return '—';
-  const [bm, bt] = cur.split('|').map(Number);
-  const m = Math.floor(bt / 60), s = bt % 60;
-  return `${bm} moves · ${m}:${s.toString().padStart(2,'0')}`;
-}
-function updateBestDisplay() {
-  document.getElementById('s-best').textContent = bestLabel();
-}
-
-// ═══════════════════════════════════════
-//  TILE SIZE
-// ═══════════════════════════════════════
-function tileSize() {
-  const vw = Math.min(window.innerWidth, 640);
-  const avail = vw - 24;
-  const gap = (size - 1) * 4;
-  return Math.floor((avail - gap) / size);
-}
-
-// ═══════════════════════════════════════
-//  TIMER
-// ═══════════════════════════════════════
-function getInitialTime() {
-  if (size <= 3) return 120;
-  if (size === 4) return 300;
-  if (size === 5) return 540;
-  return 720;
-}
-
-function startTimer() {
-  timeLeft = getInitialTime();
-  totalTime = timeLeft;
-  clearInterval(interval);
-  updateTimerDisplay();
-  interval = setInterval(() => {
-    timeLeft--;
-    updateTimerDisplay();
-    if (timeLeft <= 0) {
-      clearInterval(interval);
-      interval = null;
-      gameOver = true;
-      showPopup('⏰', 'Time Up!', "The eco puzzle wasn't solved in time. Try again!", null, false);
-    }
-  }, 1000);
-}
-
-function stopTimer() {
-  // ── FIX: clear the interval immediately so it cannot tick again ──
-  clearInterval(interval);
-  interval = null;
-  // Freeze the display at the exact moment the puzzle was completed
-  updateTimerDisplay();
-}
-
-function updateTimerDisplay() {
-  const m = Math.floor(Math.max(0, timeLeft) / 60);
-  const s = Math.max(0, timeLeft) % 60;
-  const el = document.getElementById('s-timer');
-  el.textContent = `${m}:${s.toString().padStart(2,'0')}`;
-  el.style.color = timeLeft <= 20 ? '#D85A30' : '';
-}
-
-// ═══════════════════════════════════════
-//  SETUP DIFFICULTY UI
-// ═══════════════════════════════════════
-function setupDiffUI() {
-  const cfg = DIFF_CONFIG[DIFF];
-  const badge = document.getElementById('diff-badge');
-  badge.textContent = cfg.label;
-  badge.className = 'diff-badge ' + cfg.badgeClass;
-  const tip = document.getElementById('diff-tip');
-  const tipText = document.getElementById('diff-tip-text');
-  tip.className = 'diff-tip ' + cfg.tipClass;
-  tipText.textContent = cfg.tip;
-}
-
-// ═══════════════════════════════════════
-//  START GAME
-// ═══════════════════════════════════════
-function startGame() {
-  moves = 0;
-  gameOver = false;
-  document.getElementById('s-moves').textContent = '0';
-  updateBestDisplay();
-  dragIdx = null;
-  touchDragIdx = null;
-
-  const pool = ECO_IMAGES[DIFF];
-  const pick = pool[Math.floor(Math.random() * pool.length)];
-  currentImage = pick.url;
-  document.getElementById('preview').src = currentImage;
-  document.getElementById('eco-name').textContent = pick.label;
-
-  tiles = [...Array(size * size).keys()];
-  do {
-    for (let i = tiles.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [tiles[i], tiles[j]] = [tiles[j], tiles[i]];
-    }
-  } while (tiles.every((v, i) => v === i));
-
-  startTimer();
-  draw();
-}
-
-// ═══════════════════════════════════════
-//  DRAW GRID
-// ═══════════════════════════════════════
-function draw() {
-  const g   = document.getElementById('game');
-  const ts  = tileSize();
-  const pxW = size * ts;
-
-  g.innerHTML = '';
-  g.style.gridTemplateColumns = `repeat(${size}, ${ts}px)`;
-
-  tiles.forEach((num, i) => {
-    const d = document.createElement('div');
-    d.className = 'tile';
-    d.style.width  = ts + 'px';
-    d.style.height = ts + 'px';
-    d.style.backgroundImage    = `url(${currentImage})`;
-    d.style.backgroundSize     = `${pxW}px ${pxW}px`;
-    const cx = (num % size) * ts;
-    const cy = Math.floor(num / size) * ts;
-    d.style.backgroundPosition = `-${cx}px -${cy}px`;
-
-    d.draggable = true;
-    d.addEventListener('dragstart', () => { dragIdx = i; d.classList.add('dragging'); });
-    d.addEventListener('dragend',   () => { d.classList.remove('dragging'); dragIdx = null; draw(); });
-    d.addEventListener('dragover',  e  => { e.preventDefault(); d.classList.add('drag-over'); });
-    d.addEventListener('dragleave', () => d.classList.remove('drag-over'));
-    d.addEventListener('drop', e => {
-      e.preventDefault();
-      d.classList.remove('drag-over');
-      if (dragIdx !== null && dragIdx !== i) swapTiles(dragIdx, i);
-    });
-
-    d.addEventListener('touchstart', e => {
-      e.preventDefault();
-      touchDragIdx = i;
-      d.classList.add('dragging');
-    }, { passive: false });
-
-    d.addEventListener('touchend', e => {
-      e.preventDefault();
-      d.classList.remove('dragging');
-      const touch  = e.changedTouches[0];
-      const target = document.elementFromPoint(touch.clientX, touch.clientY);
-      if (target && target.classList.contains('tile')) {
-        const allTiles = [...document.querySelectorAll('.tile')];
-        const targetIdx = allTiles.indexOf(target);
-        if (touchDragIdx !== null && targetIdx !== -1 && targetIdx !== touchDragIdx) {
-          swapTiles(touchDragIdx, targetIdx);
-        }
-      }
-      touchDragIdx = null;
-    }, { passive: false });
-
-    g.appendChild(d);
-  });
-}
-
-// ═══════════════════════════════════════
-//  SWAP + CHECK
-// ═══════════════════════════════════════
-function swapTiles(a, b) {
-  // ── FIX: ignore all swaps once the game has ended ──
-  if (gameOver) return;
-
-  [tiles[a], tiles[b]] = [tiles[b], tiles[a]];
-  moves++;
-  document.getElementById('s-moves').textContent = moves;
-  moveSound.currentTime = 0;
-  moveSound.play().catch(() => {});
-  draw();
-
-  // ── FIX: check win AFTER draw so the final correct layout is visible ──
-  checkWin();
-}
-
-function checkWin() {
-  if (!tiles.every((v, i) => v === i)) return;
-
-  // ── FIX: stop the timer IMMEDIATELY — before any async work ──
-  stopTimer();
-
-  // Mark game as over so no further swaps can fire
-  gameOver = true;
-
-  // Calculate score from time already frozen
-  const timeTaken = totalTime - timeLeft;
-  const m = Math.floor(timeTaken / 60);
-  const s = timeTaken % 60;
-
-  winSound.play().catch(() => {});
-
-  const isNew = saveBest(moves, timeTaken);
-  updateBestDisplay();
-
-  const bestMsg = isNew
-    ? `🏆 New Best Record! ${moves} moves in ${m}:${s.toString().padStart(2,'0')}`
-    : `Best: ${bestLabel()}`;
-
-  showPopup(
-    '🌿',
-    'Puzzle Complete!',
-    `You solved the ${size}×${size} eco puzzle in ${m}m ${s}s using ${moves} moves.`,
-    bestMsg,
-    true
-  );
-}
-
-// ═══════════════════════════════════════
-//  POPUP
-// ═══════════════════════════════════════
-function showPopup(icon, title, sub, best, isWin) {
-  document.getElementById('pop-icon').textContent  = icon;
-  document.getElementById('pop-title').textContent = title;
-  document.getElementById('pop-sub').textContent   = sub;
-  document.getElementById('pop-best').textContent  = best || '';
-  document.getElementById('overlay').classList.add('show');
-}
-
-function hidePopup() {
-  document.getElementById('overlay').classList.remove('show');
-}
-
-// ═══════════════════════════════════════
-//  BUTTONS / NAVIGATION
-// ═══════════════════════════════════════
-function playAgain() { hidePopup(); startGame(); }
-
-function goBack() {
-  if (name && role) {
-    window.location.href = '/puzzle_levelpage/' + name + '/' + role;
-  } else if (history.length > 1) {
-    history.back();
-  } else {
-    window.location.href = 'game_menu.html';
-  }
-}
-
-window.addEventListener('resize', () => draw());
-
-setupDiffUI();
-startGame();
+const CONFIG = { easy:{label:'🟢 Easy', badge:'easy', tip:'🌱 Simple close-up nature scenes for beginners.', tipClass:'easy', time:120}, medium:{label:'🟡 Medium', badge:'medium', tip:'🌿 Moderate nature scenes for careful matching.', tipClass:'medium', time:300}, hard:{label:'🔴 Hard', badge:'hard', tip:'🔥 Dense, detailed nature scenes for a real challenge.', tipClass:'hard', time:720} };
+const IMAGES = { easy:[ {label:'🌻 Sunflower', svg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#dff6c8"/><circle cx="200" cy="200" r="70" fill="#7a4a21"/><g fill="#f5c94d">'+Array.from({length:16},(_,i)=>`<ellipse cx="200" cy="95" rx="18" ry="50" transform="rotate(${i*22.5} 200 200)"/>`).join('')+'</g><circle cx="200" cy="200" r="35" fill="#6b3f1c"/></svg>' }, {label:'🌼 Daisy', svg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#eef9ff"/><g fill="#ffffff">'+Array.from({length:12},(_,i)=>`<ellipse cx="200" cy="105" rx="16" ry="52" transform="rotate(${i*30} 200 200)"/>`).join('')+'</g><circle cx="200" cy="200" r="42" fill="#f3c44c"/><circle cx="200" cy="200" r="18" fill="#7a5a10"/></svg>' }, {label:'🍃 Leaf', svg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#e7f4d5"/><path d="M300 90C170 85 100 170 100 250c0 45 35 70 78 70 96 0 165-75 172-230-17 6-31 6-50 0z" fill="#4f8f2a"/><path d="M128 270c60-35 110-80 175-170" stroke="#2f5f16" stroke-width="8" fill="none" stroke-linecap="round"/></svg>' }, {label:'🦋 Butterfly', svg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#f0fbff"/><circle cx="200" cy="200" r="20" fill="#333"/><path d="M190 200C120 130 70 120 75 200c5 65 65 80 115 25z" fill="#ff8bb1"/><path d="M210 200C280 130 330 120 325 200c-5 65-65 80-115 25z" fill="#7cc8ff"/><path d="M195 184L180 145M205 184L220 145" stroke="#333" stroke-width="4" stroke-linecap="round"/></svg>' }, {label:'🌲 Pine', svg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#dff2ff"/><rect x="185" y="245" width="30" height="90" rx="8" fill="#7a4d2a"/><path d="M200 70l90 100h-48l68 75h-50l40 55H100l40-55H90l68-75h-48z" fill="#2f7d32"/></svg>' }, {label:'💧 Dewdrop', svg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#eaf7ef"/><path d="M200 70C160 130 120 170 120 225c0 45 36 80 80 80s80-35 80-80c0-55-40-95-80-155z" fill="#67c6ff"/><circle cx="178" cy="180" r="16" fill="#fff" opacity="0.5"/></svg>' } ], medium:[ {label:'🌳 Lone Tree', svg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#d8f0ff"/><rect x="186" y="230" width="28" height="100" rx="8" fill="#7a4d2a"/><circle cx="200" cy="180" r="85" fill="#4e9b33"/><circle cx="150" cy="175" r="55" fill="#3f8128"/><circle cx="255" cy="175" r="55" fill="#3f8128"/></svg>' }, {label:'🌊 River', svg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#dff7ff"/><path d="M0 260C70 220 120 320 200 280s125-70 200-20v140H0z" fill="#4bb6ff"/><path d="M0 300C60 260 120 345 200 305s130-60 200-10" stroke="#ffffff" stroke-width="10" fill="none" opacity="0.6"/></svg>' }, {label:'🌿 Forest Stream', svg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#e6f6d8"/><path d="M0 240C75 220 120 280 190 260s120-50 210-20v160H0z" fill="#3daee9"/><path d="M60 70h40l-20 90zM300 80h50l-25 100z" fill="#2f7d32"/><path d="M190 140l20 55" stroke="#8b6b3a" stroke-width="18" stroke-linecap="round"/></svg>' }, {label:'🌺 Blossom', svg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#fff1f7"/><g fill="#ff83b8">'+Array.from({length:10},(_,i)=>`<ellipse cx="200" cy="90" rx="18" ry="58" transform="rotate(${i*36} 200 200)"/>`).join('')+'</g><circle cx="200" cy="200" r="36" fill="#ffd166"/></svg>' }, {label:'🐝 Lavender Bee', svg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#edf0ff"/><rect x="110" y="210" width="28" height="120" rx="14" fill="#8f5bd6"/><rect x="170" y="180" width="28" height="150" rx="14" fill="#8f5bd6"/><rect x="230" y="205" width="28" height="125" rx="14" fill="#8f5bd6"/><ellipse cx="200" cy="150" rx="60" ry="34" fill="#ffd54f"/><ellipse cx="200" cy="150" rx="58" ry="10" fill="#222"/></svg>' }, {label:'🌾 Meadow', svg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#e5f6c8"/><path d="M0 280C80 240 130 320 200 292s120-50 200-16v124H0z" fill="#8ed04f"/><circle cx="280" cy="120" r="44" fill="#ffd95e"/></svg>' } ], hard:[ {label:'🌲 Forest', svg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#dff2e2"/><rect x="188" y="240" width="24" height="90" rx="8" fill="#7a4d2a"/><path d="M200 60l80 120h-45l55 65h-45l35 50H120l35-50h-45l55-65h-45z" fill="#2f7d32"/><path d="M110 310h180" stroke="#9fc66d" stroke-width="16" stroke-linecap="round"/></svg>' }, {label:'🌊 Ocean', svg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#d7f2ff"/><path d="M0 230C60 190 110 250 180 220s120-60 220-20v200H0z" fill="#2f8fdd"/><path d="M0 275C70 235 120 300 200 265s125-55 200-15" stroke="#ffffff" stroke-width="12" fill="none" opacity="0.7"/></svg>' }, {label:'🏔️ Mountains', svg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#eef7ff"/><path d="M0 320L120 150l80 90 70-120 130 200z" fill="#7ea0b8"/><path d="M120 150l40 48 40-48 35 58H85z" fill="#ffffff" opacity="0.9"/></svg>' }, {label:'💦 Waterfall', svg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#e8f7ff"/><rect x="80" y="70" width="240" height="180" rx="30" fill="#7b6a54"/><path d="M185 100C170 150 170 210 200 320c30-110 30-170 15-220z" fill="#8ddcff"/><path d="M105 250c45 20 95 20 135 0\" stroke=\"#57b7e6\" stroke-width=\"10\" fill=\"none\" opacity=\"0.7\"/></svg>' }, {label:'🌌 Night Forest', svg:'<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 400 400\"><rect width=\"400\" height=\"400\" fill=\"#1b2447\"/><circle cx=\"300\" cy=\"80\" r=\"26\" fill=\"#fff6cc\"/><path d=\"M200 70l75 115h-40l55 65h-45l35 50H120l35-50h-45l55-65h-40z\" fill=\"#2d8a49\"/><circle cx=\"90\" cy=\"80\" r=\"2\" fill=\"#fff\"/><circle cx=\"120\" cy=\"120\" r=\"2\" fill=\"#fff\"/><circle cx=\"330\" cy=\"140\" r=\"2\" fill=\"#fff\"/></svg>' }, {label:'🌸 Blossom Canopy', svg:'<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 400 400\"><rect width=\"400\" height=\"400\" fill=\"#fff0f6\"/><circle cx=\"130\" cy=\"120\" r=\"60\" fill=\"#ffb3d1\"/><circle cx=\"200\" cy=\"90\" r=\"72\" fill=\"#ff8fb8\"/><circle cx=\"270\" cy=\"120\" r=\"60\" fill=\"#ffb3d1\"/><rect x=\"190\" y=\"220\" width=\"20\" height=\"110\" rx=\"8\" fill=\"#7a4d2a\"/></svg>' } ] };
+let tiles=[], currentImage='', timeLeft=0, totalTime=0, interval=null, moves=0, dragIdx=null, touchDragIdx=null, gameOver=false; const HS_KEY = `ecoPuzzle_best_${size}`;
+function getBest(){ return localStorage.getItem(HS_KEY) || null; }
+function saveBest(movesCount, secs){ const cur=getBest(); const value=`${movesCount}|${secs}`; if(!cur){ localStorage.setItem(HS_KEY, value); return true; } const [bm,bt]=cur.split('|').map(Number); if(movesCount < bm || (movesCount === bm && secs < bt)){ localStorage.setItem(HS_KEY, value); return true; } return false; }
+function bestLabel(){ const cur=getBest(); if(!cur) return '—'; const [bm,bt]=cur.split('|').map(Number); const m=Math.floor(bt/60), s=bt%60; return `${bm} moves · ${m}:${s.toString().padStart(2,'0')}`; }
+function updateBestDisplay(){ document.getElementById('s-best').textContent = bestLabel(); }
+function tileSize(){ const vw=Math.min(window.innerWidth, 640); const avail=vw-24; const gap=(size-1)*4; return Math.floor((avail-gap)/size); }
+function getInitialTime(){ return CONFIG[DIFF].time; }
+function startTimer(){ timeLeft=getInitialTime(); totalTime=timeLeft; clearInterval(interval); updateTimerDisplay(); interval=setInterval(()=>{ timeLeft--; updateTimerDisplay(); if(timeLeft<=0){ clearInterval(interval); interval=null; gameOver=true; showPopup('⏰','Time Up!',\"The eco puzzle wasn't solved in time. Try again!\",null,false); } },1000); }
+function stopTimer(){ clearInterval(interval); interval=null; updateTimerDisplay(); }
+function updateTimerDisplay(){ const m=Math.floor(Math.max(0,timeLeft)/60); const s=Math.max(0,timeLeft)%60; const el=document.getElementById('s-timer'); el.textContent=`${m}:${s.toString().padStart(2,'0')}`; el.style.color=timeLeft<=20?'#D85A30':''; }
+function setupDiffUI(){ const cfg=CONFIG[DIFF]; document.getElementById('diff-badge').textContent=cfg.label; document.getElementById('diff-badge').className='diff-badge '+cfg.badge; document.getElementById('diff-tip').className='diff-tip '+cfg.tipClass; document.getElementById('diff-tip-text').textContent=cfg.tip; }
+function svgDataUri(svg){ return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg); }
+function startGame(){ moves=0; gameOver=false; document.getElementById('s-moves').textContent='0'; updateBestDisplay(); dragIdx=null; touchDragIdx=null; const pool=IMAGES[DIFF]; const pick=pool[Math.floor(Math.random()*pool.length)]; currentImage=svgDataUri(pick.svg); document.getElementById('preview').src=currentImage; document.getElementById('eco-name').textContent=pick.label; tiles=[...Array(size*size).keys()]; do{ for(let i=tiles.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [tiles[i],tiles[j]]=[tiles[j],tiles[i]]; } } while(tiles.every((v,i)=>v===i)); startTimer(); draw(); }
+function draw(){ const g=document.getElementById('game'); const ts=tileSize(); g.innerHTML=''; g.style.gridTemplateColumns=`repeat(${size}, ${ts}px)`; tiles.forEach((num,i)=>{ const d=document.createElement('div'); d.className='tile'; d.style.position='relative'; d.style.width=ts+'px'; d.style.height=ts+'px'; d.style.backgroundImage=`url(${currentImage})`; d.style.backgroundSize=`${size*ts}px ${size*ts}px`; const cx=(num%size)*ts; const cy=Math.floor(num/size)*ts; d.style.backgroundPosition=`-${cx}px -${cy}px`; d.draggable=true; d.addEventListener('dragstart',()=>{ dragIdx=i; d.classList.add('dragging'); }); d.addEventListener('dragend',()=>{ d.classList.remove('dragging'); dragIdx=null; draw(); }); d.addEventListener('dragover',e=>{ e.preventDefault(); d.classList.add('drag-over'); }); d.addEventListener('dragleave',()=>d.classList.remove('drag-over')); d.addEventListener('drop',e=>{ e.preventDefault(); d.classList.remove('drag-over'); if(dragIdx!==null && dragIdx!==i) swapTiles(dragIdx,i); }); d.addEventListener('touchstart',e=>{ e.preventDefault(); touchDragIdx=i; d.classList.add('dragging'); }, { passive:false }); d.addEventListener('touchend',e=>{ e.preventDefault(); d.classList.remove('dragging'); const touch=e.changedTouches[0]; const target=document.elementFromPoint(touch.clientX,touch.clientY); if(target && target.classList.contains('tile')){ const allTiles=[...document.querySelectorAll('.tile')]; const targetIdx=allTiles.indexOf(target); if(touchDragIdx!==null && targetIdx!==-1 && targetIdx!==touchDragIdx) swapTiles(touchDragIdx,targetIdx); } touchDragIdx=null; }, { passive:false }); g.appendChild(d); }); }
+function swapTiles(a,b){ if(gameOver) return; [tiles[a],tiles[b]]=[tiles[b],tiles[a]]; moves++; document.getElementById('s-moves').textContent=moves; draw(); checkWin(); }
+function checkWin(){ if(!tiles.every((v,i)=>v===i)) return; stopTimer(); gameOver=true; const timeTaken=totalTime-timeLeft; const m=Math.floor(timeTaken/60); const s=timeTaken%60; const isNew=saveBest(moves,timeTaken); updateBestDisplay(); const bestMsg=isNew?`🏆 New Best Record! ${moves} moves in ${m}:${s.toString().padStart(2,'0')}`:`Best: ${bestLabel()}`; showPopup('🌿','Puzzle Complete!',`You solved the ${size}×${size} nature puzzle in ${m}m ${s}s using ${moves} moves.`,bestMsg,true); }
+function showPopup(icon,title,sub,best){ document.getElementById('pop-icon').textContent=icon; document.getElementById('pop-title').textContent=title; document.getElementById('pop-sub').textContent=sub; document.getElementById('pop-best').textContent=best||''; document.getElementById('overlay').classList.add('show'); }
+function hidePopup(){ document.getElementById('overlay').classList.remove('show'); }
+function playAgain(){ hidePopup(); startGame(); }
+function goBack(){ if(history.length>1) history.back(); else alert('Back action not available in this standalone file.'); }
+window.addEventListener('resize',()=>draw()); setupDiffUI(); startGame();
 </script>
 </body>
 </html>

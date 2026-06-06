@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wildlife Tracker</title>
+<style>
+  :root{--bg:#08161b;--panel:#0f252b;--panel2:#123038;--text:#e9f7f2;--muted:#9bc2ba;--accent:#52e0a6;--accent2:#7bd8ff;--danger:#ff6b6b;--gold:#ffd166}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{min-height:100vh;background:radial-gradient(circle at top,#16353d 0%,#08161b 55%,#041014 100%);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;display:flex;justify-content:center;align-items:flex-start;padding:12px;overflow-x:hidden}
+  .app{width:min(980px,100%)}
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;padding:12px 14px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:18px;backdrop-filter:blur(10px)}
+  .title{font-size:clamp(20px,4vw,30px);font-weight:900;letter-spacing:.3px}
+  .subtitle{font-size:12px;color:var(--muted);margin-top:2px}
+  .badge{padding:8px 12px;border-radius:999px;background:linear-gradient(135deg,var(--accent),#22b07d);color:#052018;font-weight:800;font-size:12px;white-space:nowrap}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
+  .stat{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:10px 12px}
+  .stat .k{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+  .stat .v{font-size:18px;font-weight:800;margin-top:4px;color:#fff}
+  .main{display:grid;grid-template-columns:1.25fr .95fr;gap:12px}
+  .card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:20px;overflow:hidden;box-shadow:0 16px 40px rgba(0,0,0,.22)}
+  .scene{min-height:420px;position:relative;background:linear-gradient(180deg,rgba(82,224,166,.14),rgba(123,216,255,.06));padding:14px}
+  .scene-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;height:100%}
+  .clue-box,.guess-box{background:rgba(6,18,22,.7);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:14px}
+  .clue-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+  .clue-title{font-weight:900;font-size:18px}
+  .clue-step{font-size:12px;color:var(--muted)}
+  .clue-list{display:flex;flex-direction:column;gap:10px}
+  .clue{padding:11px 12px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);line-height:1.45;color:#e8fffb}
+  .guess-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+  .choice{border:none;border-radius:14px;padding:12px 10px;background:linear-gradient(135deg,#173845,#0f2730);color:var(--text);font-weight:800;font-size:14px;cursor:pointer;transition:transform .12s,box-shadow .12s,border-color .12s;min-height:54px}
+  .choice:hover{transform:translateY(-2px);box-shadow:0 10px 20px rgba(0,0,0,.22)}
+  .choice.selected{outline:2px solid var(--accent2);box-shadow:0 0 0 3px rgba(123,216,255,.18)}
+  .choice.correct{background:linear-gradient(135deg,#164b36,#0d3a28);outline:2px solid var(--accent)}
+  .choice.wrong{background:linear-gradient(135deg,#4b1b1b,#331010);outline:2px solid var(--danger)}
+  .animal-box{margin-top:12px;padding:12px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)}
+  .animal-name{font-size:16px;font-weight:900;color:var(--gold);margin-top:6px}
+  .control-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+  button.action{border:none;border-radius:14px;padding:11px 14px;font-weight:900;font-size:14px;cursor:pointer;color:#05161a;background:linear-gradient(135deg,var(--accent2),#b9f3ff)}
+  button.secondary{background:linear-gradient(135deg,#243b43,#16272d);color:var(--text);border:1px solid rgba(255,255,255,.08)}
+  .feed{padding:14px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:20px}
+  .feed h3{font-size:18px;margin-bottom:10px}
+  .feed-item{padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);margin-bottom:10px;color:#eafbf7;line-height:1.5}
+  .mini{font-size:12px;color:var(--muted)}
+  .progress{height:10px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden;margin-top:10px}
+  .bar{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .35s}
+  .result{margin-top:12px;padding:12px;border-radius:16px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08)}
+  .result strong{color:var(--accent)}
+  @media (max-width:900px){.main{grid-template-columns:1fr}.scene{min-height:auto}.scene-grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar card" style="padding:14px 16px">
+    <div>
+      <div class="title">Wildlife Tracker</div>
+      <div class="subtitle">Solve clues and identify the animal</div>
+    </div>
+    <div class="badge" id="roundBadge">Round 1 / 3</div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="k">Score</div><div class="v" id="score">0</div></div>
+    <div class="stat"><div class="k">Round</div><div class="v" id="round">1</div></div>
+    <div class="stat"><div class="k">Clues</div><div class="v" id="cluesLeft">3</div></div>
+    <div class="stat"><div class="k">Best</div><div class="v" id="best">0</div></div>
+  </div>
+
+  <div class="main">
+    <div class="card scene">
+      <div class="scene-grid">
+        <div class="clue-box">
+          <div class="clue-head">
+            <div>
+              <div class="clue-title">Case File</div>
+              <div class="clue-step" id="stepText">Find the animal from the clues</div>
+            </div>
+            <div class="mini" id="timerText">Ready</div>
+          </div>
+          <div class="clue-list" id="clueList"></div>
+          <div class="progress"><div class="bar" id="bar"></div></div>
+          <div class="control-row">
+            <button class="action" id="nextBtn">Next Clue</button>
+            <button class="secondary action" id="skipBtn">Skip Animal</button>
+          </div>
+        </div>
+
+        <div class="guess-box">
+          <div class="clue-head">
+            <div>
+              <div class="clue-title">Your Guess</div>
+              <div class="clue-step">Choose the animal that matches</div>
+            </div>
+          </div>
+          <div class="guess-grid" id="guessGrid"></div>
+          <div class="animal-box">
+            <div class="mini">Possible habitat</div>
+            <div class="animal-name" id="hintHabitat">—</div>
+          </div>
+          <div class="result" id="resultBox">
+            <strong>How to play:</strong> Read clues, pick the animal, and score points for correct detective work.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="feed card">
+      <h3>Clue Feed</h3>
+      <div class="feed-item" id="feedItem">Track the footprints, signs, and habitat to identify each creature.</div>
+      <div class="feed-item mini">Tip: You can solve early for extra points.</div>
+      <div class="feed-item mini">Nature clue types: tracks, food signs, sounds, and habitat.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const animals = [
+  {name:'Sea Turtle', habitat:'Ocean and beaches', clues:['Flipper tracks on sand near the shore.','It leaves the nest and moves toward water at night.','Its shell helps protect it from predators.']},
+  {name:'Fox', habitat:'Forest and grassland', clues:['Small paw prints in a zig-zag trail.','It is often active at dawn or dusk.','It has a bushy tail and sharp ears.']},
+  {name:'Owl', habitat:'Forests and woodlands', clues:['Soft feathers left on a branch.','It hunts silently at night.','Its eyes face forward like a hunter.']},
+  {name:'Deer', habitat:'Woodland and meadow', clues:['Hoof prints in pairs on soft ground.','It eats leaves, grass, and shoots.','It moves quickly through open fields.']},
+  {name:'Dolphin', habitat:'Ocean', clues:['A splash and a fin-shaped silhouette.','It lives in groups and uses clicks.','It breathes air but swims like a fish.']},
+  {name:'Rabbit', habitat:'Fields and gardens', clues:['Tiny tracks with hind feet landing ahead.','It nibbles plants and roots.','It often hides in burrows.']},
+  {name:'Bear', habitat:'Mountain forests', clues:['Large claw marks on bark.','It eats berries, fish, and honey.','It can stand tall on two legs.']},
+  {name:'Elephant', habitat:'Savanna and forest', clues:['Huge footprints near water.','It uses its trunk to drink and grab food.','It lives in herds and is very intelligent.']}
+];
+
+const choiceSet = ['Sea Turtle','Fox','Owl','Deer','Dolphin','Rabbit','Bear','Elephant'];
+let round = 1, score = 0, best = Number(localStorage.getItem('wildlife_best') || 0), current = null, clueIndex = 0, selected = null, solved = false, questionsPlayed = [];
+
+const els = {
+  score: document.getElementById('score'),
+  round: document.getElementById('round'),
+  best: document.getElementById('best'),
+  cluesLeft: document.getElementById('cluesLeft'),
+  roundBadge: document.getElementById('roundBadge'),
+  clueList: document.getElementById('clueList'),
+  guessGrid: document.getElementById('guessGrid'),
+  resultBox: document.getElementById('resultBox'),
+  feedItem: document.getElementById('feedItem'),
+  hintHabitat: document.getElementById('hintHabitat'),
+  stepText: document.getElementById('stepText'),
+  timerText: document.getElementById('timerText'),
+  bar: document.getElementById('bar'),
+  nextBtn: document.getElementById('nextBtn'),
+  skipBtn: document.getElementById('skipBtn')
+};
+
+function pickAnimal(){
+  let pool = animals.filter(a => !questionsPlayed.includes(a.name));
+  if (!pool.length) { questionsPlayed = []; pool = animals.slice(); }
+  current = pool[Math.floor(Math.random()*pool.length)];
+  questionsPlayed.push(current.name);
+  clueIndex = 0;
+  selected = null;
+  solved = false;
+  renderRound();
+}
+
+function renderRound(){
+  els.round.textContent = round;
+  els.roundBadge.textContent = `Round ${round} / 3`;
+  els.score.textContent = score;
+  els.best.textContent = best;
+  els.cluesLeft.textContent = Math.max(0, 3 - clueIndex);
+  els.hintHabitat.textContent = 'Habitat: ' + current.habitat;
+  els.clueList.innerHTML = '';
+  for(let i=0;i<=clueIndex && i<current.clues.length;i++){
+    const div = document.createElement('div');
+    div.className = 'clue';
+    div.textContent = current.clues[i];
+    els.clueList.appendChild(div);
+  }
+  els.feedItem.textContent = `Investigating ${current.habitat.toLowerCase()} clues...`;
+  els.stepText.textContent = solved ? 'Correct! Move to the next animal.' : 'Find the animal from the clues';
+  els.timerText.textContent = solved ? 'Solved' : `Clue ${clueIndex+1}`;
+  els.bar.style.width = `${((clueIndex+1)/3)*100}%`;
+
+  els.guessGrid.innerHTML = '';
+  const options = shuffle(choiceSet.slice()).slice(0,4);
+  if (!options.includes(current.name)) options[0] = current.name;
+  shuffle(options).forEach(name => {
+    const btn = document.createElement('button');
+    btn.className = 'choice';
+    btn.textContent = name;
+    if (selected === name) btn.classList.add(name === current.name && solved ? 'correct' : 'selected');
+    btn.onclick = () => selectGuess(name, btn);
+    els.guessGrid.appendChild(btn);
+  });
+
+  if (!solved) {
+    els.resultBox.innerHTML = `<strong>Clue ${clueIndex+1}:</strong> ${current.clues[clueIndex]}`;
+  }
+}
+
+function selectGuess(name, btn){
+  if (solved) return;
+  selected = name;
+  [...document.querySelectorAll('.choice')].forEach(b => b.classList.remove('selected','correct','wrong'));
+  if (name === current.name) {
+    solved = true;
+    score += 10 + (3 - clueIndex) * 5;
+    if (score > best) { best = score; localStorage.setItem('wildlife_best', best); }
+    els.score.textContent = score;
+    els.best.textContent = best;
+    btn.classList.add('correct');
+    els.resultBox.innerHTML = `<strong>Correct!</strong> It was the <strong>${current.name}</strong>. +${10 + (3 - clueIndex) * 5} points.`;
+    els.feedItem.textContent = `Great tracking! ${current.name} matched the clue pattern.`;
+    setTimeout(() => {
+      if (round >= 3) {
+        els.resultBox.innerHTML = `<strong>Mission complete!</strong> Final score: ${score}.`;
+        els.nextBtn.textContent = 'Play Again';
+      }
+    }, 500);
+  } else {
+    btn.classList.add('wrong');
+    score = Math.max(0, score - 2);
+    els.score.textContent = score;
+    els.resultBox.innerHTML = `<strong>Not quite.</strong> Try another animal or reveal more clues.`;
+  }
+}
+
+function nextClue(){
+  if (!solved && clueIndex < current.clues.length - 1) {
+    clueIndex++;
+    renderRound();
+    return;
+  }
+  if (!solved && clueIndex >= current.clues.length - 1) {
+    els.resultBox.innerHTML = `<strong>Out of clues!</strong> The answer was <strong>${current.name}</strong>.`;
+    revealAnswer();
+    return;
+  }
+  if (solved) {
+    round++;
+    if (round > 3) {
+      if (score >= best) localStorage.setItem('wildlife_best', score);
+      score = score;
+      els.nextBtn.textContent = 'Next Clue';
+      pickAnimal();
+      round = 1;
+      score = Number(localStorage.getItem('wildlife_best') || score);
+      renderRound();
+      els.resultBox.innerHTML = `<strong>New game started.</strong> Try to beat your best score.`;
+      return;
+    }
+    pickAnimal();
+  }
+}
+
+function revealAnswer(){
+  solved = true;
+  [...document.querySelectorAll('.choice')].forEach(b => {
+    if (b.textContent === current.name) b.classList.add('correct');
+  });
+  els.feedItem.textContent = `Answer revealed: ${current.name}.`;
+}
+
+function skipAnimal(){
+  score = Math.max(0, score - 1);
+  els.score.textContent = score;
+  els.resultBox.innerHTML = `<strong>Skipped.</strong> The answer was <strong>${current.name}</strong>.`;
+  els.feedItem.textContent = `Skip used. New case incoming.`;
+  round++;
+  if (round > 3) round = 1;
+  pickAnimal();
+}
+
+function shuffle(arr){
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+document.getElementById('nextBtn').onclick = nextClue;
+document.getElementById('skipBtn').onclick = skipAnimal;
+
+pickAnimal();
+renderRound();
+</script>
+</body>
+</html>

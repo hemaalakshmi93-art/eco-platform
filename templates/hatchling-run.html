@@ -157,7 +157,6 @@ const ctx = canvas.getContext('2d');
 const W = 720, H = 340;
 canvas.width = W; canvas.height = H;
 
-// ── ECO FACTS ────────────────────────────────────────────────────────────────
 const facts = [
   "<strong>Plastic bags</strong> look like jellyfish to sea turtles — their favourite food. Ingesting plastic is often fatal.",
   "<strong>Light pollution</strong> from beach resorts disorients hatchlings. They follow brightness toward the ocean — artificial lights pull them inland.",
@@ -169,20 +168,25 @@ const facts = [
   "<strong>Sea turtles</strong> are found in every ocean except the Arctic. All seven species are classified as vulnerable, endangered, or critically endangered.",
 ];
 
-// ── GAME STATE ────────────────────────────────────────────────────────────────
 const GROUND = 265;
 const TURTLE_X = 90;
 const WIN_DISTANCE = 500;
 
-let state = 'idle'; // idle | running | dead | win
+// Ocean wall X position — turtle must physically cross this to win
+const OCEAN_WALL_X = W - 60;
+
+let state = 'idle';
 let turtle, obstacles, particles, distance, lives, spawnTimer, speedMult, factIdx, frameId, lastTime;
+let turtleScreenX; // tracks actual screen position during win approach
 
 function resetGame() {
   turtle = {
     x: TURTLE_X, y: GROUND,
     vy: 0, onGround: true,
-    wobble: 0, slow: 0, invincible: 0
+    wobble: 0, slow: 0, invincible: 0,
+    entering: false  // true when walking into ocean
   };
+  turtleScreenX = TURTLE_X;
   obstacles = [];
   particles = [];
   distance = 0;
@@ -211,8 +215,9 @@ function showFact() {
   }, 200);
 }
 
-// ── OBSTACLE SPAWNING ─────────────────────────────────────────────────────────
 function spawnObstacle() {
+  // Stop spawning obstacles in the final stretch
+  if (distance > WIN_DISTANCE - 60) return;
   const pool = ['bag', 'bag', 'bag', 'light', 'light', 'bird', 'bird', 'net'];
   const type = pool[Math.floor(Math.random() * pool.length)];
   const obs = { type, x: W + 30 };
@@ -223,7 +228,6 @@ function spawnObstacle() {
   obstacles.push(obs);
 }
 
-// ── DRAW HELPERS ─────────────────────────────────────────────────────────────
 function drawSky() {
   const grad = ctx.createLinearGradient(0, 0, 0, GROUND);
   grad.addColorStop(0, '#0d1f3c');
@@ -232,7 +236,6 @@ function drawSky() {
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, W, GROUND);
 
-  // stars
   ctx.fillStyle = 'rgba(255,255,255,0.55)';
   for (let i = 0; i < 38; i++) {
     const sx = (i * 97 + 11) % W;
@@ -241,67 +244,81 @@ function drawSky() {
     ctx.fillRect(sx, sy, size, size);
   }
 
-  // moon
   ctx.fillStyle = '#fffde8';
   ctx.beginPath(); ctx.arc(620, 42, 20, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = '#c4b97a';
   ctx.beginPath(); ctx.arc(632, 34, 16, 0, Math.PI * 2); ctx.fill();
 
-  // horizon glow
   ctx.fillStyle = 'rgba(200,100,50,0.15)';
   ctx.fillRect(0, GROUND - 40, W, 40);
 }
 
 function drawSea() {
   const progress = Math.min(distance / WIN_DISTANCE, 1);
-  const seaStart = W - progress * (W + 100);
 
-  if (seaStart < W) {
-    const seaGrad = ctx.createLinearGradient(seaStart, 0, seaStart + 80, 0);
-    seaGrad.addColorStop(0, 'rgba(15,70,140,0)');
-    seaGrad.addColorStop(0.3, '#0f468c');
-    ctx.fillStyle = seaGrad;
-    ctx.fillRect(Math.max(0, seaStart - 80), 0, W - Math.max(0, seaStart - 80), H);
+  // Ocean only visually appears in the final 30% of the run
+  const visibleThreshold = 0.7;
+  if (progress < visibleThreshold) return;
 
-    // waves
-    const t = Date.now() / 600;
-    ctx.strokeStyle = 'rgba(120,200,255,0.3)';
+  const oceanProgress = (progress - visibleThreshold) / (1 - visibleThreshold); // 0→1 in last 30%
+  // Ocean edge starts at right side and moves left as progress increases
+  const seaEdgeX = W - oceanProgress * (W * 0.55);
+
+  const seaGrad = ctx.createLinearGradient(seaEdgeX - 40, 0, seaEdgeX + 60, 0);
+  seaGrad.addColorStop(0, 'rgba(15,70,140,0)');
+  seaGrad.addColorStop(0.4, '#0f468c');
+  seaGrad.addColorStop(1, '#0a3070');
+  ctx.fillStyle = seaGrad;
+  ctx.fillRect(Math.max(0, seaEdgeX - 40), 0, W - Math.max(0, seaEdgeX - 40), H);
+
+  // waves
+  const t = Date.now() / 600;
+  ctx.strokeStyle = 'rgba(120,200,255,0.35)';
+  ctx.lineWidth = 2;
+  for (let i = 0; i < 6; i++) {
+    const wy = 50 + i * 36;
+    const wx0 = Math.max(seaEdgeX, 0);
+    ctx.beginPath();
+    for (let x = wx0; x <= W; x += 4) {
+      const y = wy + Math.sin((x / 60) + t + i) * 5;
+      x === wx0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  }
+
+  // OCEAN label
+  if (oceanProgress > 0.3) {
+    ctx.fillStyle = 'rgba(120,220,255,' + Math.min(1, (oceanProgress - 0.3) * 2) + ')';
+    ctx.font = 'bold 18px system-ui';
+    ctx.textAlign = 'center';
+    ctx.fillText('🌊 OCEAN', W - 70, H / 2);
+    ctx.textAlign = 'left';
+  }
+
+  // Draw a visible finish line when ocean is close
+  if (oceanProgress > 0.5) {
+    const alpha = Math.min(1, (oceanProgress - 0.5) * 3);
+    ctx.strokeStyle = 'rgba(126,247,216,' + alpha + ')';
     ctx.lineWidth = 2;
-    for (let i = 0; i < 6; i++) {
-      const wy = 60 + i * 34;
-      const wx0 = Math.max(seaStart, 0);
-      ctx.beginPath();
-      for (let x = wx0; x <= W; x += 4) {
-        const y = wy + Math.sin((x / 60) + t + i) * 5;
-        x === wx0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-      }
-      ctx.stroke();
-    }
-
-    // "OCEAN" label when close
-    if (progress > 0.6) {
-      ctx.fillStyle = 'rgba(120,220,255,' + ((progress - 0.6) * 2.5) + ')';
-      ctx.font = '500 16px system-ui';
-      ctx.textAlign = 'center';
-      ctx.fillText('OCEAN', Math.max(seaStart + 80, W - 80), H / 2);
-      ctx.textAlign = 'left';
-    }
+    ctx.setLineDash([6, 4]);
+    ctx.beginPath();
+    ctx.moveTo(OCEAN_WALL_X, 0);
+    ctx.lineTo(OCEAN_WALL_X, H);
+    ctx.stroke();
+    ctx.setLineDash([]);
   }
 }
 
 function drawGround() {
-  // sand
   const sandGrad = ctx.createLinearGradient(0, GROUND, 0, H);
   sandGrad.addColorStop(0, '#c8904a');
   sandGrad.addColorStop(1, '#b07838');
   ctx.fillStyle = sandGrad;
   ctx.fillRect(0, GROUND, W, H - GROUND);
 
-  // sand surface line
   ctx.fillStyle = '#d4a060';
   ctx.fillRect(0, GROUND, W, 5);
 
-  // sand texture
   ctx.fillStyle = 'rgba(160,110,55,0.35)';
   const offset = distance % 60;
   for (let i = 0; i < 50; i++) {
@@ -312,7 +329,6 @@ function drawGround() {
     ctx.fill();
   }
 
-  // nest (visible near start)
   if (distance < 100) {
     const alpha = Math.max(0, 1 - distance / 80);
     ctx.globalAlpha = alpha;
@@ -324,7 +340,6 @@ function drawGround() {
       ctx.arc(16 + i * 6, GROUND + 5, 4.5, 0, Math.PI * 2);
       ctx.fill();
     }
-    // cracked egg
     ctx.fillStyle = '#e0d0a0';
     ctx.beginPath(); ctx.arc(16, GROUND + 5, 4.5, 0, Math.PI*2); ctx.fill();
     ctx.strokeStyle = '#a08030'; ctx.lineWidth = 1;
@@ -332,7 +347,7 @@ function drawGround() {
     ctx.globalAlpha = 1;
   }
 
-  // progress bar in sand
+  // progress bar
   const barW = (distance / WIN_DISTANCE) * (W - 40);
   ctx.fillStyle = 'rgba(255,255,255,0.08)';
   ctx.beginPath(); ctx.roundRect(20, H - 14, W - 40, 6, 3); ctx.fill();
@@ -346,79 +361,62 @@ function drawTurtle() {
   const wobY = t.onGround ? Math.sin(t.wobble) * 2.5 : 0;
   const tx = t.x, ty = t.y + wobY;
 
-  // blink when invincible
   if (t.invincible > 0 && Math.floor(Date.now() / 80) % 2 === 0) return;
 
   ctx.save();
   ctx.translate(tx, ty);
 
-  // shadow
   ctx.fillStyle = 'rgba(0,0,0,0.18)';
   ctx.beginPath(); ctx.ellipse(0, 20, 22, 6, 0, 0, Math.PI * 2); ctx.fill();
 
-  // shell color changes when slowed (plastic ingestion)
   const shellMain = t.slow > 0 ? '#7a5a12' : '#1e5c1e';
   const shellDark = t.slow > 0 ? '#4a3608' : '#0f3a0f';
   const skinColor = t.slow > 0 ? '#6a8040' : '#2e6e2e';
 
-  // shell body
   ctx.fillStyle = shellMain;
   ctx.beginPath(); ctx.ellipse(0, 0, 20, 14, 0, 0, Math.PI * 2); ctx.fill();
 
-  // shell scute pattern
   ctx.strokeStyle = shellDark;
   ctx.lineWidth = 1.2;
-  // central scute
   ctx.beginPath(); ctx.ellipse(0, 0, 10, 7, 0, 0, Math.PI * 2); ctx.stroke();
-  // dividing lines
   ctx.beginPath(); ctx.moveTo(0, -14); ctx.lineTo(0, 14); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(-20, 0); ctx.lineTo(20, 0); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(-14, -9); ctx.lineTo(14, 9); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(14, -9); ctx.lineTo(-14, 9); ctx.stroke();
 
-  // highlight on shell
   ctx.fillStyle = 'rgba(255,255,255,0.07)';
   ctx.beginPath(); ctx.ellipse(-4, -4, 10, 6, -0.4, 0, Math.PI * 2); ctx.fill();
 
-  // head
   ctx.fillStyle = skinColor;
   ctx.beginPath(); ctx.ellipse(20, -2, 9, 7, 0.15, 0, Math.PI * 2); ctx.fill();
 
-  // eye
   ctx.fillStyle = '#fff';
   ctx.beginPath(); ctx.arc(24, -5, 3, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = '#1a1a2e';
   ctx.beginPath(); ctx.arc(25, -5, 1.5, 0, Math.PI * 2); ctx.fill();
-  // eye shine
   ctx.fillStyle = 'rgba(255,255,255,0.8)';
   ctx.beginPath(); ctx.arc(25.5, -5.5, 0.7, 0, Math.PI * 2); ctx.fill();
 
-  // mouth
   ctx.strokeStyle = shellDark;
   ctx.lineWidth = 0.8;
   ctx.beginPath(); ctx.arc(26, -1, 3, 0.1, Math.PI * 0.8); ctx.stroke();
 
-  // flippers
   ctx.fillStyle = skinColor;
   const flipA = t.onGround ? Math.sin(t.wobble * 1.8) * 0.35 : 0.4;
 
-  // front flippers
   ctx.save(); ctx.translate(-6, 2); ctx.rotate(-flipA - 0.4);
   ctx.beginPath(); ctx.ellipse(-9, 0, 12, 5, 0.3, 0, Math.PI * 2); ctx.fill(); ctx.restore();
   ctx.save(); ctx.translate(6, 2); ctx.rotate(flipA + 0.4);
   ctx.beginPath(); ctx.ellipse(9, 0, 12, 5, -0.3, 0, Math.PI * 2); ctx.fill(); ctx.restore();
 
-  // rear flippers
   ctx.save(); ctx.translate(-8, 4); ctx.rotate(flipA * 0.6 + 0.5);
   ctx.beginPath(); ctx.ellipse(0, 12, 5, 10, 0.1, 0, Math.PI * 2); ctx.fill(); ctx.restore();
   ctx.save(); ctx.translate(8, 4); ctx.rotate(-flipA * 0.6 - 0.5);
   ctx.beginPath(); ctx.ellipse(0, 12, 5, 10, -0.1, 0, Math.PI * 2); ctx.fill(); ctx.restore();
 
-  // tail
   ctx.fillStyle = skinColor;
   ctx.beginPath(); ctx.moveTo(-18, 2); ctx.quadraticCurveTo(-28, 6, -24, 0); ctx.closePath(); ctx.fill();
 
-  // slow effect: plastic bits on shell
   if (t.slow > 0) {
     ctx.fillStyle = 'rgba(160,210,255,0.6)';
     ctx.beginPath(); ctx.ellipse(5, -8, 5, 3, 0.5, 0, Math.PI*2); ctx.fill();
@@ -433,7 +431,6 @@ function drawObstacle(obs) {
   ctx.translate(obs.x, obs.y);
 
   if (obs.type === 'bag') {
-    // Plastic bag
     ctx.fillStyle = 'rgba(180,220,255,0.82)';
     ctx.strokeStyle = 'rgba(100,170,230,0.9)';
     ctx.lineWidth = 1.5;
@@ -443,13 +440,11 @@ function drawObstacle(obs) {
     ctx.bezierCurveTo(0, 20, 0, 2, 12, 0);
     ctx.closePath();
     ctx.fill(); ctx.stroke();
-    // handles
     ctx.strokeStyle = 'rgba(100,170,230,0.7)';
     ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(7, 0); ctx.lineTo(5, -10); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(17, 0); ctx.lineTo(19, -10); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(5, -10); ctx.lineTo(19, -10); ctx.stroke();
-    // label "plastic"
     ctx.fillStyle = 'rgba(60,120,200,0.6)';
     ctx.font = '8px system-ui';
     ctx.textAlign = 'center';
@@ -457,24 +452,20 @@ function drawObstacle(obs) {
     ctx.textAlign = 'left';
 
   } else if (obs.type === 'light') {
-    // Resort light pole
     ctx.fillStyle = '#aaa';
     ctx.fillRect(-4, 0, 8, obs.h);
     ctx.fillStyle = '#888';
     ctx.fillRect(-6, obs.h - 4, 12, 4);
-    // lamp head
     ctx.fillStyle = '#ffe066';
     ctx.beginPath(); ctx.arc(0, 0, 13, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#fff8c0';
     ctx.beginPath(); ctx.arc(0, 0, 8, 0, Math.PI * 2); ctx.fill();
-    // glow cone (danger zone visualization)
     const grd = ctx.createRadialGradient(0, 0, 8, 0, 30, 70);
     grd.addColorStop(0, 'rgba(255,240,100,0.18)');
     grd.addColorStop(1, 'rgba(255,240,100,0)');
     ctx.fillStyle = grd;
     ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-70, obs.h + 10); ctx.lineTo(70, obs.h + 10); ctx.closePath();
     ctx.fill();
-    // "resort light" label
     ctx.fillStyle = 'rgba(255,240,100,0.7)';
     ctx.font = '8px system-ui';
     ctx.textAlign = 'center';
@@ -482,12 +473,9 @@ function drawObstacle(obs) {
     ctx.textAlign = 'left';
 
   } else if (obs.type === 'bird') {
-    // Seabird (animated wings)
     const wingFlap = Math.sin(Date.now() / 180 + (obs.phase || 0)) * 0.5;
-    // body
     ctx.fillStyle = '#9aa';
     ctx.beginPath(); ctx.ellipse(0, 0, 16, 7, 0, 0, Math.PI * 2); ctx.fill();
-    // wings
     ctx.fillStyle = '#788';
     ctx.save(); ctx.rotate(-wingFlap - 0.2);
     ctx.beginPath(); ctx.moveTo(-16, 0); ctx.quadraticCurveTo(-28, -14 * Math.abs(Math.cos(wingFlap * 2)), -8, -10); ctx.closePath(); ctx.fill();
@@ -495,13 +483,10 @@ function drawObstacle(obs) {
     ctx.save(); ctx.rotate(wingFlap + 0.2);
     ctx.beginPath(); ctx.moveTo(16, 0); ctx.quadraticCurveTo(28, -14 * Math.abs(Math.cos(wingFlap * 2)), 8, -10); ctx.closePath(); ctx.fill();
     ctx.restore();
-    // beak
     ctx.fillStyle = '#e8a050';
     ctx.beginPath(); ctx.moveTo(16, 2); ctx.lineTo(24, 0); ctx.lineTo(16, -2); ctx.closePath(); ctx.fill();
-    // eye
     ctx.fillStyle = '#222';
     ctx.beginPath(); ctx.arc(12, -2, 2, 0, Math.PI * 2); ctx.fill();
-    // danger label
     ctx.fillStyle = 'rgba(220,100,80,0.7)';
     ctx.font = '8px system-ui';
     ctx.textAlign = 'center';
@@ -509,23 +494,19 @@ function drawObstacle(obs) {
     ctx.textAlign = 'left';
 
   } else if (obs.type === 'net') {
-    // Ghost net
     ctx.strokeStyle = 'rgba(190,155,90,0.85)';
     ctx.lineWidth = 1.4;
     const cols = 5, rows = 4;
     const cw = obs.w / cols, rh = obs.h / rows;
-    // vertical lines
     for (let c = 0; c <= cols; c++) {
       ctx.beginPath();
       ctx.moveTo(c * cw, 0);
-      // slight wave
       for (let r = 0; r <= rows; r++) {
         const wave = Math.sin(r + c * 0.8 + Date.now() / 600) * 2;
         ctx.lineTo(c * cw + wave, r * rh);
       }
       ctx.stroke();
     }
-    // horizontal lines
     for (let r = 0; r <= rows; r++) {
       ctx.beginPath();
       ctx.moveTo(0, r * rh);
@@ -535,7 +516,6 @@ function drawObstacle(obs) {
       }
       ctx.stroke();
     }
-    // label
     ctx.fillStyle = 'rgba(190,155,90,0.8)';
     ctx.font = '8px system-ui';
     ctx.textAlign = 'center';
@@ -575,66 +555,52 @@ function spawnParticles(x, y, color, count = 14) {
   }
 }
 
-// ── OVERLAY SCREENS ───────────────────────────────────────────────────────────
 function drawOverlay(title, sub, btnLabel) {
   ctx.fillStyle = 'rgba(5,15,35,0.72)';
   ctx.fillRect(0, 0, W, H);
-
   ctx.textAlign = 'center';
-
   ctx.fillStyle = '#7ef7d8';
   ctx.font = '500 30px system-ui';
   ctx.fillText(title, W / 2, H / 2 - 26);
-
   ctx.fillStyle = 'rgba(255,255,255,0.75)';
   ctx.font = '400 15px system-ui';
   ctx.fillText(sub, W / 2, H / 2 + 8);
-
   ctx.fillStyle = 'rgba(255,255,255,0.12)';
   ctx.strokeStyle = 'rgba(255,255,255,0.3)';
   ctx.lineWidth = 0.8;
   ctx.beginPath(); ctx.roundRect(W/2 - 80, H/2 + 26, 160, 38, 9); ctx.fill(); ctx.stroke();
-
   ctx.fillStyle = '#fff';
   ctx.font = '400 14px system-ui';
   ctx.fillText(btnLabel, W / 2, H / 2 + 50);
-
   ctx.textAlign = 'left';
 }
 
 function drawWinScreen() {
   ctx.fillStyle = 'rgba(0,20,60,0.78)';
   ctx.fillRect(0, 0, W, H);
-
   ctx.textAlign = 'center';
-
   ctx.fillStyle = '#7ef7d8';
   ctx.font = '500 28px system-ui';
-  ctx.fillText('You made it to the ocean!', W / 2, H / 2 - 40);
-
+  ctx.fillText('You made it to the ocean! 🌊', W / 2, H / 2 - 40);
   ctx.fillStyle = 'rgba(255,255,255,0.8)';
   ctx.font = '400 15px system-ui';
   ctx.fillText('Distance: ' + Math.floor(distance) + 'm — a true hatchling hero', W / 2, H / 2 - 8);
-
   ctx.fillStyle = 'rgba(255,255,255,0.55)';
   ctx.font = '400 13px system-ui';
   ctx.fillText('Only 1 in 1,000 hatchlings make it. You beat the odds!', W / 2, H / 2 + 16);
-
   ctx.fillStyle = 'rgba(255,255,255,0.12)';
   ctx.strokeStyle = 'rgba(255,255,255,0.3)';
   ctx.lineWidth = 0.8;
   ctx.beginPath(); ctx.roundRect(W/2 - 80, H/2 + 34, 160, 38, 9); ctx.fill(); ctx.stroke();
-
   ctx.fillStyle = '#fff';
   ctx.font = '400 14px system-ui';
   ctx.fillText('Play again', W / 2, H / 2 + 58);
-
   ctx.textAlign = 'left';
 }
 
-// ── COLLISION ─────────────────────────────────────────────────────────────────
 function checkCollisions() {
   if (turtle.invincible > 0) return;
+  if (turtle.entering) return; // no collisions during win approach
 
   for (const obs of obstacles) {
     const ow = (obs.w || 22) * 0.68;
@@ -648,7 +614,6 @@ function checkCollisions() {
 
     if (tRight > oLeft && tLeft < oRight && tBottom > oTop && tTop < oBottom) {
       obs.hit = true;
-
       if (obs.type === 'bag') {
         turtle.slow = 140;
         spawnParticles(turtle.x, turtle.y, 'rgba(160,210,255,0.9)', 10);
@@ -664,12 +629,9 @@ function checkCollisions() {
       break;
     }
   }
-
-  // remove hit obstacles
   obstacles = obstacles.filter(o => !o.hit);
 }
 
-// ── MAIN LOOP ─────────────────────────────────────────────────────────────────
 function gameLoop(ts) {
   const dt = Math.min((ts - (lastTime || ts)) / 16.67, 3);
   lastTime = ts;
@@ -698,16 +660,38 @@ function gameLoop(ts) {
 
   if (state === 'win') {
     drawTurtle();
+    drawParticles();
     drawWinScreen();
     frameId = requestAnimationFrame(gameLoop);
     return;
   }
 
-  // ── RUNNING UPDATE ──────────────────────────────────────────────
+  // ── RUNNING UPDATE ──
   speedMult = Math.min(1 + distance / 700, 2.2);
   const baseSpeed = (turtle.slow > 0 ? 2.8 : 5.0) * speedMult;
 
-  distance += (turtle.slow > 0 ? 1.4 : 2.5) * speedMult * dt;
+  // ── WIN APPROACH: turtle walks to ocean edge ──
+  if (distance >= WIN_DISTANCE && !turtle.entering) {
+    turtle.entering = true;
+    obstacles = []; // clear all obstacles
+  }
+
+  if (turtle.entering) {
+    // Turtle walks forward on screen toward ocean
+    turtle.x += 3.5 * dt;
+    turtle.slow = 0; // remove slow
+    if (turtle.x >= OCEAN_WALL_X + 30) {
+      // Turtle has entered the ocean!
+      spawnParticles(turtle.x, turtle.y, '#7ef7d8', 22);
+      spawnParticles(turtle.x, turtle.y, '#00aaff', 16);
+      state = 'win';
+      updateHUD();
+      frameId = requestAnimationFrame(gameLoop);
+      return;
+    }
+  } else {
+    distance += (turtle.slow > 0 ? 1.4 : 2.5) * speedMult * dt;
+  }
 
   if (turtle.invincible > 0) turtle.invincible -= dt * 0.055;
   if (turtle.slow > 0) turtle.slow -= dt;
@@ -733,7 +717,6 @@ function gameLoop(ts) {
   // move obstacles
   obstacles.forEach(obs => {
     obs.x -= baseSpeed * dt;
-    // birds bob
     if (obs.type === 'bird') {
       obs.y += Math.sin(Date.now() / 300 + (obs.phase || 0)) * 0.4;
     }
@@ -742,13 +725,6 @@ function gameLoop(ts) {
 
   checkCollisions();
 
-  // win check
-  if (distance >= WIN_DISTANCE) {
-    state = 'win';
-    updateHUD();
-  }
-
-  // draw frame
   drawParticles();
   obstacles.forEach(drawObstacle);
   drawTurtle();
@@ -757,10 +733,8 @@ function gameLoop(ts) {
   frameId = requestAnimationFrame(gameLoop);
 }
 
-// ── INPUT ─────────────────────────────────────────────────────────────────────
 function handleAction(clickY) {
   if (state === 'idle' || state === 'dead' || state === 'win') {
-    // check if click on button
     const btnTop = H / 2 + 26, btnBot = H / 2 + 64;
     const anyButton = clickY === undefined || (clickY >= btnTop && clickY <= btnBot);
     if (anyButton || state === 'idle') {
@@ -769,7 +743,7 @@ function handleAction(clickY) {
     }
     return;
   }
-  if (state === 'running' && turtle.onGround) {
+  if (state === 'running' && turtle.onGround && !turtle.entering) {
     turtle.vy = -10.5;
     turtle.onGround = false;
   }
@@ -796,14 +770,11 @@ document.addEventListener('keydown', e => {
 });
 
 document.getElementById('start-btn').addEventListener('click', () => { handleAction(undefined); });
-
 document.getElementById('mute-btn').addEventListener('click', () => {
-  // placeholder — no audio in this version
   const btn = document.getElementById('mute-btn');
   btn.textContent = btn.textContent.includes('off') ? 'Sound: on' : 'Sound: off';
 });
 
-// ── INIT ──────────────────────────────────────────────────────────────────────
 resetGame();
 frameId = requestAnimationFrame(gameLoop);
 </script>
