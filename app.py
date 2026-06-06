@@ -256,65 +256,61 @@ def verify_challenge_photo(filepath, challenge_title):
         return False, f"Verification error: {str(e)}"
 
 # -------------------- WELCOME EMAIL --------------------
+import threading
+
 def send_welcome_email(to_email, user_name):
-    try:
-        import sendgrid
-        from sendgrid.helpers.mail import Mail, Attachment, FileContent, FileName, FileType, Disposition, ContentId
-        import base64
+    def _send():
+        try:
+            with app.app_context():
+                msg = Message(
+                    subject=f"Welcome to Zephyra, {user_name}! 🌱 Your eco-journey begins",
+                    recipients=[to_email],
+                    html=f"""
+                    <div style="font-family: Arial, sans-serif; max-width: 650px; margin: auto;
+                                background: #f9fef5; padding: 24px; border-radius: 12px;">
+                      <h2 style="color: #2d7a45;">Welcome to Zephyra, {user_name}! 🌱</h2>
+                      <p style="font-size:15px; color:#2d5a3d;">
+                        We're thrilled to have you join our eco-community! 🌍
+                      </p>
+                      <img src="cid:zephyra_pamphlet"
+                           alt="Zephyra Welcome Pamphlet"
+                           style="width:100%; max-width:600px; border-radius:10px;
+                                  display:block; margin:16px auto;" />
+                      <div style="text-align:center; margin-top:24px;">
+                        <a href="https://eco-platform-3.onrender.com"
+                           style="background:#2d7a45; color:white; padding:13px 32px;
+                                  border-radius:50px; text-decoration:none;
+                                  font-size:15px; font-weight:bold;">
+                          Start Playing Now →
+                        </a>
+                      </div>
+                      <p style="font-size:13px; color:#888; text-align:center; margin-top:28px;">
+                        Questions? <a href="mailto:zephyrarespawn@gmail.com" style="color:#2d7a45;">
+                        zephyrarespawn@gmail.com</a><br/>
+                        © Zephyra — Learn • Play • Protect the Planet 🌿
+                      </p>
+                    </div>
+                    """,
+                    body=f"Hi {user_name}, welcome to Zephyra! 🌿"
+                )
+                pamphlet_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "zephyra_pamphlet.jpg")
+                if os.path.exists(pamphlet_path):
+                    with open(pamphlet_path, "rb") as f:
+                        msg.attach(
+                            filename="Zephyra_Welcome_Pamphlet.jpg",
+                            content_type="image/jpeg",
+                            data=f.read(),
+                            disposition="inline",
+                            headers={"Content-ID": "<zephyra_pamphlet>"}
+                        )
+                mail.send(msg)
+                print(f"✅ Welcome email sent to {to_email}")
+        except Exception as e:
+            print(f"❌ Welcome email failed: {e}")
 
-        sg = sendgrid.SendGridAPIClient(api_key=os.environ.get("SENDGRID_API_KEY"))
-
-        html_body = f"""
-        <div style="font-family: Arial, sans-serif; max-width: 650px; margin: auto;
-                    background: #f9fef5; padding: 24px; border-radius: 12px;">
-          <h2 style="color: #2d7a45;">Welcome to Zephyra, {user_name}! 🌱</h2>
-          <p style="font-size:15px; color:#2d5a3d;">
-            We're thrilled to have you join our eco-community! 🌍
-          </p>
-          <img src="cid:zephyra_pamphlet"
-               alt="Zephyra Welcome Pamphlet"
-               style="width:100%; max-width:600px; border-radius:10px; display:block; margin:16px auto;" />
-          <div style="text-align:center; margin-top:24px;">
-            <a href="https://www.zephyra.com"
-               style="background:#2d7a45; color:white; padding:13px 32px;
-                      border-radius:50px; text-decoration:none; font-size:15px; font-weight:bold;">
-              Start Playing Now →
-            </a>
-          </div>
-          <p style="font-size:13px; color:#888; text-align:center; margin-top:28px;">
-            Questions? <a href="mailto:zephyrarespawn@gmail.com" style="color:#2d7a45;">
-            zephyrarespawn@gmail.com</a><br/>
-            © Zephyra — Learn • Play • Protect the Planet 🌿
-          </p>
-        </div>
-        """
-
-        message = Mail(
-            from_email="hemaalakshmiaka.bam25@rathinam.in",
-            to_emails=to_email,
-            subject=f"Welcome to Zephyra, {user_name}! 🌱 Your eco-journey begins",
-            html_content=html_body
-        )
-
-        # Attach pamphlet
-        pamphlet_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "zephyra_pamphlet.jpg")
-        if os.path.exists(pamphlet_path):
-            with open(pamphlet_path, "rb") as f:
-                encoded = base64.b64encode(f.read()).decode()
-            attachment = Attachment(
-                FileContent(encoded),
-                FileName("Zephyra_Welcome_Pamphlet.jpg"),
-                FileType("image/jpeg"),
-                Disposition("inline"),
-                ContentId("zephyra_pamphlet")
-            )
-            message.attachment = attachment
-
-        sg.send(message)
-        print(f"✅ Welcome email sent to {to_email}")
-
-    except Exception as e:
-        print(f"❌ Welcome email failed for {to_email}: {e}")
+    thread = threading.Thread(target=_send)
+    thread.daemon = True
+    thread.start()
 
 # -------------------- HOME --------------------
 @app.route("/")
