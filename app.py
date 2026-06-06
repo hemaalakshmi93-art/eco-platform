@@ -864,6 +864,9 @@ def hatchling(): return render_template("hatchling-run.html")
 @app.route("/worm.html")
 def worm(): return render_template("worm.html")
 
+@app.route("/apex.html")
+def apex(): return render_template("apex.html")
+
 # -------------------- SEND PROGRESS EMAIL --------------------
 @app.route("/send-progress-email/<username>")
 def send_progress_email(username):

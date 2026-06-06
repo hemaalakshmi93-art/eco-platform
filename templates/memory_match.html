@@ -36,7 +36,6 @@ body {
   overflow-x: hidden;
 }
 
-/* Animated background */
 body::before {
   content: '';
   position: fixed;
@@ -49,7 +48,6 @@ body::before {
   z-index: 0;
 }
 
-/* Grid stars */
 body::after {
   content: '';
   position: fixed;
@@ -74,7 +72,6 @@ body::after {
   max-width: 960px;
 }
 
-/* ── HEADER ── */
 .header {
   display: flex;
   align-items: center;
@@ -128,7 +125,6 @@ body::after {
   font-weight: 300;
 }
 
-/* ── STATS BAR ── */
 .stats-bar {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -170,7 +166,6 @@ body::after {
 .stat-value.yellow { color: var(--accent-yellow); }
 .stat-value.purple { color: var(--accent-purple); }
 
-/* ── TIMER BAR ── */
 .timer-track {
   width: 100%;
   height: 4px;
@@ -193,7 +188,6 @@ body::after {
   box-shadow: 0 0 8px #ff2d55;
 }
 
-/* ── CONTROLS ── */
 .controls {
   display: flex;
   gap: 10px;
@@ -250,21 +244,22 @@ body::after {
 }
 .start-btn:active { transform: translateY(0) scale(0.97); }
 
-/* ── BOARD ── */
 .board-container {
   background: var(--glass);
   border: 1px solid var(--glass-border);
   border-radius: 20px;
-  padding: 14px;
+  padding: 8px;
   backdrop-filter: blur(10px);
+  width: 100%;
+  overflow: hidden;
 }
 
 .board {
   display: grid;
-  gap: 10px;
+  gap: 6px;
+  width: 100%;
 }
 
-/* ── CARDS ── */
 .card {
   aspect-ratio: 1 / 1;
   cursor: pointer;
@@ -299,7 +294,7 @@ body::after {
 .card-front {
   background: var(--card-bg);
   border: 1.5px solid var(--card-border);
-  font-size: clamp(18px, 4vw, 30px);
+  font-size: clamp(14px, 2.8vw, 22px);
   transition: background 0.2s, border-color 0.2s;
   position: relative;
   overflow: hidden;
@@ -320,7 +315,7 @@ body::after {
 .card-back {
   background: linear-gradient(135deg, #0e2038, #112240);
   border: 1.5px solid rgba(0, 212, 255, 0.35);
-  font-size: clamp(22px, 5vw, 38px);
+  font-size: clamp(16px, 3.2vw, 26px);
   transform: rotateY(180deg);
   box-shadow: inset 0 0 20px rgba(0,212,255,0.08);
 }
@@ -358,7 +353,6 @@ body::after {
   100% { transform: rotateY(180deg) scale(1); }
 }
 
-/* ── POPUP ── */
 .popup-overlay {
   position: fixed;
   inset: 0;
@@ -417,7 +411,7 @@ body::after {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
-  margin-bottom: 20px;
+  margin-bottom: 14px;
 }
 
 .popup-stat {
@@ -441,6 +435,18 @@ body::after {
   font-size: 18px;
   font-weight: 700;
   color: var(--accent-green);
+}
+
+.popup-quote {
+  font-size: 13px;
+  line-height: 1.6;
+  color: rgba(232,244,255,0.86);
+  margin-bottom: 16px;
+  padding: 10px 12px;
+  border-left: 3px solid var(--accent-green);
+  background: rgba(255,255,255,0.04);
+  border-radius: 10px;
+  text-align: left;
 }
 
 .popup-new-best {
@@ -475,7 +481,6 @@ body::after {
 }
 .popup-play-btn:hover { filter: brightness(1.1); transform: translateY(-2px); }
 
-/* ── TIMEOUT POPUP ── */
 .timeout-card {
   border-color: rgba(255, 45, 85, 0.4);
   box-shadow: 0 0 60px rgba(255,45,85,0.15);
@@ -491,15 +496,16 @@ body::after {
   box-shadow: 0 0 25px rgba(255,45,85,0.4);
 }
 
-/* ── RESPONSIVE ── */
 @media (max-width: 480px) {
   .stats-bar { grid-template-columns: repeat(5, 1fr); gap: 5px; }
   .stat-chip { padding: 6px 3px; border-radius: 8px; }
   .stat-label { font-size: 7px; letter-spacing: 0.5px; }
-  .board-container { padding: 10px; }
-  .board { gap: 7px; }
-  .card-face { border-radius: 10px; }
+  .board-container { padding: 6px; }
+  .board { gap: 4px; }
+  .card-face { border-radius: 8px; }
   .back-btn { width: 38px; height: 38px; font-size: 18px; }
+  .card-front { font-size: 14px; }
+  .card-back { font-size: 16px; }
   .popup-card { padding: 24px 20px; }
 }
 
@@ -512,7 +518,6 @@ body::after {
 <body>
 <div class="game-wrapper">
 
-  <!-- HEADER -->
   <div class="header">
     <a href="map.html" class="back-btn" title="Back to map" aria-label="Back">&#8249;</a>
     <div class="title-block">
@@ -521,7 +526,6 @@ body::after {
     </div>
   </div>
 
-  <!-- STATS BAR -->
   <div class="stats-bar">
     <div class="stat-chip" id="chipTime">
       <span class="stat-label">Time</span>
@@ -545,12 +549,10 @@ body::after {
     </div>
   </div>
 
-  <!-- TIMER TRACK -->
   <div class="timer-track">
     <div class="timer-fill" id="timerFill" style="width:100%"></div>
   </div>
 
-  <!-- CONTROLS -->
   <div class="controls">
     <select class="diff-select" id="difficulty">
       <option value="easy">🌱 Easy — 4×3 (12 cards)</option>
@@ -560,14 +562,11 @@ body::after {
     <button class="start-btn" onclick="startGame()">▶ START</button>
   </div>
 
-  <!-- BOARD -->
   <div class="board-container">
     <div class="board" id="board"></div>
   </div>
-
 </div>
 
-<!-- VICTORY POPUP -->
 <div class="popup-overlay" id="popup">
   <div class="popup-card" id="popupCard">
     <span class="popup-trophy" id="popupEmoji">🏆</span>
@@ -590,15 +589,13 @@ body::after {
         <span class="popup-stat-value" id="popBest">—</span>
       </div>
     </div>
+    <div class="popup-quote" id="ecoQuote">“Every match is a small win for the Earth.”</div>
     <div class="popup-new-best" id="newBestBadge">⭐ New Best Score!</div>
     <button class="popup-play-btn" onclick="restart()">Play Again 🔄</button>
   </div>
 </div>
 
 <script>
-/* ─────────────────────────────────────────────
-   AUDIO ENGINE — Web Audio API synth sounds
-───────────────────────────────────────────── */
 const AudioCtx = window.AudioContext || window.webkitAudioContext;
 let ctx;
 
@@ -622,7 +619,7 @@ function playFlip() {
 
 function playMatch() {
   const c = getCtx();
-  const notes = [523, 659, 784, 1047]; // C E G C
+  const notes = [523, 659, 784, 1047];
   notes.forEach((freq, i) => {
     const osc = c.createOscillator();
     const gain = c.createGain();
@@ -695,9 +692,6 @@ function playTick() {
   osc.start(); osc.stop(c.currentTime + 0.05);
 }
 
-/* ─────────────────────────────────────────────
-   GAME DATA
-───────────────────────────────────────────── */
 const iconPool = ["♻️","🌳","💧","🐢","🌞","🍃","🌊","🪸","🌸","🍄","🌱","🐝"];
 
 let firstCard = null, secondCard = null, lock = false;
@@ -709,7 +703,7 @@ function getConfig() {
   const d = document.getElementById('difficulty').value;
   if (d === 'easy')   return { cols: 4, pairs: 6,  time: 90  };
   if (d === 'medium') return { cols: 4, pairs: 8,  time: 120 };
-  return                     { cols: 6, pairs: 12, time: 150 };
+  return { cols: 6, pairs: 12, time: 150 };
 }
 
 function loadBest() {
@@ -718,43 +712,35 @@ function loadBest() {
 }
 
 function updateUI() {
-  document.getElementById('statTime').textContent  = elapsed + 's';
+  document.getElementById('statTime').textContent = elapsed + 's';
   document.getElementById('statMoves').textContent = moves;
   document.getElementById('statPairs').textContent = pairs + '/' + totalPairs;
 
   const left = maxTime - elapsed;
   const leftEl = document.getElementById('statLeft');
   leftEl.textContent = Math.max(0, left) + 's';
-
-  // Colour left time
   leftEl.className = 'stat-value';
   if (left <= 15) leftEl.classList.add('red-pulse');
   else leftEl.classList.add('green');
 
-  // Timer bar
   const pct = Math.max(0, (left / maxTime)) * 100;
   const fill = document.getElementById('timerFill');
   fill.style.width = pct + '%';
   if (left <= 15) fill.classList.add('warning');
   else fill.classList.remove('warning');
 
-  // Highlight chip
   document.getElementById('chipLeft').classList.toggle('highlight', left <= 15);
 }
 
-/* ─────────────────────────────────────────────
-   START GAME
-───────────────────────────────────────────── */
 function startGame() {
   clearInterval(timer);
   firstCard = null; secondCard = null; lock = false;
   moves = 0; pairs = 0; elapsed = 0;
-
   document.getElementById('popup').classList.remove('show');
 
   const cfg = getConfig();
   totalPairs = cfg.pairs;
-  maxTime    = cfg.time;
+  maxTime = cfg.time;
 
   const icons = shuffle([...iconPool]).slice(0, cfg.pairs);
   const cards = shuffle([...icons, ...icons]);
@@ -792,9 +778,6 @@ function startGame() {
   }, 1000);
 }
 
-/* ─────────────────────────────────────────────
-   CARD CLICK
-───────────────────────────────────────────── */
 function onCardClick(card, icon) {
   if (lock || card.classList.contains('flipped') || card.classList.contains('matched')) return;
 
@@ -811,7 +794,6 @@ function onCardClick(card, icon) {
   updateUI();
 
   if (firstCard.icon === secondCard.icon) {
-    // Match!
     setTimeout(() => {
       firstCard.card.classList.add('matched');
       secondCard.card.classList.add('matched');
@@ -825,9 +807,7 @@ function onCardClick(card, icon) {
         setTimeout(() => showPopup(true), 500);
       }
     }, 200);
-
   } else {
-    // No match
     lock = true;
     firstCard.card.classList.add('wrong');
     secondCard.card.classList.add('wrong');
@@ -842,19 +822,16 @@ function onCardClick(card, icon) {
   }
 }
 
-/* ─────────────────────────────────────────────
-   POPUP
-───────────────────────────────────────────── */
 function showPopup(win) {
   const score = moves + elapsed;
 
   document.getElementById('popMoves').textContent = moves;
-  document.getElementById('popTime').textContent  = elapsed + 's';
+  document.getElementById('popTime').textContent = elapsed + 's';
   document.getElementById('popScore').textContent = win ? score : '—';
 
   const stored = localStorage.getItem('ecoMemBest_v3');
   const popCard = document.getElementById('popupCard');
-  const badge   = document.getElementById('newBestBadge');
+  const badge = document.getElementById('newBestBadge');
 
   if (win) {
     document.getElementById('popupEmoji').textContent = '🏆';
@@ -888,9 +865,6 @@ function restart() {
   startGame();
 }
 
-/* ─────────────────────────────────────────────
-   UTILS
-───────────────────────────────────────────── */
 function shuffle(arr) {
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -899,7 +873,6 @@ function shuffle(arr) {
   return arr;
 }
 
-/* Init */
 loadBest();
 startGame();
 </script>
