@@ -325,8 +325,6 @@
   <div id="danger-bar"><div id="danger-fill"></div></div>
 </div>
 
-<a href="#" class="back-btn" onclick="goBack(); return false;">&#8249;</a>
-
 <div id="tip">TAP 🔥 NODES TO EXTINGUISH</div>
 
 <canvas id="c"></canvas>
@@ -342,7 +340,6 @@
   </div>
   <div id="overlay-row">
     <button class="ov-btn primary" id="ov-main-btn" onclick="handleMainBtn()">RESTART</button>
-    <button class="ov-btn secondary" onclick="goBack()">← MAP</button>
   </div>
 </div>
 
@@ -551,18 +548,6 @@ function handleMainBtn() {
   gameOver = false;
   levelComplete = false;
   buildLevel();
-}
-
-function goBack() {
-  const params = new URLSearchParams(window.location.search);
-  const returnUrl = params.get('return');
-
-  if (returnUrl) {
-    window.location.href = decodeURIComponent(returnUrl);
-    return;
-  }
-
-  window.history.back();
 }
 
 function draw() {
