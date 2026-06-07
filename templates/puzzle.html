@@ -601,9 +601,60 @@ function changeDiff(newSize, btn){
   startGame();
 }
 
-// ─── SVG UTILS ─────────────────────────────────────────────────────────────
+// ─── SVG → CANVAS BITMAP ─────────────────────────────────────────────────
+// Renders SVG to a high-res offscreen canvas, then slices into tile data URLs.
+// This avoids all browser issues with SVG background-image at different sizes.
+
+let tileDataURLs = []; // tileDataURLs[tileIndex] = PNG data URL
 
 function svgDataUri(svg){ return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg); }
+
+function renderSVGToTiles(svgStr, gridSize, tilePixels, callback){
+  const RENDER_SIZE = Math.max(600, gridSize * tilePixels * 2); // hi-res
+  const img = new Image();
+  img.onload = function(){
+    const offscreen = document.createElement('canvas');
+    offscreen.width = RENDER_SIZE;
+    offscreen.height = RENDER_SIZE;
+    const ctx = offscreen.getContext('2d');
+    ctx.drawImage(img, 0, 0, RENDER_SIZE, RENDER_SIZE);
+    const cellSize = RENDER_SIZE / gridSize;
+    const urls = [];
+    for(let row=0; row<gridSize; row++){
+      for(let col=0; col<gridSize; col++){
+        const tile = document.createElement('canvas');
+        tile.width = tilePixels;
+        tile.height = tilePixels;
+        const tc = tile.getContext('2d');
+        tc.drawImage(offscreen,
+          col*cellSize, row*cellSize, cellSize, cellSize,
+          0, 0, tilePixels, tilePixels
+        );
+        urls.push(tile.toDataURL('image/png'));
+      }
+    }
+    callback(urls);
+  };
+  img.onerror = function(){
+    // Fallback: solid colored tiles so game still works
+    const urls = [];
+    const colors = ['#4f8f2a','#7ec832','#2f7d32','#a5d66b','#5ab034','#3a8030','#8ed04f','#1a3d07','#4a8c1c'];
+    for(let i=0;i<gridSize*gridSize;i++){
+      const tile = document.createElement('canvas');
+      tile.width = tilePixels; tile.height = tilePixels;
+      const tc = tile.getContext('2d');
+      tc.fillStyle = colors[i % colors.length];
+      tc.fillRect(0,0,tilePixels,tilePixels);
+      tc.fillStyle = 'rgba(255,255,255,0.3)';
+      tc.font = `bold ${tilePixels*0.35}px system-ui`;
+      tc.textAlign = 'center'; tc.textBaseline = 'middle';
+      tc.fillText(i+1, tilePixels/2, tilePixels/2);
+      urls.push(tile.toDataURL('image/png'));
+    }
+    callback(urls);
+  };
+  img.src = svgDataUri(svgStr);
+}
 
 // ─── PROGRESS ─────────────────────────────────────────────────────────────
 
@@ -617,14 +668,18 @@ function updateProgress(){
 
 // ─── GAME ──────────────────────────────────────────────────────────────────
 
+let currentSVG = ''; // raw SVG string kept for re-renders on resize
+
 function startGame(){
   moves = 0; gameOver = false;
+  tileDataURLs = [];
   document.getElementById('s-moves').textContent = '0';
   dragIdx = null; touchDragIdx = null;
   updateBest();
   const pool = getPool();
   const pick = pool[Math.floor(Math.random()*pool.length)];
-  currentImage = svgDataUri(pick.svg);
+  currentSVG = pick.svg;
+  currentImage = svgDataUri(pick.svg); // for preview img tag
   currentImageId = pick.id;
   document.getElementById('preview').src = currentImage;
   document.getElementById('eco-name').textContent = pick.label;
@@ -639,7 +694,12 @@ function startGame(){
   } while(tiles.every((v,i)=>v===i) && attempts < 100);
   updateProgress();
   startTimer();
-  draw();
+  // Render SVG → tiles, then draw
+  const ts = tileSize();
+  renderSVGToTiles(currentSVG, size, ts, function(urls){
+    tileDataURLs = urls;
+    draw();
+  });
 }
 
 function draw(){
@@ -648,18 +708,29 @@ function draw(){
   g.innerHTML = '';
   g.style.gridTemplateColumns = `repeat(${size}, ${ts}px)`;
   g.style.gap = '4px';
+  // If tiles haven't been rendered yet, re-render then draw
+  if(!tileDataURLs.length){
+    renderSVGToTiles(currentSVG, size, ts, function(urls){
+      tileDataURLs = urls;
+      draw();
+    });
+    return;
+  }
   tiles.forEach((num,i)=>{
     const d = document.createElement('div');
     d.className = 'tile';
     d.style.width = ts+'px';
     d.style.height = ts+'px';
-    d.style.backgroundImage = `url(${currentImage})`;
-    d.style.backgroundSize = `${size*ts}px ${size*ts}px`;
-    const cx = (num%size)*ts;
-    const cy = Math.floor(num/size)*ts;
-    d.style.backgroundPosition = `-${cx}px -${cy}px`;
-    // Correct tile subtle highlight
-    if(num === i){ d.style.outline = '2px solid rgba(126,200,50,0.5)'; }
+    // Use canvas-sliced PNG for the tile image — works at ALL sizes
+    if(tileDataURLs[num]){
+      d.style.backgroundImage = `url(${tileDataURLs[num]})`;
+      d.style.backgroundSize = 'cover';
+      d.style.backgroundPosition = 'center';
+    } else {
+      d.style.background = '#4f8f2a';
+    }
+    // Correct tile subtle green border
+    if(num === i){ d.style.outline = '2px solid rgba(126,200,50,0.7)'; }
     d.draggable = true;
     d.addEventListener('dragstart', ()=>{ dragIdx=i; d.classList.add('dragging'); });
     d.addEventListener('dragend', ()=>{ d.classList.remove('dragging'); dragIdx=null; draw(); });
@@ -679,7 +750,7 @@ function draw(){
       }
       touchDragIdx = null;
     }, {passive:false});
-    // Number hint
+    // Number hint on hover
     const num_hint = document.createElement('div');
     num_hint.className = 'tile-num';
     num_hint.textContent = num+1;
@@ -893,7 +964,11 @@ function toggleMusic(){
 
 // ─── INIT ──────────────────────────────────────────────────────────────────
 
-window.addEventListener('resize', ()=>draw());
+window.addEventListener('resize', ()=>{
+  if(!currentSVG) return;
+  const ts = tileSize();
+  renderSVGToTiles(currentSVG, size, ts, function(urls){ tileDataURLs = urls; draw(); });
+});
 setupDiffUI();
 startGame();
 </script>
