@@ -879,8 +879,7 @@ def study_flight(): return render_template("study_flight.html")
 @app.route("/campus_heist.html")
 def campus_heist(): return render_template("campus_heist.html")
 
-@app.route("/debate_clash.html")
-def debate_clash(): return render_template("debate_clash.html")
+
 
 # -------------------- SEND PROGRESS EMAIL --------------------
 @app.route("/send-progress-email/<username>")
