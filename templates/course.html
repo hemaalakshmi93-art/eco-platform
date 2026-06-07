@@ -270,20 +270,6 @@
     position: sticky; top: 0; z-index: 10;
   }
 
-  .back-btn {
-    background: none;
-    border: 2px solid var(--green);
-    border-radius: 50%;
-    width: 38px; height: 38px;
-    font-size: 1.1rem;
-    cursor: pointer;
-    color: var(--green-dark);
-    display: flex; align-items: center; justify-content: center;
-    transition: all 0.2s;
-    flex-shrink: 0;
-  }
-  .back-btn:hover { background: var(--green-dark); color: white; border-color: var(--green-dark); }
-
   .story-title-bar {
     font-family: 'Baloo 2', cursive;
     font-size: 1.15rem;
@@ -558,7 +544,6 @@
 <!-- ══════════ STORY SCREEN ══════════ -->
 <div id="story-screen" class="screen">
   <div class="story-topbar">
-    <button class="back-btn" onclick="goBack()">&#8592;</button>
     <div class="story-title-bar" id="story-title-bar">Story</div>
   </div>
   <div class="scene-area" id="scene-area"></div>
