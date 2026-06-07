@@ -3,75 +3,899 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Eco Puzzle</title>
+<title>🌿 Eco Puzzle</title>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root { --gd:#1a3d07; --gm:#2d5c12; --gl:#4a8c1c; --gb:#7ec832; --gp:#e8f5d0; --cream:#f2f8eb; --border:#b8d97a; --gold:#f0a500; --text:#1e2e0e; }
-  body { background: var(--cream); font-family: system-ui, -apple-system, sans-serif; min-height: 100vh; color: var(--text); display: flex; flex-direction: column; align-items: center; padding-bottom: 24px; }
-  .header { width: 100%; background: linear-gradient(135deg, var(--gm), var(--gl)); padding: 14px 20px; display: flex; align-items: center; gap: 14px; box-shadow: 0 3px 12px rgba(0,0,0,0.18); }
-  .back-btn { width: 38px; height: 38px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.5); background: rgba(255,255,255,0.15); color: #fff; font-size: 20px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; text-decoration: none; flex-shrink: 0; }
-  .header-title { flex: 1; color: #fff; font-size: 20px; font-weight: 900; }
-  .header-title span { font-size: 12px; font-weight: 600; opacity: 0.8; display: block; }
-  .diff-badge { padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; border: 2px solid rgba(255,255,255,0.5); color: #fff; }
-  .diff-badge.easy { background: rgba(80,200,100,0.35); } .diff-badge.medium { background: rgba(240,165,0,0.35); } .diff-badge.hard { background: rgba(220,60,40,0.35); }
-  .stats-row { display: flex; gap: 10px; padding: 12px 16px 0; width: 100%; max-width: 680px; flex-wrap: wrap; }
-  .stat-pill { background: #fff; border: 1.5px solid var(--border); border-radius: 10px; padding: 8px 16px; display: flex; align-items: center; gap: 7px; font-weight: 700; font-size: 14px; color: var(--gd); flex: 1; min-width: 110px; }
-  .stat-pill .val { font-size: 16px; font-weight: 800; color: var(--gm); }
-  .stat-pill.gold .val { color: var(--gold); }
-  .diff-tip { margin: 10px 16px 0; padding: 8px 14px; border-radius: 10px; font-size: 12px; font-weight: 700; max-width: 680px; width: calc(100% - 32px); }
-  .diff-tip.easy { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; } .diff-tip.medium { background: #fff8e1; color: #e65100; border: 1px solid #ffcc80; } .diff-tip.hard { background: #fce4ec; color: #b71c1c; border: 1px solid #ef9a9a; }
-  .preview-wrap { margin: 14px 16px 6px; border-radius: 12px; overflow: hidden; border: 2px solid var(--border); box-shadow: 0 2px 10px rgba(0,0,0,0.12); max-width: 280px; position: relative; }
-  .preview-wrap::after { content: 'Target 🎯'; position: absolute; top: 7px; left: 7px; background: rgba(0,0,0,0.55); color: #fff; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 6px; }
-  #preview { width: 100%; display: block; height: 160px; object-fit: cover; }
-  .puzzle-label { font-size: 11px; font-weight: 700; color: var(--gl); text-transform: uppercase; letter-spacing: .08em; margin: 4px 0 8px; text-align: center; }
-  .eco-name { font-size: 13px; font-weight: 800; color: var(--gd); margin-bottom: 10px; text-align: center; background: var(--gp); display: inline-block; padding: 4px 14px; border-radius: 20px; border: 1px solid var(--border); }
-  #game { display: grid; gap: 4px; justify-content: center; padding: 0 10px; }
-  .tile { border-radius: 8px; cursor: grab; transition: transform .12s, box-shadow .12s, outline .1s; outline: 2px solid transparent; box-shadow: 0 2px 6px rgba(0,0,0,0.15); touch-action: none; user-select: none; -webkit-tap-highlight-color: transparent; background-size: cover; background-position: center; }
-  .tile:active { transform: scale(0.96); } .tile.dragging { outline: 3px solid var(--gb); transform: scale(1.06); box-shadow: 0 8px 20px rgba(0,0,0,0.28); z-index: 10; } .tile.drag-over { outline: 3px solid var(--gold); transform: scale(1.03); }
-  .tile::after { content: ''; position: absolute; inset: 0; border-radius: 8px; background: linear-gradient(135deg, rgba(255,255,255,0.12), transparent 65%); pointer-events: none; }
-  #overlay { position: fixed; inset: 0; background: rgba(5,20,0,0.65); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
-  #overlay.show { display: flex; }
-  .popup-box { background: #fff; border-radius: 20px; padding: 32px 28px; text-align: center; max-width: 340px; width: 100%; box-shadow: 0 12px 40px rgba(0,0,0,0.22); }
-  .popup-icon { font-size: 52px; margin-bottom: 10px; } .popup-title { font-size: 24px; font-weight: 900; color: var(--gd); margin-bottom: 6px; } .popup-sub { font-size: 13px; color: #555; margin-bottom: 18px; line-height: 1.6; } .popup-best { font-size: 13px; font-weight: 700; color: var(--gold); margin-bottom: 18px; }
-  .popup-btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
-  .pop-btn { padding: 11px 24px; border-radius: 99px; border: none; font-family: inherit; font-size: 14px; font-weight: 800; cursor: pointer; }
-  .pop-btn.primary { background: var(--gm); color: #fff; } .pop-btn.secondary { background: var(--gp); color: var(--gd); border: 1.5px solid var(--border); }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --gd:#1a3d07;--gm:#2d5c12;--gl:#4a8c1c;--gb:#7ec832;--gp:#e8f5d0;
+  --cream:#f2f8eb;--border:#b8d97a;--gold:#e6952a;--text:#1e2e0e;
+  --sky:#d0eaff;--sunset:#ffd6b0;
+}
+body{
+  background:var(--cream);
+  font-family:'Georgia',serif;
+  min-height:100vh;color:var(--text);
+  display:flex;flex-direction:column;align-items:center;
+  padding-bottom:40px;
+  background-image:
+    radial-gradient(circle at 10% 20%,rgba(126,200,50,0.08) 0%,transparent 50%),
+    radial-gradient(circle at 90% 80%,rgba(74,140,28,0.08) 0%,transparent 50%);
+}
+
+/* HEADER */
+.header{
+  width:100%;
+  background:linear-gradient(135deg,#1a3d07 0%,#2d5c12 50%,#4a8c1c 100%);
+  padding:16px 20px;
+  display:flex;align-items:center;gap:14px;
+  box-shadow:0 4px 20px rgba(0,0,0,0.25);
+  position:relative;overflow:hidden;
+}
+.header::after{
+  content:'';position:absolute;inset:0;
+  background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Ccircle cx='30' cy='30' r='4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  pointer-events:none;
+}
+.back-btn{
+  width:40px;height:40px;border-radius:50%;
+  border:2px solid rgba(255,255,255,0.4);
+  background:rgba(255,255,255,0.12);
+  color:#fff;font-size:22px;font-weight:800;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  text-decoration:none;flex-shrink:0;transition:background .2s;z-index:1;
+}
+.back-btn:hover{background:rgba(255,255,255,0.22)}
+.header-title{flex:1;color:#fff;font-size:22px;font-weight:700;letter-spacing:.01em;z-index:1}
+.header-title span{font-size:11px;font-weight:400;opacity:.75;display:block;font-family:system-ui;letter-spacing:.05em;text-transform:uppercase;margin-top:2px}
+.diff-badge{
+  padding:5px 14px;border-radius:20px;font-size:11px;
+  font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  border:2px solid rgba(255,255,255,0.4);color:#fff;z-index:1;font-family:system-ui;
+}
+.diff-badge.easy{background:rgba(80,200,100,0.3)}
+.diff-badge.medium{background:rgba(240,165,0,0.3)}
+.diff-badge.hard{background:rgba(220,60,40,0.3)}
+
+/* STATS */
+.stats-row{display:flex;gap:8px;padding:14px 16px 0;width:100%;max-width:700px;flex-wrap:wrap}
+.stat-pill{
+  background:#fff;border:1.5px solid var(--border);
+  border-radius:12px;padding:10px 16px;
+  display:flex;align-items:center;gap:7px;
+  font-weight:600;font-size:13px;color:var(--gd);
+  flex:1;min-width:100px;font-family:system-ui;
+  box-shadow:0 2px 8px rgba(0,0,0,0.06);
+}
+.stat-pill .icon{font-size:16px}
+.stat-pill .val{font-size:17px;font-weight:800;color:var(--gm);margin-left:auto}
+.stat-pill.gold .val{color:var(--gold)}
+#s-timer.urgent{color:#c0392b!important;animation:pulse .6s infinite alternate}
+@keyframes pulse{from{opacity:1}to{opacity:.5}}
+
+/* DIFF TIP */
+.diff-tip{
+  margin:10px 16px 0;padding:9px 14px;border-radius:10px;
+  font-size:12px;font-weight:600;font-family:system-ui;
+  max-width:700px;width:calc(100% - 32px);
+}
+.diff-tip.easy{background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7}
+.diff-tip.medium{background:#fff8e1;color:#e65100;border:1px solid #ffcc80}
+.diff-tip.hard{background:#fce4ec;color:#b71c1c;border:1px solid #ef9a9a}
+
+/* PREVIEW */
+.preview-section{display:flex;flex-direction:column;align-items:center;margin:16px 16px 8px}
+.preview-wrap{
+  border-radius:14px;overflow:hidden;
+  border:3px solid var(--border);
+  box-shadow:0 4px 16px rgba(0,0,0,0.15);
+  width:200px;height:150px;position:relative;cursor:pointer;
+}
+.preview-wrap:hover .preview-overlay{opacity:1}
+.preview-overlay{
+  position:absolute;inset:0;
+  background:rgba(0,0,0,0.4);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;transition:opacity .2s;
+  font-size:11px;color:#fff;font-family:system-ui;font-weight:700;letter-spacing:.06em;
+}
+.target-label{
+  position:absolute;top:7px;left:7px;
+  background:rgba(0,0,0,0.55);color:#fff;
+  font-size:10px;font-weight:700;font-family:system-ui;
+  padding:3px 9px;border-radius:6px;letter-spacing:.04em;
+}
+#preview{width:100%;height:100%;object-fit:cover;display:block}
+.eco-name{
+  font-size:14px;font-weight:700;color:var(--gd);
+  margin-top:9px;background:var(--gp);
+  padding:5px 16px;border-radius:20px;
+  border:1.5px solid var(--border);font-family:system-ui;
+  letter-spacing:.02em;
+}
+.puzzle-label{
+  font-size:11px;font-weight:600;color:var(--gl);
+  text-transform:uppercase;letter-spacing:.1em;
+  margin-top:5px;font-family:system-ui;
+}
+
+/* MUSIC BAR */
+.music-bar{
+  display:flex;align-items:center;gap:10px;
+  background:#fff;border:1.5px solid var(--border);
+  border-radius:30px;padding:7px 16px;
+  margin:8px 0;font-family:system-ui;font-size:12px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.07);
+  cursor:pointer;user-select:none;
+  transition:background .2s;
+}
+.music-bar:hover{background:var(--gp)}
+.music-bar .note{font-size:18px}
+.music-bar .music-label{font-weight:700;color:var(--gd)}
+.music-bar .music-sub{color:#6a8c45;font-size:11px}
+.music-bar .play-btn{
+  width:30px;height:30px;border-radius:50%;
+  background:var(--gm);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;margin-left:auto;flex-shrink:0;
+}
+.eq-anim{display:flex;gap:2px;align-items:flex-end;height:16px}
+.eq-anim span{
+  width:3px;background:var(--gb);border-radius:2px;
+  animation:eq 0.8s ease-in-out infinite alternate;
+}
+.eq-anim span:nth-child(1){height:6px;animation-delay:0s}
+.eq-anim span:nth-child(2){height:12px;animation-delay:.15s}
+.eq-anim span:nth-child(3){height:8px;animation-delay:.3s}
+.eq-anim span:nth-child(4){height:14px;animation-delay:.1s}
+.eq-anim span:nth-child(5){height:5px;animation-delay:.25s}
+@keyframes eq{from{transform:scaleY(.3)}to{transform:scaleY(1)}}
+.eq-anim.paused span{animation-play-state:paused;transform:scaleY(.3)}
+
+/* DIFFICULTY SELECTOR */
+.diff-selector{
+  display:flex;gap:6px;margin:10px 0;font-family:system-ui;
+}
+.diff-btn{
+  padding:7px 18px;border-radius:20px;border:2px solid var(--border);
+  background:#fff;color:var(--gd);font-size:12px;font-weight:700;
+  cursor:pointer;transition:all .18s;
+}
+.diff-btn:hover,.diff-btn.active{background:var(--gm);color:#fff;border-color:var(--gm)}
+
+/* GAME GRID */
+#game{
+  display:grid;gap:4px;
+  justify-content:center;
+  padding:10px;
+  margin-top:4px;
+}
+.tile{
+  border-radius:9px;cursor:grab;
+  transition:transform .12s,box-shadow .12s,outline .1s;
+  outline:2px solid transparent;
+  box-shadow:0 2px 8px rgba(0,0,0,0.18);
+  touch-action:none;user-select:none;
+  -webkit-tap-highlight-color:transparent;
+  background-size:cover;background-position:center;
+  position:relative;
+}
+.tile:active{transform:scale(0.95)}
+.tile.dragging{outline:3px solid var(--gb);transform:scale(1.07);box-shadow:0 10px 24px rgba(0,0,0,0.3);z-index:10}
+.tile.drag-over{outline:3px solid var(--gold);transform:scale(1.04)}
+.tile-num{
+  position:absolute;bottom:4px;right:5px;
+  width:18px;height:18px;border-radius:50%;
+  background:rgba(0,0,0,0.45);color:#fff;
+  font-size:9px;font-weight:700;font-family:system-ui;
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;transition:opacity .2s;pointer-events:none;
+}
+.tile:hover .tile-num{opacity:1}
+
+/* PROGRESS BAR */
+.progress-wrap{
+  width:100%;max-width:700px;
+  padding:0 16px;margin-top:6px;
+}
+.progress-label{
+  font-size:11px;font-family:system-ui;font-weight:600;
+  color:var(--gl);margin-bottom:4px;display:flex;justify-content:space-between;
+}
+.progress-bar-bg{background:#e0efcb;border-radius:10px;height:8px;overflow:hidden}
+.progress-bar-fill{
+  height:100%;border-radius:10px;
+  background:linear-gradient(90deg,var(--gb),var(--gl));
+  transition:width .4s ease;
+}
+
+/* WIN POPUP */
+#overlay{
+  position:fixed;inset:0;
+  background:rgba(5,20,0,0.7);
+  backdrop-filter:blur(6px);
+  display:none;align-items:center;justify-content:center;
+  z-index:100;padding:20px;
+}
+#overlay.show{display:flex}
+.popup-box{
+  background:#fff;border-radius:24px;
+  padding:0;text-align:center;
+  max-width:380px;width:100%;
+  box-shadow:0 16px 50px rgba(0,0,0,0.25);
+  overflow:hidden;
+}
+.popup-header{
+  background:linear-gradient(135deg,var(--gm),var(--gl));
+  padding:28px 28px 20px;color:#fff;
+}
+.popup-icon{font-size:56px;margin-bottom:8px}
+.popup-title{font-size:26px;font-weight:800;font-family:system-ui;margin-bottom:4px}
+.popup-sub{font-size:13px;opacity:.85;font-family:system-ui;line-height:1.6}
+.popup-body{padding:20px 24px 24px}
+.popup-best{
+  font-size:13px;font-weight:700;color:var(--gold);
+  margin-bottom:14px;font-family:system-ui;
+  background:#fffbf0;border:1px solid #f0d080;
+  border-radius:10px;padding:8px 12px;
+}
+.popup-best:empty{display:none}
+
+/* QUOTE CARD */
+.quote-card{
+  background:var(--gp);border:1.5px solid var(--border);
+  border-radius:14px;padding:14px 16px;
+  margin-bottom:16px;text-align:left;
+  position:relative;
+}
+.quote-card::before{
+  content:'"';position:absolute;top:-6px;left:12px;
+  font-size:52px;color:var(--gb);line-height:1;
+  font-family:Georgia,serif;opacity:.5;
+}
+.quote-text{
+  font-size:13px;line-height:1.65;color:var(--gd);
+  font-style:italic;font-family:Georgia,serif;
+  padding-left:4px;
+}
+.quote-author{
+  font-size:11px;font-weight:700;color:var(--gl);
+  font-family:system-ui;margin-top:6px;
+  text-align:right;letter-spacing:.04em;
+}
+.eco-tip{
+  font-size:12px;color:#2e7d32;background:#e8f5e9;
+  border:1px solid #a5d6a7;border-radius:10px;
+  padding:8px 12px;margin-bottom:16px;
+  font-family:system-ui;line-height:1.5;text-align:left;
+}
+.popup-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.pop-btn{
+  padding:12px 24px;border-radius:99px;border:none;
+  font-family:system-ui;font-size:14px;font-weight:800;
+  cursor:pointer;transition:transform .15s,box-shadow .15s;
+}
+.pop-btn:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.15)}
+.pop-btn.primary{background:var(--gm);color:#fff}
+.pop-btn.secondary{background:var(--gp);color:var(--gd);border:2px solid var(--border)}
+
+/* LOSE POPUP */
+.popup-box.lost .popup-header{background:linear-gradient(135deg,#7a3a1c,#c0592a)}
+
+/* CONFETTI */
+.confetti-piece{
+  position:fixed;width:10px;height:10px;border-radius:2px;
+  animation:confetti-fall 2.5s ease-in forwards;
+  pointer-events:none;z-index:200;
+}
+@keyframes confetti-fall{
+  0%{transform:translateY(-20px) rotate(0deg);opacity:1}
+  100%{transform:translateY(110vh) rotate(720deg);opacity:0}
+}
 </style>
 </head>
 <body>
-<div class="header"><a href="#" class="back-btn" onclick="event.preventDefault(); goBack();">&#8249;</a><div class="header-title">🌿 Eco Puzzle<span>Piece together nature</span></div><div class="diff-badge" id="diff-badge">Easy</div></div>
-<div class="stats-row"><div class="stat-pill">⏳ <span>Time</span> <span class="val" id="s-timer">—</span></div><div class="stat-pill">🔀 <span>Moves</span> <span class="val" id="s-moves">0</span></div><div class="stat-pill gold">🏆 <span>Best</span> <span class="val" id="s-best">—</span></div></div>
+
+<div class="header">
+  <a href="#" class="back-btn" onclick="event.preventDefault();goBack()">&#8249;</a>
+  <div class="header-title">🌿 Eco Puzzle<span>Piece together nature</span></div>
+  <div class="diff-badge" id="diff-badge">Easy</div>
+</div>
+
+<div class="stats-row">
+  <div class="stat-pill"><span class="icon">⏳</span> Time <span class="val" id="s-timer">—</span></div>
+  <div class="stat-pill"><span class="icon">🔀</span> Moves <span class="val" id="s-moves">0</span></div>
+  <div class="stat-pill gold"><span class="icon">🏆</span> Best <span class="val" id="s-best">—</span></div>
+</div>
+
 <div class="diff-tip" id="diff-tip"><span id="diff-tip-text"></span></div>
-<div style="text-align:center"><div class="preview-wrap"><img id="preview" alt="Nature preview"></div><div class="eco-name" id="eco-name">🌱 Loading…</div><div class="puzzle-label">Arrange tiles to match ↑</div></div>
+
+<div class="preview-section">
+  <div class="preview-wrap" onclick="togglePreviewBig()">
+    <img id="preview" alt="Nature preview">
+    <div class="target-label">Target 🎯</div>
+    <div class="preview-overlay">TAP TO ZOOM</div>
+  </div>
+  <div class="eco-name" id="eco-name">🌱 Loading…</div>
+  <div class="puzzle-label">Arrange tiles to match ↑</div>
+</div>
+
+<div class="music-bar" id="music-bar" onclick="toggleMusic()">
+  <span class="note">🎵</span>
+  <div>
+    <div class="music-label">Nature Sounds</div>
+    <div class="music-sub" id="music-sub">Click to play ambient music</div>
+  </div>
+  <div class="eq-anim paused" id="eq-anim">
+    <span></span><span></span><span></span><span></span><span></span>
+  </div>
+  <div class="play-btn" id="play-btn">▶</div>
+</div>
+
+<div class="diff-selector" id="diff-selector">
+  <button class="diff-btn active" data-size="3" onclick="changeDiff(3,this)">🟢 Easy (3×3)</button>
+  <button class="diff-btn" data-size="4" onclick="changeDiff(4,this)">🟡 Medium (4×4)</button>
+  <button class="diff-btn" data-size="5" onclick="changeDiff(5,this)">🔴 Hard (5×5)</button>
+</div>
+
+<div class="progress-wrap">
+  <div class="progress-label">
+    <span>Progress</span>
+    <span id="progress-pct">0%</span>
+  </div>
+  <div class="progress-bar-bg"><div class="progress-bar-fill" id="progress-bar" style="width:0%"></div></div>
+</div>
+
 <div id="game"></div>
-<div id="overlay"><div class="popup-box"><div class="popup-icon" id="pop-icon">🎉</div><div class="popup-title" id="pop-title">Well Done!</div><div class="popup-sub" id="pop-sub"></div><div class="popup-best" id="pop-best"></div><div class="popup-btns"><button class="pop-btn primary" onclick="playAgain()">🔄 Play Again</button><button class="pop-btn secondary" onclick="goBack()">⬅️ Menu</button></div></div></div>
+
+<!-- WIN/LOSE OVERLAY -->
+<div id="overlay">
+  <div class="popup-box" id="popup-box">
+    <div class="popup-header">
+      <div class="popup-icon" id="pop-icon">🎉</div>
+      <div class="popup-title" id="pop-title">Well Done!</div>
+      <div class="popup-sub" id="pop-sub"></div>
+    </div>
+    <div class="popup-body">
+      <div class="popup-best" id="pop-best"></div>
+      <div class="quote-card" id="quote-card">
+        <div class="quote-text" id="quote-text"></div>
+        <div class="quote-author" id="quote-author"></div>
+      </div>
+      <div class="eco-tip" id="eco-tip"></div>
+      <div class="popup-btns">
+        <button class="pop-btn primary" onclick="playAgain()">🔄 Play Again</button>
+        <button class="pop-btn secondary" onclick="hidePopup()">✕ Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
-const params = new URLSearchParams(location.search);
-let size = parseInt(params.get('size')) || 3; if (isNaN(size) || size < 2 || size > 6) size = 3;
-const DIFF = size <= 3 ? 'easy' : size === 4 ? 'medium' : 'hard';
-const CONFIG = { easy:{label:'🟢 Easy', badge:'easy', tip:'🌱 Simple close-up nature scenes for beginners.', tipClass:'easy', time:120}, medium:{label:'🟡 Medium', badge:'medium', tip:'🌿 Moderate nature scenes for careful matching.', tipClass:'medium', time:300}, hard:{label:'🔴 Hard', badge:'hard', tip:'🔥 Dense, detailed nature scenes for a real challenge.', tipClass:'hard', time:720} };
-const IMAGES = { easy:[ {label:'🌻 Sunflower', svg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#dff6c8"/><circle cx="200" cy="200" r="70" fill="#7a4a21"/><g fill="#f5c94d">'+Array.from({length:16},(_,i)=>`<ellipse cx="200" cy="95" rx="18" ry="50" transform="rotate(${i*22.5} 200 200)"/>`).join('')+'</g><circle cx="200" cy="200" r="35" fill="#6b3f1c"/></svg>' }, {label:'🌼 Daisy', svg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#eef9ff"/><g fill="#ffffff">'+Array.from({length:12},(_,i)=>`<ellipse cx="200" cy="105" rx="16" ry="52" transform="rotate(${i*30} 200 200)"/>`).join('')+'</g><circle cx="200" cy="200" r="42" fill="#f3c44c"/><circle cx="200" cy="200" r="18" fill="#7a5a10"/></svg>' }, {label:'🍃 Leaf', svg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#e7f4d5"/><path d="M300 90C170 85 100 170 100 250c0 45 35 70 78 70 96 0 165-75 172-230-17 6-31 6-50 0z" fill="#4f8f2a"/><path d="M128 270c60-35 110-80 175-170" stroke="#2f5f16" stroke-width="8" fill="none" stroke-linecap="round"/></svg>' }, {label:'🦋 Butterfly', svg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#f0fbff"/><circle cx="200" cy="200" r="20" fill="#333"/><path d="M190 200C120 130 70 120 75 200c5 65 65 80 115 25z" fill="#ff8bb1"/><path d="M210 200C280 130 330 120 325 200c-5 65-65 80-115 25z" fill="#7cc8ff"/><path d="M195 184L180 145M205 184L220 145" stroke="#333" stroke-width="4" stroke-linecap="round"/></svg>' }, {label:'🌲 Pine', svg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#dff2ff"/><rect x="185" y="245" width="30" height="90" rx="8" fill="#7a4d2a"/><path d="M200 70l90 100h-48l68 75h-50l40 55H100l40-55H90l68-75h-48z" fill="#2f7d32"/></svg>' }, {label:'💧 Dewdrop', svg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#eaf7ef"/><path d="M200 70C160 130 120 170 120 225c0 45 36 80 80 80s80-35 80-80c0-55-40-95-80-155z" fill="#67c6ff"/><circle cx="178" cy="180" r="16" fill="#fff" opacity="0.5"/></svg>' } ], medium:[ {label:'🌳 Lone Tree', svg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#d8f0ff"/><rect x="186" y="230" width="28" height="100" rx="8" fill="#7a4d2a"/><circle cx="200" cy="180" r="85" fill="#4e9b33"/><circle cx="150" cy="175" r="55" fill="#3f8128"/><circle cx="255" cy="175" r="55" fill="#3f8128"/></svg>' }, {label:'🌊 River', svg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#dff7ff"/><path d="M0 260C70 220 120 320 200 280s125-70 200-20v140H0z" fill="#4bb6ff"/><path d="M0 300C60 260 120 345 200 305s130-60 200-10" stroke="#ffffff" stroke-width="10" fill="none" opacity="0.6"/></svg>' }, {label:'🌿 Forest Stream', svg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#e6f6d8"/><path d="M0 240C75 220 120 280 190 260s120-50 210-20v160H0z" fill="#3daee9"/><path d="M60 70h40l-20 90zM300 80h50l-25 100z" fill="#2f7d32"/><path d="M190 140l20 55" stroke="#8b6b3a" stroke-width="18" stroke-linecap="round"/></svg>' }, {label:'🌺 Blossom', svg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#fff1f7"/><g fill="#ff83b8">'+Array.from({length:10},(_,i)=>`<ellipse cx="200" cy="90" rx="18" ry="58" transform="rotate(${i*36} 200 200)"/>`).join('')+'</g><circle cx="200" cy="200" r="36" fill="#ffd166"/></svg>' }, {label:'🐝 Lavender Bee', svg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#edf0ff"/><rect x="110" y="210" width="28" height="120" rx="14" fill="#8f5bd6"/><rect x="170" y="180" width="28" height="150" rx="14" fill="#8f5bd6"/><rect x="230" y="205" width="28" height="125" rx="14" fill="#8f5bd6"/><ellipse cx="200" cy="150" rx="60" ry="34" fill="#ffd54f"/><ellipse cx="200" cy="150" rx="58" ry="10" fill="#222"/></svg>' }, {label:'🌾 Meadow', svg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#e5f6c8"/><path d="M0 280C80 240 130 320 200 292s120-50 200-16v124H0z" fill="#8ed04f"/><circle cx="280" cy="120" r="44" fill="#ffd95e"/></svg>' } ], hard:[ {label:'🌲 Forest', svg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#dff2e2"/><rect x="188" y="240" width="24" height="90" rx="8" fill="#7a4d2a"/><path d="M200 60l80 120h-45l55 65h-45l35 50H120l35-50h-45l55-65h-45z" fill="#2f7d32"/><path d="M110 310h180" stroke="#9fc66d" stroke-width="16" stroke-linecap="round"/></svg>' }, {label:'🌊 Ocean', svg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#d7f2ff"/><path d="M0 230C60 190 110 250 180 220s120-60 220-20v200H0z" fill="#2f8fdd"/><path d="M0 275C70 235 120 300 200 265s125-55 200-15" stroke="#ffffff" stroke-width="12" fill="none" opacity="0.7"/></svg>' }, {label:'🏔️ Mountains', svg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#eef7ff"/><path d="M0 320L120 150l80 90 70-120 130 200z" fill="#7ea0b8"/><path d="M120 150l40 48 40-48 35 58H85z" fill="#ffffff" opacity="0.9"/></svg>' }, {label:'💦 Waterfall', svg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#e8f7ff"/><rect x="80" y="70" width="240" height="180" rx="30" fill="#7b6a54"/><path d="M185 100C170 150 170 210 200 320c30-110 30-170 15-220z" fill="#8ddcff"/><path d="M105 250c45 20 95 20 135 0\" stroke=\"#57b7e6\" stroke-width=\"10\" fill=\"none\" opacity=\"0.7\"/></svg>' }, {label:'🌌 Night Forest', svg:'<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 400 400\"><rect width=\"400\" height=\"400\" fill=\"#1b2447\"/><circle cx=\"300\" cy=\"80\" r=\"26\" fill=\"#fff6cc\"/><path d=\"M200 70l75 115h-40l55 65h-45l35 50H120l35-50h-45l55-65h-40z\" fill=\"#2d8a49\"/><circle cx=\"90\" cy=\"80\" r=\"2\" fill=\"#fff\"/><circle cx=\"120\" cy=\"120\" r=\"2\" fill=\"#fff\"/><circle cx=\"330\" cy=\"140\" r=\"2\" fill=\"#fff\"/></svg>' }, {label:'🌸 Blossom Canopy', svg:'<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 400 400\"><rect width=\"400\" height=\"400\" fill=\"#fff0f6\"/><circle cx=\"130\" cy=\"120\" r=\"60\" fill=\"#ffb3d1\"/><circle cx=\"200\" cy=\"90\" r=\"72\" fill=\"#ff8fb8\"/><circle cx=\"270\" cy=\"120\" r=\"60\" fill=\"#ffb3d1\"/><rect x=\"190\" y=\"220\" width=\"20\" height=\"110\" rx=\"8\" fill=\"#7a4d2a\"/></svg>' } ] };
-let tiles=[], currentImage='', timeLeft=0, totalTime=0, interval=null, moves=0, dragIdx=null, touchDragIdx=null, gameOver=false; const HS_KEY = `ecoPuzzle_best_${size}`;
-function getBest(){ return localStorage.getItem(HS_KEY) || null; }
-function saveBest(movesCount, secs){ const cur=getBest(); const value=`${movesCount}|${secs}`; if(!cur){ localStorage.setItem(HS_KEY, value); return true; } const [bm,bt]=cur.split('|').map(Number); if(movesCount < bm || (movesCount === bm && secs < bt)){ localStorage.setItem(HS_KEY, value); return true; } return false; }
-function bestLabel(){ const cur=getBest(); if(!cur) return '—'; const [bm,bt]=cur.split('|').map(Number); const m=Math.floor(bt/60), s=bt%60; return `${bm} moves · ${m}:${s.toString().padStart(2,'0')}`; }
-function updateBestDisplay(){ document.getElementById('s-best').textContent = bestLabel(); }
-function tileSize(){ const vw=Math.min(window.innerWidth, 640); const avail=vw-24; const gap=(size-1)*4; return Math.floor((avail-gap)/size); }
-function getInitialTime(){ return CONFIG[DIFF].time; }
-function startTimer(){ timeLeft=getInitialTime(); totalTime=timeLeft; clearInterval(interval); updateTimerDisplay(); interval=setInterval(()=>{ timeLeft--; updateTimerDisplay(); if(timeLeft<=0){ clearInterval(interval); interval=null; gameOver=true; showPopup('⏰','Time Up!',\"The eco puzzle wasn't solved in time. Try again!\",null,false); } },1000); }
-function stopTimer(){ clearInterval(interval); interval=null; updateTimerDisplay(); }
-function updateTimerDisplay(){ const m=Math.floor(Math.max(0,timeLeft)/60); const s=Math.max(0,timeLeft)%60; const el=document.getElementById('s-timer'); el.textContent=`${m}:${s.toString().padStart(2,'0')}`; el.style.color=timeLeft<=20?'#D85A30':''; }
-function setupDiffUI(){ const cfg=CONFIG[DIFF]; document.getElementById('diff-badge').textContent=cfg.label; document.getElementById('diff-badge').className='diff-badge '+cfg.badge; document.getElementById('diff-tip').className='diff-tip '+cfg.tipClass; document.getElementById('diff-tip-text').textContent=cfg.tip; }
+// ─── DATA ────────────────────────────────────────────────────────────────────
+
+const QUOTES = {
+  sunflower:[
+    {q:"Keep your face always toward the sunshine, and shadows will fall behind you.",a:"Walt Whitman"},
+    {q:"Where flowers bloom, so does hope.",a:"Lady Bird Johnson"},
+    {q:"A flower does not think of competing with the flower next to it. It just blooms.",a:"Zen Saying"},
+  ],
+  daisy:[
+    {q:"It's not enough to love plants. You have to know them.",a:"Liberty Hyde Bailey"},
+    {q:"A weed is no more than a flower in disguise.",a:"James Russell Lowell"},
+    {q:"Adopt the pace of nature: her secret is patience.",a:"Ralph Waldo Emerson"},
+  ],
+  leaf:[
+    {q:"Look deep into nature, and then you will understand everything better.",a:"Albert Einstein"},
+    {q:"In every walk with nature, one receives far more than he seeks.",a:"John Muir"},
+    {q:"The love of gardening is a seed once sown that never dies.",a:"Gertrude Jekyll"},
+  ],
+  butterfly:[
+    {q:"Just when the caterpillar thought the world was over, it became a butterfly.",a:"Proverb"},
+    {q:"Butterflies are nature's angels. They remind us what a gift it is to be alive.",a:"Robyn Nola"},
+    {q:"We delight in the beauty of the butterfly, but rarely admit the changes it has gone through.",a:"Maya Angelou"},
+  ],
+  pine:[
+    {q:"The clearest way into the universe is through a forest wilderness.",a:"John Muir"},
+    {q:"Between every two pine trees there is a door leading to a new way of life.",a:"John Muir"},
+    {q:"A nation that destroys its soils destroys itself.",a:"Franklin D. Roosevelt"},
+  ],
+  dewdrop:[
+    {q:"Water is the driving force of all nature.",a:"Leonardo da Vinci"},
+    {q:"In every drop of water there is a story of life.",a:"Leena Arif"},
+    {q:"Pure water is the world's first and foremost medicine.",a:"Slovakian Proverb"},
+  ],
+  tree:[
+    {q:"Trees are poems that the earth writes upon the sky.",a:"Kahlil Gibran"},
+    {q:"He that plants trees loves others besides himself.",a:"Thomas Fuller"},
+    {q:"The best time to plant a tree was 20 years ago. The second best time is now.",a:"Chinese Proverb"},
+  ],
+  river:[
+    {q:"Rivers are roads which move, and which carry us whither we desire to go.",a:"Blaise Pascal"},
+    {q:"The river is everywhere at the same time.",a:"Hermann Hesse"},
+    {q:"No man ever steps in the same river twice, for it's not the same river and he's not the same man.",a:"Heraclitus"},
+  ],
+  stream:[
+    {q:"A river seems a magic thing. A magic, moving, living part of the very earth itself.",a:"Laura Gilpin"},
+    {q:"The earth has music for those who listen.",a:"George Santayana"},
+    {q:"Nature always wears the colors of the spirit.",a:"Ralph Waldo Emerson"},
+  ],
+  blossom:[
+    {q:"Spring adds new life and new beauty to all that is.",a:"Jessica Harrelson"},
+    {q:"Blossoms are scattered by the wind, and the wind cares nothing. But the blossoms of the heart, no wind can touch.",a:"Yoshida Kenkō"},
+    {q:"Life is the flower for which love is the honey.",a:"Victor Hugo"},
+  ],
+  lavender:[
+    {q:"Bees do have a smell, you know, and if they don't they should, for their feet are dusted with spices from a thousand flowers.",a:"Ray Bradbury"},
+    {q:"Where the bee sucks, there suck I. In a cowslip's bell I lie.",a:"William Shakespeare"},
+    {q:"Wildflowers don't care where they grow.",a:"Dolly Parton"},
+  ],
+  meadow:[
+    {q:"The poetry of earth is never dead.",a:"John Keats"},
+    {q:"There's no WiFi in the forest, but I promise you'll find a better connection.",a:"Unknown"},
+    {q:"Nature does not hurry, yet everything is accomplished.",a:"Lao Tzu"},
+  ],
+  forest:[
+    {q:"The forest is not a resource for us, it is life itself.",a:"Chief Dan George"},
+    {q:"I took a walk in the woods and came out taller than the trees.",a:"Henry David Thoreau"},
+    {q:"Study nature, love nature, stay close to nature. It will never fail you.",a:"Frank Lloyd Wright"},
+  ],
+  ocean:[
+    {q:"The sea, once it casts its spell, holds one in its net of wonder forever.",a:"Jacques Cousteau"},
+    {q:"The ocean is a mighty harmonist.",a:"William Wordsworth"},
+    {q:"We are as much water as we are land.",a:"Robyn Sarah"},
+  ],
+  mountains:[
+    {q:"Mountains are not stadiums where I satisfy my ambition to achieve, they are the cathedrals where I practice my religion.",a:"Anatoli Boukreev"},
+    {q:"The mountains are calling and I must go.",a:"John Muir"},
+    {q:"Great things are done when men and mountains meet.",a:"William Blake"},
+  ],
+  waterfall:[
+    {q:"Water is the softest thing, yet it can penetrate mountains and earth.",a:"Lao Tzu"},
+    {q:"A waterfall cannot be silent, just as the wisdom of man cannot be hidden.",a:"African Proverb"},
+    {q:"You must live in the present, launch yourself on every wave.",a:"Henry David Thoreau"},
+  ],
+  night:[
+    {q:"When the stars threw down their spears, and watered heaven with their tears.",a:"William Blake"},
+    {q:"The darkest nights produce the brightest stars.",a:"John Green"},
+    {q:"For my part I know nothing with any certainty, but the sight of the stars makes me dream.",a:"Vincent van Gogh"},
+  ],
+  canopy:[
+    {q:"Every flower is a soul blossoming in nature.",a:"Gérard de Nerval"},
+    {q:"The earth laughs in flowers.",a:"Ralph Waldo Emerson"},
+    {q:"To plant a garden is to believe in tomorrow.",a:"Audrey Hepburn"},
+  ],
+};
+
+const ECO_TIPS = {
+  sunflower:"🌻 Sunflowers follow the sun — a behavior called heliotropism. Plant them to attract pollinators!",
+  daisy:"🌼 Daisies are among the oldest flowers on Earth. They symbolize innocence and purity.",
+  leaf:"🍃 A single tree can absorb 48 pounds of CO₂ per year. Plant more trees!",
+  butterfly:"🦋 Butterflies are key pollinators. Avoid pesticides to protect them.",
+  pine:"🌲 Pine forests cover 30% of Earth's land and are home to thousands of species.",
+  dewdrop:"💧 Fresh water makes up only 2.5% of Earth's water. Conserve every drop!",
+  tree:"🌳 Trees reduce urban temperatures by up to 8°C through shade and transpiration.",
+  river:"🌊 Rivers cover only 0.1% of Earth's surface but support 10% of all species.",
+  stream:"🌿 Forest streams filter water naturally — healthy forests mean clean drinking water.",
+  blossom:"🌸 Cherry blossoms bloom for just 1–2 weeks. A reminder to appreciate fleeting beauty.",
+  lavender:"🐝 One third of our food supply depends on pollinators like bees. Grow wildflowers!",
+  meadow:"🌾 Meadows support more biodiversity per square meter than most ecosystems.",
+  forest:"🌲 Old-growth forests store vast amounts of carbon and are irreplaceable ecosystems.",
+  ocean:"🌊 Oceans produce over 50% of Earth's oxygen. Protect them from plastic pollution.",
+  mountains:"🏔️ Mountains provide fresh water for over half of humanity. Protect mountain watersheds.",
+  waterfall:"💦 Waterfalls oxygenate rivers, supporting fish and aquatic life downstream.",
+  night:"🌌 Light pollution affects 80% of the world's population. Turn off outdoor lights!",
+  canopy:"🌸 Tree canopies create microclimates that support countless forest species.",
+};
+
+const IMAGES = {
+  easy:[
+    {id:'sunflower',label:'🌻 Sunflower',svg:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#dff6c8"/><circle cx="200" cy="200" r="70" fill="#7a4a21"/>${Array.from({length:16},(_,i)=>`<ellipse cx="200" cy="95" rx="18" ry="50" fill="#f5c94d" transform="rotate(${i*22.5} 200 200)"/>`).join('')}<circle cx="200" cy="200" r="35" fill="#6b3f1c"/><circle cx="190" cy="192" r="6" fill="#a0602a" opacity="0.5"/><circle cx="210" cy="205" r="4" fill="#a0602a" opacity="0.5"/></svg>`},
+    {id:'daisy',label:'🌼 Daisy',svg:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#eef9ff"/><rect x="0" y="320" width="400" height="80" fill="#a5d66b"/>${Array.from({length:12},(_,i)=>`<ellipse cx="200" cy="105" rx="16" ry="52" fill="#ffffff" transform="rotate(${i*30} 200 200)"/>`).join('')}<circle cx="200" cy="200" r="42" fill="#f3c44c"/><circle cx="200" cy="200" r="18" fill="#7a5a10"/></svg>`},
+    {id:'leaf',label:'🍃 Leaf',svg:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#e7f4d5"/><path d="M300 90C170 85 100 170 100 250c0 45 35 70 78 70 96 0 165-75 172-230-17 6-31 6-50 0z" fill="#4f8f2a"/><path d="M128 270c60-35 110-80 175-170" stroke="#2f5f16" stroke-width="8" fill="none" stroke-linecap="round"/><path d="M200 180c20-20 40-55 60-90" stroke="#2f5f16" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.5"/></svg>`},
+    {id:'butterfly',label:'🦋 Butterfly',svg:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#f0fbff"/><circle cx="200" cy="200" r="20" fill="#333"/><path d="M190 200C120 130 70 120 75 200c5 65 65 80 115 25z" fill="#ff8bb1"/><path d="M210 200C280 130 330 120 325 200c-5 65-65 80-115 25z" fill="#7cc8ff"/><path d="M195 184L180 145M205 184L220 145" stroke="#333" stroke-width="4" stroke-linecap="round"/><circle cx="178" cy="143" r="4" fill="#555"/><circle cx="222" cy="143" r="4" fill="#555"/></svg>`},
+    {id:'pine',label:'🌲 Pine',svg:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#dff2ff"/><rect x="0" y="330" width="400" height="70" fill="#8ed04f"/><rect x="185" y="245" width="30" height="85" rx="8" fill="#7a4d2a"/><path d="M200 70l90 100h-48l68 75h-50l40 55H100l40-55H90l68-75h-48z" fill="#2f7d32"/><path d="M200 70l45 50h-24l34 37h-25l20 28H155l20-28h-25l34-37h-24z" fill="#3a9640" opacity="0.4"/></svg>`},
+    {id:'dewdrop',label:'💧 Dewdrop',svg:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#eaf7ef"/><path d="M200 70C160 130 120 170 120 225c0 45 36 80 80 80s80-35 80-80c0-55-40-95-80-155z" fill="#67c6ff"/><circle cx="175" cy="178" r="18" fill="#fff" opacity="0.45"/><circle cx="188" cy="162" r="8" fill="#fff" opacity="0.3"/></svg>`},
+  ],
+  medium:[
+    {id:'tree',label:'🌳 Lone Tree',svg:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#d8f0ff"/><rect x="0" y="310" width="400" height="90" fill="#7ec832"/><rect x="186" y="230" width="28" height="80" rx="8" fill="#7a4d2a"/><circle cx="200" cy="180" r="85" fill="#4e9b33"/><circle cx="150" cy="175" r="55" fill="#3f8128"/><circle cx="255" cy="175" r="55" fill="#3f8128"/><circle cx="200" cy="130" r="45" fill="#5ab034"/></svg>`},
+    {id:'river',label:'🌊 River',svg:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#dff7ff"/><rect x="0" y="280" width="400" height="120" fill="#5ab034"/><path d="M0 260C70 220 120 320 200 280s125-70 200-20v120H0z" fill="#4bb6ff"/><path d="M0 300C60 260 120 345 200 305s130-60 200-10" stroke="#ffffff" stroke-width="10" fill="none" opacity="0.6"/><circle cx="60" cy="150" r="25" fill="#ffe066" opacity="0.8"/></svg>`},
+    {id:'stream',label:'🌿 Forest Stream',svg:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#e6f6d8"/><path d="M0 240C75 220 120 280 190 260s120-50 210-20v160H0z" fill="#3daee9"/><path d="M0 280C70 252 110 310 190 285s120-45 210-15" stroke="#fff" stroke-width="8" fill="none" opacity="0.5"/><path d="M60 70h40l-20 90zM300 80h50l-25 100z" fill="#2f7d32"/><path d="M190 140l20 55" stroke="#8b6b3a" stroke-width="18" stroke-linecap="round"/></svg>`},
+    {id:'blossom',label:'🌺 Blossom',svg:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#fff1f7"/>${Array.from({length:10},(_,i)=>`<ellipse cx="200" cy="90" rx="18" ry="58" fill="#ff83b8" transform="rotate(${i*36} 200 200)"/>`).join('')}<circle cx="200" cy="200" r="36" fill="#ffd166"/><circle cx="200" cy="200" r="14" fill="#e6a800"/></svg>`},
+    {id:'lavender',label:'🐝 Lavender Field',svg:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#edf0ff"/><rect x="0" y="310" width="400" height="90" fill="#8ed04f"/><rect x="110" y="210" width="28" height="100" rx="14" fill="#8f5bd6"/><rect x="170" y="180" width="28" height="130" rx="14" fill="#8f5bd6"/><rect x="230" y="205" width="28" height="105" rx="14" fill="#8f5bd6"/><rect x="290" y="220" width="22" height="90" rx="11" fill="#a575e0"/><rect x="60" y="225" width="22" height="85" rx="11" fill="#a575e0"/><ellipse cx="200" cy="148" rx="62" ry="34" fill="#ffd54f"/><ellipse cx="200" cy="148" rx="60" ry="10" fill="#222" opacity="0.8"/></svg>`},
+    {id:'meadow',label:'🌾 Meadow',svg:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#e5f6c8"/><path d="M0 280C80 240 130 320 200 292s120-50 200-16v124H0z" fill="#8ed04f"/><circle cx="280" cy="110" r="44" fill="#ffd95e"/><rect x="80" y="230" width="8" height="55" fill="#5a8a30"/><rect x="150" y="220" width="8" height="65" fill="#5a8a30"/><rect x="240" y="235" width="8" height="50" fill="#5a8a30"/></svg>`},
+  ],
+  hard:[
+    {id:'forest',label:'🌲 Deep Forest',svg:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#c8e8cc"/><rect x="0" y="300" width="400" height="100" fill="#4a8a2a"/><rect x="188" y="240" width="24" height="60" rx="8" fill="#7a4d2a"/><path d="M200 60l80 120h-45l55 65h-45l35 50H120l35-50h-45l55-65h-45z" fill="#2f7d32"/><path d="M130 310h140" stroke="#9fc66d" stroke-width="14" stroke-linecap="round"/><circle cx="80" cy="90" r="30" fill="#3a8030" opacity="0.6"/><circle cx="320" cy="100" r="38" fill="#3a8030" opacity="0.6"/></svg>`},
+    {id:'ocean',label:'🌊 Ocean Waves',svg:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#d7f2ff"/><rect x="0" y="0" width="400" height="200" fill="#87ceeb" opacity="0.5"/><circle cx="300" cy="80" r="44" fill="#ffe066"/><path d="M0 230C60 190 110 250 180 220s120-60 220-20v200H0z" fill="#2f8fdd"/><path d="M0 275C70 235 120 300 200 265s125-55 200-15" stroke="#ffffff" stroke-width="12" fill="none" opacity="0.7"/><path d="M0 310C65 275 115 330 195 300s120-50 205-12" stroke="#ffffff" stroke-width="7" fill="none" opacity="0.4"/></svg>`},
+    {id:'mountains',label:'🏔️ Mountains',svg:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#eef7ff"/><rect x="0" y="310" width="400" height="90" fill="#8ed04f"/><path d="M0 320L120 150l80 90 70-120 130 200z" fill="#7ea0b8"/><path d="M120 150l40 48 40-48 35 58H85z" fill="#ffffff" opacity="0.9"/><path d="M190 130l20 25 15-25 30 45H160z" fill="#ffffff" opacity="0.6"/><circle cx="50" cy="100" r="22" fill="#ffe066" opacity="0.9"/></svg>`},
+    {id:'waterfall',label:'💦 Waterfall',svg:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#e8f7ff"/><rect x="80" y="70" width="240" height="170" rx="30" fill="#7b6a54"/><path d="M185 100C170 150 170 210 200 330c30-120 30-180 15-230z" fill="#8ddcff"/><path d="M175 100C162 148 160 208 188 328" stroke="#b0e8ff" stroke-width="6" fill="none" opacity="0.6"/><path d="M105 250c45 20 95 20 135 0" stroke="#57b7e6" stroke-width="10" fill="none" opacity="0.7"/><ellipse cx="200" cy="350" rx="80" ry="22" fill="#57b7e6" opacity="0.5"/></svg>`},
+    {id:'night',label:'🌌 Night Forest',svg:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#1b2447"/><circle cx="300" cy="80" r="26" fill="#fff6cc"/><path d="M200 70l75 115h-40l55 65h-45l35 50H120l35-50h-45l55-65h-40z" fill="#2d8a49"/>${Array.from({length:12},(_,i)=>`<circle cx="${30+i*30}" cy="${50+Math.sin(i)*30}" r="2" fill="#fff" opacity="${0.5+Math.random()*0.5}"/>`).join('')}</svg>`},
+    {id:'canopy',label:'🌸 Blossom Canopy',svg:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#fff0f6"/><circle cx="130" cy="120" r="60" fill="#ffb3d1"/><circle cx="200" cy="85" r="75" fill="#ff8fb8"/><circle cx="270" cy="120" r="60" fill="#ffb3d1"/><circle cx="80" cy="160" r="45" fill="#ffc8dc"/><circle cx="320" cy="165" r="45" fill="#ffc8dc"/><rect x="190" y="220" width="20" height="110" rx="8" fill="#7a4d2a"/><rect x="0" y="320" width="400" height="80" fill="#ffe8f0"/></svg>`},
+  ],
+};
+
+// ─── STATE ─────────────────────────────────────────────────────────────────
+
+let size = 3, tiles = [], currentImage = '', currentImageId = '';
+let timeLeft = 0, totalTime = 0, interval = null;
+let moves = 0, dragIdx = null, touchDragIdx = null, gameOver = false;
+let audioCtx = null, musicPlaying = false, musicNodes = [];
+
+const DIFF_CONFIG = {
+  3:{diff:'easy', label:'🟢 Easy', badge:'easy', tip:'🌱 Simple 3×3 puzzle — great for beginners!', tipClass:'easy', time:120},
+  4:{diff:'medium', label:'🟡 Medium', badge:'medium', tip:'🌿 4×4 puzzle — needs careful observation.', tipClass:'medium', time:300},
+  5:{diff:'hard', label:'🔴 Hard', badge:'hard', tip:'🔥 5×5 puzzle — a real challenge!', tipClass:'hard', time:720},
+  6:{diff:'hard', label:'🔴 Expert', badge:'hard', tip:'💀 6×6 puzzle — for experts only!', tipClass:'hard', time:1200},
+};
+
+function getDiff(){ return DIFF_CONFIG[size] || DIFF_CONFIG[3]; }
+function getDiffKey(){ return getDiff().diff; }
+function getPool(){ return IMAGES[getDiffKey()] || IMAGES.easy; }
+function getBestKey(){ return `ecoPuzzle_best_${size}`; }
+
+function getBest(){ return localStorage.getItem(getBestKey()) || null; }
+function saveBest(m, s){
+  const cur = getBest();
+  const val = `${m}|${s}`;
+  if(!cur){ localStorage.setItem(getBestKey(), val); return true; }
+  const [bm,bt] = cur.split('|').map(Number);
+  if(m < bm || (m === bm && s < bt)){ localStorage.setItem(getBestKey(), val); return true; }
+  return false;
+}
+function bestLabel(){
+  const cur = getBest();
+  if(!cur) return '—';
+  const [bm,bt] = cur.split('|').map(Number);
+  const mn = Math.floor(bt/60), sc = bt%60;
+  return `${bm} moves · ${mn}:${sc.toString().padStart(2,'0')}`;
+}
+function updateBest(){ document.getElementById('s-best').textContent = bestLabel(); }
+
+// ─── TILE SIZE ─────────────────────────────────────────────────────────────
+
+function tileSize(){
+  const vw = Math.min(window.innerWidth, 680);
+  const avail = vw - 24;
+  const gap = (size-1)*4;
+  return Math.floor((avail-gap)/size);
+}
+
+// ─── TIMER ────────────────────────────────────────────────────────────────
+
+function startTimer(){
+  timeLeft = getDiff().time;
+  totalTime = timeLeft;
+  clearInterval(interval);
+  updateTimerDisplay();
+  interval = setInterval(()=>{
+    timeLeft--;
+    updateTimerDisplay();
+    if(timeLeft <= 0){ clearInterval(interval); interval = null; gameOver = true; showTimeUp(); }
+  }, 1000);
+}
+function stopTimer(){ clearInterval(interval); interval = null; }
+function updateTimerDisplay(){
+  const m = Math.floor(Math.max(0,timeLeft)/60);
+  const s = Math.max(0,timeLeft)%60;
+  const el = document.getElementById('s-timer');
+  el.textContent = `${m}:${s.toString().padStart(2,'0')}`;
+  if(timeLeft <= 20){ el.classList.add('urgent'); } else { el.classList.remove('urgent'); }
+}
+
+// ─── DIFF UI ──────────────────────────────────────────────────────────────
+
+function setupDiffUI(){
+  const cfg = getDiff();
+  document.getElementById('diff-badge').textContent = cfg.label;
+  document.getElementById('diff-badge').className = 'diff-badge ' + cfg.badge;
+  document.getElementById('diff-tip').className = 'diff-tip ' + cfg.tipClass;
+  document.getElementById('diff-tip-text').textContent = cfg.tip;
+}
+
+function changeDiff(newSize, btn){
+  size = newSize;
+  document.querySelectorAll('.diff-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  setupDiffUI();
+  updateBest();
+  startGame();
+}
+
+// ─── SVG UTILS ─────────────────────────────────────────────────────────────
+
 function svgDataUri(svg){ return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg); }
-function startGame(){ moves=0; gameOver=false; document.getElementById('s-moves').textContent='0'; updateBestDisplay(); dragIdx=null; touchDragIdx=null; const pool=IMAGES[DIFF]; const pick=pool[Math.floor(Math.random()*pool.length)]; currentImage=svgDataUri(pick.svg); document.getElementById('preview').src=currentImage; document.getElementById('eco-name').textContent=pick.label; tiles=[...Array(size*size).keys()]; do{ for(let i=tiles.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [tiles[i],tiles[j]]=[tiles[j],tiles[i]]; } } while(tiles.every((v,i)=>v===i)); startTimer(); draw(); }
-function draw(){ const g=document.getElementById('game'); const ts=tileSize(); g.innerHTML=''; g.style.gridTemplateColumns=`repeat(${size}, ${ts}px)`; tiles.forEach((num,i)=>{ const d=document.createElement('div'); d.className='tile'; d.style.position='relative'; d.style.width=ts+'px'; d.style.height=ts+'px'; d.style.backgroundImage=`url(${currentImage})`; d.style.backgroundSize=`${size*ts}px ${size*ts}px`; const cx=(num%size)*ts; const cy=Math.floor(num/size)*ts; d.style.backgroundPosition=`-${cx}px -${cy}px`; d.draggable=true; d.addEventListener('dragstart',()=>{ dragIdx=i; d.classList.add('dragging'); }); d.addEventListener('dragend',()=>{ d.classList.remove('dragging'); dragIdx=null; draw(); }); d.addEventListener('dragover',e=>{ e.preventDefault(); d.classList.add('drag-over'); }); d.addEventListener('dragleave',()=>d.classList.remove('drag-over')); d.addEventListener('drop',e=>{ e.preventDefault(); d.classList.remove('drag-over'); if(dragIdx!==null && dragIdx!==i) swapTiles(dragIdx,i); }); d.addEventListener('touchstart',e=>{ e.preventDefault(); touchDragIdx=i; d.classList.add('dragging'); }, { passive:false }); d.addEventListener('touchend',e=>{ e.preventDefault(); d.classList.remove('dragging'); const touch=e.changedTouches[0]; const target=document.elementFromPoint(touch.clientX,touch.clientY); if(target && target.classList.contains('tile')){ const allTiles=[...document.querySelectorAll('.tile')]; const targetIdx=allTiles.indexOf(target); if(touchDragIdx!==null && targetIdx!==-1 && targetIdx!==touchDragIdx) swapTiles(touchDragIdx,targetIdx); } touchDragIdx=null; }, { passive:false }); g.appendChild(d); }); }
-function swapTiles(a,b){ if(gameOver) return; [tiles[a],tiles[b]]=[tiles[b],tiles[a]]; moves++; document.getElementById('s-moves').textContent=moves; draw(); checkWin(); }
-function checkWin(){ if(!tiles.every((v,i)=>v===i)) return; stopTimer(); gameOver=true; const timeTaken=totalTime-timeLeft; const m=Math.floor(timeTaken/60); const s=timeTaken%60; const isNew=saveBest(moves,timeTaken); updateBestDisplay(); const bestMsg=isNew?`🏆 New Best Record! ${moves} moves in ${m}:${s.toString().padStart(2,'0')}`:`Best: ${bestLabel()}`; showPopup('🌿','Puzzle Complete!',`You solved the ${size}×${size} nature puzzle in ${m}m ${s}s using ${moves} moves.`,bestMsg,true); }
-function showPopup(icon,title,sub,best){ document.getElementById('pop-icon').textContent=icon; document.getElementById('pop-title').textContent=title; document.getElementById('pop-sub').textContent=sub; document.getElementById('pop-best').textContent=best||''; document.getElementById('overlay').classList.add('show'); }
+
+// ─── PROGRESS ─────────────────────────────────────────────────────────────
+
+function updateProgress(){
+  const correct = tiles.filter((v,i)=>v===i).length;
+  const total = size*size;
+  const pct = Math.round(correct/total*100);
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('progress-pct').textContent = pct + '%';
+}
+
+// ─── GAME ──────────────────────────────────────────────────────────────────
+
+function startGame(){
+  moves = 0; gameOver = false;
+  document.getElementById('s-moves').textContent = '0';
+  dragIdx = null; touchDragIdx = null;
+  updateBest();
+  const pool = getPool();
+  const pick = pool[Math.floor(Math.random()*pool.length)];
+  currentImage = svgDataUri(pick.svg);
+  currentImageId = pick.id;
+  document.getElementById('preview').src = currentImage;
+  document.getElementById('eco-name').textContent = pick.label;
+  tiles = [...Array(size*size).keys()];
+  let attempts = 0;
+  do {
+    for(let i=tiles.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [tiles[i],tiles[j]] = [tiles[j],tiles[i]];
+    }
+    attempts++;
+  } while(tiles.every((v,i)=>v===i) && attempts < 100);
+  updateProgress();
+  startTimer();
+  draw();
+}
+
+function draw(){
+  const g = document.getElementById('game');
+  const ts = tileSize();
+  g.innerHTML = '';
+  g.style.gridTemplateColumns = `repeat(${size}, ${ts}px)`;
+  g.style.gap = '4px';
+  tiles.forEach((num,i)=>{
+    const d = document.createElement('div');
+    d.className = 'tile';
+    d.style.width = ts+'px';
+    d.style.height = ts+'px';
+    d.style.backgroundImage = `url(${currentImage})`;
+    d.style.backgroundSize = `${size*ts}px ${size*ts}px`;
+    const cx = (num%size)*ts;
+    const cy = Math.floor(num/size)*ts;
+    d.style.backgroundPosition = `-${cx}px -${cy}px`;
+    // Correct tile subtle highlight
+    if(num === i){ d.style.outline = '2px solid rgba(126,200,50,0.5)'; }
+    d.draggable = true;
+    d.addEventListener('dragstart', ()=>{ dragIdx=i; d.classList.add('dragging'); });
+    d.addEventListener('dragend', ()=>{ d.classList.remove('dragging'); dragIdx=null; draw(); });
+    d.addEventListener('dragover', e=>{ e.preventDefault(); d.classList.add('drag-over'); });
+    d.addEventListener('dragleave', ()=>d.classList.remove('drag-over'));
+    d.addEventListener('drop', e=>{ e.preventDefault(); d.classList.remove('drag-over'); if(dragIdx!==null&&dragIdx!==i) swapTiles(dragIdx,i); });
+    // Touch
+    d.addEventListener('touchstart', e=>{ e.preventDefault(); touchDragIdx=i; d.classList.add('dragging'); }, {passive:false});
+    d.addEventListener('touchend', e=>{
+      e.preventDefault(); d.classList.remove('dragging');
+      const touch = e.changedTouches[0];
+      const target = document.elementFromPoint(touch.clientX, touch.clientY);
+      if(target && target.classList.contains('tile')){
+        const allTiles = [...document.querySelectorAll('.tile')];
+        const targetIdx = allTiles.indexOf(target);
+        if(touchDragIdx!==null && targetIdx!==-1 && targetIdx!==touchDragIdx) swapTiles(touchDragIdx, targetIdx);
+      }
+      touchDragIdx = null;
+    }, {passive:false});
+    // Number hint
+    const num_hint = document.createElement('div');
+    num_hint.className = 'tile-num';
+    num_hint.textContent = num+1;
+    d.appendChild(num_hint);
+    g.appendChild(d);
+  });
+}
+
+function swapTiles(a,b){
+  if(gameOver) return;
+  [tiles[a],tiles[b]] = [tiles[b],tiles[a]];
+  moves++;
+  document.getElementById('s-moves').textContent = moves;
+  draw();
+  updateProgress();
+  checkWin();
+}
+
+function checkWin(){
+  if(!tiles.every((v,i)=>v===i)) return;
+  stopTimer();
+  gameOver = true;
+  const timeTaken = totalTime - timeLeft;
+  const m = Math.floor(timeTaken/60), s = timeTaken%60;
+  const isNew = saveBest(moves, timeTaken);
+  updateBest();
+  const bestMsg = isNew
+    ? `🏆 New Best Record! ${moves} moves in ${m}:${s.toString().padStart(2,'0')}`
+    : `Best: ${bestLabel()}`;
+  launchConfetti();
+  showWinPopup(m, s, bestMsg);
+}
+
+function showTimeUp(){
+  showPopup(
+    false,
+    '⏰', 'Time\'s Up!',
+    `You had ${moves} moves but the timer ran out. Try again!`,
+    null,
+    currentImageId
+  );
+}
+function showWinPopup(m,s,bestMsg){
+  showPopup(
+    true,
+    '🌿', 'Puzzle Complete!',
+    `Solved the ${size}×${size} puzzle in ${m}m ${s}s with ${moves} moves!`,
+    bestMsg,
+    currentImageId
+  );
+}
+
+function getQuote(imageId){
+  const key = imageId || 'forest';
+  const arr = QUOTES[key] || QUOTES.forest;
+  return arr[Math.floor(Math.random()*arr.length)];
+}
+function getEcoTip(imageId){
+  return ECO_TIPS[imageId] || ECO_TIPS.forest;
+}
+
+function showPopup(isWin, icon, title, sub, best, imageId){
+  document.getElementById('pop-icon').textContent = icon;
+  document.getElementById('pop-title').textContent = title;
+  document.getElementById('pop-sub').textContent = sub;
+  document.getElementById('pop-best').textContent = best || '';
+  const q = getQuote(imageId);
+  document.getElementById('quote-text').textContent = q.q;
+  document.getElementById('quote-author').textContent = '— ' + q.a;
+  document.getElementById('eco-tip').textContent = getEcoTip(imageId);
+  document.getElementById('popup-box').className = 'popup-box' + (isWin ? '' : ' lost');
+  document.getElementById('overlay').classList.add('show');
+}
 function hidePopup(){ document.getElementById('overlay').classList.remove('show'); }
 function playAgain(){ hidePopup(); startGame(); }
-function goBack(){ if(history.length>1) history.back(); else alert('Back action not available in this standalone file.'); }
-window.addEventListener('resize',()=>draw()); setupDiffUI(); startGame();
+function goBack(){
+  if(history.length>1) history.back();
+  else { hidePopup(); }
+}
+
+// ─── CONFETTI ─────────────────────────────────────────────────────────────
+
+function launchConfetti(){
+  const colors = ['#7ec832','#f5c94d','#4bb6ff','#ff8bb1','#ffd166','#2f7d32'];
+  for(let i=0;i<60;i++){
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    el.style.left = Math.random()*100+'vw';
+    el.style.top = '-20px';
+    el.style.background = colors[Math.floor(Math.random()*colors.length)];
+    el.style.transform = `rotate(${Math.random()*360}deg)`;
+    el.style.animationDelay = Math.random()*1.5+'s';
+    el.style.animationDuration = (2+Math.random()*2)+'s';
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(), 4500);
+  }
+}
+
+// ─── PREVIEW ZOOM ────────────────────────────────────────────────────────
+
+function togglePreviewBig(){
+  // Simple toggle bigger preview
+  const wrap = document.querySelector('.preview-wrap');
+  if(wrap.style.width === '320px'){
+    wrap.style.width='200px'; wrap.style.height='150px';
+  } else {
+    wrap.style.width='320px'; wrap.style.height='240px';
+  }
+}
+
+// ─── MUSIC (Web Audio) ────────────────────────────────────────────────────
+
+function initAudio(){
+  if(audioCtx) return;
+  audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+}
+
+function playNatureSounds(){
+  initAudio();
+  stopMusic();
+  musicNodes = [];
+  const master = audioCtx.createGain();
+  master.gain.value = 0.18;
+  master.connect(audioCtx.destination);
+
+  // Gentle wind-like noise (band-pass filtered white noise)
+  function makeWind(){
+    const bufSize = audioCtx.sampleRate * 3;
+    const buf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+    const data = buf.getChannelData(0);
+    for(let i=0;i<bufSize;i++) data[i] = (Math.random()*2-1);
+    const src = audioCtx.createBufferSource();
+    src.buffer = buf;
+    src.loop = true;
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = 400;
+    filter.Q.value = 0.5;
+    const gain = audioCtx.createGain();
+    gain.gain.value = 0.25;
+    src.connect(filter); filter.connect(gain); gain.connect(master);
+    src.start();
+    musicNodes.push(src);
+  }
+
+  // Gentle bird chirps
+  function birdChirp(){
+    if(!musicPlaying) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    const freq = 800 + Math.random()*1200;
+    osc.frequency.value = freq;
+    osc.type = 'sine';
+    gain.gain.setValueAtTime(0, audioCtx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime+0.05);
+    gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime+0.3);
+    osc.connect(gain); gain.connect(master);
+    osc.start(audioCtx.currentTime);
+    osc.stop(audioCtx.currentTime+0.35);
+    musicNodes.push(osc);
+    const next = 1000 + Math.random()*3000;
+    const tid = setTimeout(birdChirp, next);
+    musicNodes.push({stop:()=>clearTimeout(tid)});
+  }
+
+  // Soft water ripple tones
+  function waterTone(){
+    if(!musicPlaying) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.frequency.value = 200 + Math.random()*200;
+    osc.type = 'sine';
+    gain.gain.setValueAtTime(0, audioCtx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.08, audioCtx.currentTime+0.5);
+    gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime+2.5);
+    osc.connect(gain); gain.connect(master);
+    osc.start(audioCtx.currentTime);
+    osc.stop(audioCtx.currentTime+2.6);
+    musicNodes.push(osc);
+    const next = 1500 + Math.random()*2000;
+    const tid = setTimeout(waterTone, next);
+    musicNodes.push({stop:()=>clearTimeout(tid)});
+  }
+
+  makeWind();
+  setTimeout(birdChirp, 500);
+  setTimeout(waterTone, 200);
+  musicNodes.push(master);
+  musicPlaying = true;
+}
+
+function stopMusic(){
+  musicPlaying = false;
+  musicNodes.forEach(n=>{ try{ n.stop(); } catch(e){} });
+  musicNodes = [];
+}
+
+function toggleMusic(){
+  if(musicPlaying){
+    stopMusic();
+    document.getElementById('play-btn').textContent = '▶';
+    document.getElementById('music-sub').textContent = 'Click to play ambient sounds';
+    document.getElementById('eq-anim').classList.add('paused');
+  } else {
+    playNatureSounds();
+    document.getElementById('play-btn').textContent = '⏸';
+    document.getElementById('music-sub').textContent = 'Nature ambience playing…';
+    document.getElementById('eq-anim').classList.remove('paused');
+  }
+}
+
+// ─── INIT ──────────────────────────────────────────────────────────────────
+
+window.addEventListener('resize', ()=>draw());
+setupDiffUI();
+startGame();
 </script>
 </body>
 </html>
